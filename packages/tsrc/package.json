@@ -1,0 +1,55 @@
+{
+  "name": "tsrc",
+  "version": "0.0.0",
+  "description": "for library development based on typescript",
+  "keywords": [
+    "typescript",
+    "babel"
+  ],
+  "author": "Liu Bowen <mr_lbw@outlook.com>",
+  "homepage": "https://github.com/lbwa/tsrc",
+  "license": "MIT",
+  "main": "dist/bin/cli.js",
+  "bin": {
+    "tsrc": "dist/bin/cli.js"
+  },
+  "directories": {
+    "lib": "dist"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/lbwa/tsrc.git"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "watch": "rimraf dist && tsc -p tsconfig.json -w",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "esbuild": "^0.12.1",
+    "rxjs": "^7.1.0",
+    "tslib": "^2.2.0",
+    "yargs": "^17.0.1"
+  },
+  "bugs": {
+    "url": "https://github.com/lbwa/tsrc/issues"
+  },
+  "peerDependencies": {
+    "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "@lbwa/tsconfig": "^0.2.0",
+    "@types/yargs": "^16.0.1",
+    "debug": "^4.3.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.4"
+  }
+}

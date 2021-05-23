@@ -2600,7 +2600,7 @@ dateformat@^3.0.0:
   resolved "https://registry.nlark.com/dateformat/download/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"
   integrity sha1-puN0maTZqc+F71hyBE1ikByYia4=
 
-debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.2.0:
+debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.2.0, debug@^4.3.1:
   version "4.3.1"
   resolved "https://registry.npm.taobao.org/debug/download/debug-4.3.1.tgz?cache=0&sync_timestamp=1614330710870&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fdebug%2Fdownload%2Fdebug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
   integrity sha1-8NIpxQXgxtjEmsVT0bE9wYP2su4=
@@ -2885,6 +2885,11 @@ es-to-primitive@^1.2.1:
     is-callable "^1.1.4"
     is-date-object "^1.0.1"
     is-symbol "^1.0.2"
+
+esbuild@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.nlark.com/esbuild/download/esbuild-0.12.1.tgz#f652d5b3b9432dbb42fc2c034ddd62360296e03d"
+  integrity sha1-9lLVs7lDLbtC/CwDTd1iNgKW4D0=
 
 escalade@^3.1.1:
   version "3.1.1"
