@@ -1439,6 +1439,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/debug@^4.1.5":
+  version "4.1.5"
+  resolved "https://registry.nlark.com/@types/debug/download/@types/debug-4.1.5.tgz?cache=0&sync_timestamp=1621240832553&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fdebug%2Fdownload%2F%40types%2Fdebug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
+  integrity sha1-sU76iFK3do2JiQZhPCP2iHE+As0=
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
   resolved "https://registry.nlark.com/@types/graceful-fs/download/@types/graceful-fs-4.1.5.tgz#21ffba0d98da4350db64891f92a9e5db3cdb4e15"
@@ -3397,6 +3402,11 @@ fsevents@^2.1.2:
   resolved "https://registry.nlark.com/fsevents/download/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
   integrity sha1-ilJveLj99GI7cJ4Ll1xSwkwC/Ro=
 
+func-async@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.nlark.com/func-async/download/func-async-0.1.0.tgz#ca669752572c5416cc45b27c4f263c8180c6e580"
+  integrity sha1-ymaXUlcsVBbMRbJ8TyY8gYDG5YA=
+
 function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.nlark.com/function-bind/download/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
@@ -3589,7 +3599,7 @@ globals@^13.6.0:
   dependencies:
     type-fest "^0.20.2"
 
-globby@^11.0.1, globby@^11.0.2:
+globby@^11.0.1, globby@^11.0.2, globby@^11.0.3:
   version "11.0.3"
   resolved "https://registry.nlark.com/globby/download/globby-11.0.3.tgz?cache=0&sync_timestamp=1618846983468&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fglobby%2Fdownload%2Fglobby-11.0.3.tgz#9b1f0cb523e171dd1ad8c7b2a9fb4b644b9593cb"
   integrity sha1-mx8MtSPhcd0a2MeyqftLZEuVk8s=

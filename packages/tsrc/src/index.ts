@@ -1,4 +1,5 @@
 import yargs from 'yargs/yargs'
+import handleAsync from 'func-async'
 import { ScriptBuildConfigs } from './scripts/build'
 
 export type TranspileModuleType = 'cjs' | 'esm'
@@ -46,10 +47,22 @@ export default function cli(cwd?: string) {
             type: 'string',
             default: 'dist',
             describe: 'Redirect output structure to the directory'
+          })
+          .option('mode', {
+            type: 'string',
+            default: 'development',
+            describe: 'Current transpilation mode, development or production'
           }),
       async argv => {
         const { build } = await import('./scripts/build')
-        await build(argv as ScriptBuildConfigs)
+        const [, exceptions] = await handleAsync(
+          build(argv as ScriptBuildConfigs)
+        )
+        if (exceptions) {
+          // eslint-disable-next-line no-console
+          console.error(exceptions)
+          process.exit(1)
+        }
       }
     )
 }
