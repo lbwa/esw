@@ -12,7 +12,7 @@ export default function cli(cwd?: string) {
     .scriptName('tsrc')
     .help()
     .version()
-    .strict(true)
+    .strictCommands(true)
     .usage('$0 <command> [options]')
     .recommendCommands()
 

@@ -1,7 +1,8 @@
 import { build as transpiler } from 'esbuild'
 import glob from 'globby'
 import createDebug from 'debug'
-import isString from 'lodash/isString'
+import omit from 'lodash/omit'
+import findKey from 'lodash/findKey'
 import { CommandModule } from 'yargs'
 
 type BuildScriptModule = CommandModule<{ command?: string }, ScriptBuildConfigs>
@@ -21,7 +22,7 @@ export const command: BuildScriptModule['command'] = ['build [entry]']
 
 export const describe: BuildScriptModule['describe'] = `Transpile JavaScript/TypeScript codebase`
 
-export const builder: BuildScriptModule['builder'] = function (yargs) {
+export const builder = function builder(yargs) {
   return yargs
     .positional('entry', {
       describe: 'Specify transpile entrypoint',
@@ -32,7 +33,7 @@ export const builder: BuildScriptModule['builder'] = function (yargs) {
       type: 'string',
       desc: 'Specify module code generation',
       default: 'esm',
-      choices: ['cjs', 'esm'] as TranspileModuleType[]
+      choices: ['cjs', 'esm', 'iife'] as TranspileModuleType[]
     })
     .option('outDir', {
       type: 'string',
@@ -41,7 +42,7 @@ export const builder: BuildScriptModule['builder'] = function (yargs) {
     })
     .option('mode', {
       type: 'string',
-      default: 'development',
+      default: 'production',
       describe: 'Current transpilation mode, development or production'
     })
     .option('target', {
@@ -50,13 +51,10 @@ export const builder: BuildScriptModule['builder'] = function (yargs) {
     })
 } as BuildScriptModule['builder']
 
-export const handler: BuildScriptModule['handler'] = async function build({
-  entry,
-  outDir,
-  module,
-  target,
-  mode
-}) {
+export const handler: BuildScriptModule['handler'] = async function build(
+  args
+) {
+  const { entry, outDir, module, mode, ...restProps } = args
   const entryPoints = await glob(
     [`${entry}/*.@(${FILE_EXTENSIONS.join('|')})`],
     {
@@ -65,15 +63,24 @@ export const handler: BuildScriptModule['handler'] = async function build({
   )
   debug(`entry points: %O`, entryPoints)
 
+  const findBoolStringMatchedKey = <V extends Record<string, unknown>>(
+    group: V
+  ) => findKey<V>(group, val => ['true', 'false'].includes(val as string))
+  const esBuildProps = omit(restProps, ['_', '$0', 'out-dir'])
+  let key = findBoolStringMatchedKey(esBuildProps)
+  while (key) {
+    esBuildProps[key] = JSON.parse(esBuildProps[key] as 'false' | 'true')
+    key = findBoolStringMatchedKey(esBuildProps)
+  }
+
   const transpilationResult = await transpiler({
+    minify: mode === 'production',
+    splitting: module === 'esm',
+    metafile: true,
+    ...omit(esBuildProps, ['_', '$0', 'out-dir']),
     entryPoints,
     outdir: outDir,
     format: module,
-    target: target && isString(target) ? target.split(',') : target,
-    // https://esbuild.github.io/api/#splitting
-    splitting: module === 'esm',
-    logLevel: 'error',
-    metafile: true,
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode)
     }
