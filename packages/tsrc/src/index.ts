@@ -1,8 +1,6 @@
 import yargs from 'yargs/yargs'
-import handleAsync from 'func-async'
-import { ScriptBuildConfigs } from './scripts/build'
-
-export type TranspileModuleType = 'cjs' | 'esm'
+import fs from 'fs-extra'
+import * as scriptBuild from './scripts/build'
 
 /**
  * A factory that returns a yargs() instance
@@ -21,48 +19,11 @@ export default function cli(cwd?: string) {
     .alias('h', 'help')
     .alias('v', 'version')
 
-    .command('help [command]', 'show command manual', yargs =>
-      yargs.positional('command', {
-        describe: 'target command',
-        type: 'string'
-      })
-    )
+    .config('config', configPath => {
+      const isExist = fs.existsSync(configPath)
+      if (!isExist) throw new Error(`Invalid config file path: ${configPath}`)
+      return fs.readJsonSync(configPath) as Record<string, unknown>
+    })
 
-    .command(
-      'build [entry]',
-      'transpile typescript codebase',
-      yargs =>
-        yargs
-          .positional('entry', {
-            describe: 'Specify transpile entrypoint',
-            type: 'string',
-            default: 'src'
-          })
-          .option('module', {
-            type: 'string',
-            default: 'esm',
-            describe: 'Specify module code generation'
-          })
-          .option('outDir', {
-            type: 'string',
-            default: 'dist',
-            describe: 'Redirect output structure to the directory'
-          })
-          .option('mode', {
-            type: 'string',
-            default: 'development',
-            describe: 'Current transpilation mode, development or production'
-          }),
-      async argv => {
-        const { build } = await import('./scripts/build')
-        const [, exceptions] = await handleAsync(
-          build(argv as ScriptBuildConfigs)
-        )
-        if (exceptions) {
-          // eslint-disable-next-line no-console
-          console.error(exceptions)
-          process.exit(1)
-        }
-      }
-    )
+    .command(scriptBuild)
 }
