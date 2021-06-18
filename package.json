@@ -1,9 +1,28 @@
 {
   "name": "root",
   "private": true,
+  "description": "A extremely fast cli for building JavaScript/TypeScript library.",
+  "version": "0.0.1",
   "workspaces": [
     "packages/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/lbwa/tsrc.git"
+  },
+  "keywords": [
+    "typescript",
+    "javascript",
+    "cli",
+    "development",
+    "integrate"
+  ],
+  "author": "Liu Bowen <asyncmode@outlook.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lbwa/tsrc/issues"
+  },
+  "homepage": "https://github.com/lbwa/tsrc#readme",
   "scripts": {
     "prepare": "husky install && lerna bootstrap",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,sass,less,md}\"",
@@ -36,5 +55,9 @@
     "**/*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ]
+  },
+  "engines": {
+    "yarn": ">=1.21.1 <2",
+    "npm": "Please use yarn instead of NPM to install dependencies"
   }
 }
