@@ -28,7 +28,7 @@ export const handler: BuildScriptModule['handler'] = async function init({
   const createOutputPath = (filename: string) =>
     path.join(CWD, workingDirectory, filename)
 
-  await fs.outputJSON(
+  const pkgJsonStream = fs.outputJSON(
     createOutputPath('package.json'),
     {
       name: 'root',
@@ -46,7 +46,7 @@ export const handler: BuildScriptModule['handler'] = async function init({
     { spaces: 2 }
   )
 
-  await fs.outputJSON(
+  const tsconfigStream = fs.outputJSON(
     createOutputPath('tsconfig.json'),
     {
       $schema: 'https://json.schemastore.org/tsconfig',
@@ -55,11 +55,13 @@ export const handler: BuildScriptModule['handler'] = async function init({
     { spaces: 2 }
   )
 
-  await fs.outputFile(
+  const prettierConfigStream = fs.outputFile(
     createOutputPath('.prettierrc.js'),
     `module.exports = {
   ...require("@lbwa/pretter-config"),
   // set extra prettier options from here if necessary
 }`
   )
+
+  await Promise.all([pkgJsonStream, tsconfigStream, prettierConfigStream])
 }
