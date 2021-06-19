@@ -1,12 +1,13 @@
 import yargs from 'yargs/yargs'
 import fs from 'fs-extra'
-import * as scriptBuild from './scripts/build'
 
 /**
  * A factory that returns a yargs() instance
  */
 export default function cli(cwd?: string) {
   const parser = yargs(void 0, cwd)
+
+  parser.commandDir('./scripts')
 
   return parser
     .scriptName('tsrc')
@@ -24,6 +25,4 @@ export default function cli(cwd?: string) {
       if (!isExist) throw new Error(`Invalid config file path: ${configPath}`)
       return fs.readJsonSync(configPath) as Record<string, unknown>
     })
-
-    .command(scriptBuild)
 }
