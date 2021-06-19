@@ -25,13 +25,17 @@ export const builder = function builder(yargs) {
 export const handler: BuildScriptModule['handler'] = async function init({
   workingDirectory
 }) {
+  const createOutputPath = (filename: string) =>
+    path.join(CWD, workingDirectory, filename)
+
   await fs.outputJSON(
-    path.join(CWD, workingDirectory, 'package.json'),
+    createOutputPath('package.json'),
     {
       name: 'root',
       private: true,
       dependencies: {},
       devDependencies: {
+        '@lbwa/tsconfig': '*',
         '@lbwa/pretter-config': '*',
         eslint: '^7.29.0',
         husky: '^6.0.0',
@@ -42,8 +46,17 @@ export const handler: BuildScriptModule['handler'] = async function init({
     { spaces: 2 }
   )
 
+  await fs.outputJSON(
+    createOutputPath('tsconfig.json'),
+    {
+      $schema: 'https://json.schemastore.org/tsconfig',
+      extends: '@lbwa/tsconfig'
+    },
+    { spaces: 2 }
+  )
+
   await fs.outputFile(
-    path.join(CWD, workingDirectory, '.prettierrc.js'),
+    createOutputPath('.prettierrc.js'),
     `module.exports = {
   ...require("@lbwa/pretter-config"),
   // set extra prettier options from here if necessary
