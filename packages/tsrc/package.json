@@ -34,7 +34,9 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
+    "chalk": "^4.1.1",
     "esbuild": "^0.12.1",
+    "find-up": "^5.0.0",
     "fs-extra": "^10.0.0",
     "func-async": "^0.1.0",
     "globby": "^11.0.3",
@@ -47,11 +49,19 @@
     "url": "https://github.com/lbwa/tsrc/issues"
   },
   "peerDependencies": {
+    "@types/eslint": "^7.2.13",
+    "eslint": "^7.29.0",
     "typescript": "^4.2.4"
+  },
+  "peerDependenciesMeta": {
+    "@types/eslint": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@lbwa/tsconfig": "^0.2.0",
     "@types/debug": "^4.1.5",
+    "@types/eslint": "^7.2.13",
     "@types/fs-extra": "^9.0.11",
     "@types/lodash": "^4.14.170",
     "@types/yargs": "^16.0.1",
