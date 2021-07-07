@@ -49,7 +49,7 @@
   },
   "prettier": "@lbwa/prettier-config",
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,css,scss,sass,less,md}": [
+    "**/*.{js,jsx,ts,tsx,json,css,scss,less,md}": [
       "prettier --write"
     ],
     "**/*.{js,jsx,ts,tsx}": [

@@ -1,0 +1,44 @@
+{
+  "name": "@tsrc/plugin-sass",
+  "version": "0.1.0",
+  "description": "sass plugin",
+  "keywords": [
+    "sass"
+  ],
+  "author": "Liu Bowen <mr_lbw@outlook.com>",
+  "homepage": "https://github.com/lbwa/tsrc/tree/main/packages/plugin-sass#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lbwa/tsrc.git",
+    "directory": "packages/plugin-sass"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "tsc -p tsconfig.json"
+  },
+  "bugs": {
+    "url": "https://github.com/lbwa/tsrc/issues"
+  },
+  "peerDependencies": {
+    "esbuild": "^0.12.15",
+    "sass": "^1.35.1"
+  },
+  "devDependencies": {
+    "@types/sass": "^1.16.1",
+    "esbuild": "^0.12.15",
+    "sass": "^1.35.1"
+  }
+}

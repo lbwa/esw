@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`sass plugin should work without bundle: work without bundle 1`] = `
+"@import \\"./dep.css\\";
+html,
+body {
+  color: var(--theme-primary);
+}
+"
+`;
