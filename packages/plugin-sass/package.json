@@ -8,10 +8,9 @@
   "author": "Liu Bowen <mr_lbw@outlook.com>",
   "homepage": "https://github.com/lbwa/tsrc/tree/main/packages/plugin-sass#readme",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "files": [
     "lib"
@@ -27,7 +26,7 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "tsc -p tsconfig.json"
+    "build": "esbuild src/index.ts --bundle --external:esbuild --external:sass --platform=node --outdir=lib --tsconfig=tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/lbwa/tsrc/issues"
