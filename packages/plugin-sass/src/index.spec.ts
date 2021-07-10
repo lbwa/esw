@@ -44,12 +44,12 @@ describe('sass plugin', () => {
     expect(output).toMatchSnapshot(getTestName())
   })
 
-  it('should work bundle', async () => {
+  it('should work with bundle', async () => {
     const { output } = await run(getTestName(), { bundle: true })
     expect(output).toMatchSnapshot(getTestName())
   })
 
-  it('should work css minify and bundle', async () => {
+  it('should work with css minify and bundle', async () => {
     const { output } = await run(getTestName(), { bundle: true, minify: true })
     expect(output).toMatchSnapshot(getTestName())
   })

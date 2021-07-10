@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sass plugin should work bundle: should-work-bundle 1`] = `
+exports[`sass plugin should work with bundle: should-work-with-bundle 1`] = `
 "/* sass-lang:/home/bowen/codes/eseco/packages/plugin-sass/src/fixtures/dep.css */
 html,
 body {
@@ -15,7 +15,7 @@ body {
 "
 `;
 
-exports[`sass plugin should work css minify and bundle: should-work-css-minify-and-bundle 1`] = `
+exports[`sass plugin should work with css minify and bundle: should-work-with-css-minify-and-bundle 1`] = `
 "html,body{font-size:16px}html,body{color:var(--theme-primary)}
 "
 `;
