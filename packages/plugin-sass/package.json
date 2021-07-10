@@ -1,12 +1,12 @@
 {
-  "name": "@tsrc/plugin-sass",
+  "name": "sass-esbuild-plugin",
   "version": "0.1.0",
   "description": "sass plugin",
   "keywords": [
     "sass"
   ],
   "author": "Liu Bowen <mr_lbw@outlook.com>",
-  "homepage": "https://github.com/lbwa/tsrc/tree/main/packages/plugin-sass#readme",
+  "homepage": "https://github.com/lbwa/esw/tree/main/packages/plugin-sass#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "directories": {
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lbwa/tsrc.git",
+    "url": "git+https://github.com/lbwa/esw.git",
     "directory": "packages/plugin-sass"
   },
   "scripts": {
@@ -29,7 +29,7 @@
     "build": "esbuild src/index.ts --bundle --external:esbuild --external:sass --platform=node --outdir=lib --tsconfig=tsconfig.json"
   },
   "bugs": {
-    "url": "https://github.com/lbwa/tsrc/issues"
+    "url": "https://github.com/lbwa/esw/issues"
   },
   "peerDependencies": {
     "esbuild": "^0.12.15",

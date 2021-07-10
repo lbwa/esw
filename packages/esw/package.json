@@ -7,11 +7,11 @@
     "babel"
   ],
   "author": "Liu Bowen <mr_lbw@outlook.com>",
-  "homepage": "https://github.com/lbwa/tsrc",
+  "homepage": "https://github.com/lbwa/esw",
   "license": "MIT",
   "main": "dist/bin/cli.js",
   "bin": {
-    "tsrc": "dist/bin/cli.js"
+    "esw": "dist/bin/cli.js"
   },
   "directories": {
     "lib": "dist"
@@ -26,7 +26,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/lbwa/tsrc.git"
+    "url": "git+ssh://git@github.com/lbwa/esw.git",
+    "directory": "packages/esw"
   },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
@@ -46,7 +47,7 @@
     "yargs": "^17.0.1"
   },
   "bugs": {
-    "url": "https://github.com/lbwa/tsrc/issues"
+    "url": "https://github.com/lbwa/esw/issues"
   },
   "peerDependencies": {
     "@types/eslint": "^7.2.13",

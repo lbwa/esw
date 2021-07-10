@@ -1,1 +1,1 @@
-# @tsrc/plugin-sass
+# sass-esbuild-plugin

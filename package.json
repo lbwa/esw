@@ -8,7 +8,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/lbwa/tsrc.git"
+    "url": "git+ssh://git@github.com/lbwa/esw.git"
   },
   "keywords": [
     "typescript",
@@ -20,9 +20,9 @@
   "author": "Liu Bowen <asyncmode@outlook.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lbwa/tsrc/issues"
+    "url": "https://github.com/lbwa/esw/issues"
   },
-  "homepage": "https://github.com/lbwa/tsrc#readme",
+  "homepage": "https://github.com/lbwa/esw#readme",
   "scripts": {
     "prepare": "husky install && lerna bootstrap",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,sass,less,md}\"",
