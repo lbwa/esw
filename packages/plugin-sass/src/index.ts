@@ -1,5 +1,6 @@
 import path from 'path'
 import esbuild from 'esbuild'
+import type sass from 'sass'
 
 export type SassPluginOptions = {
   implementation: 'sass' | 'node-sass'
@@ -22,14 +23,25 @@ function loadSass(impl: SassPluginOptions['implementation'], baseDir: string) {
   }
 }
 
-function loader(
-  sass: ReturnType<typeof loadSass>
-): (args: esbuild.OnLoadArgs) => Promise<esbuild.OnLoadResult> {
-  return async ({ path }) => {
-    const compiled = sass.renderSync({ file: path })
-
+const createSassImporter: (baseDir: string) => sass.Importer =
+  baseDir => url => {
+    // e.g. @import '~third-party-style';
+    const normalized = url.replace(/^~/, '')
     return {
-      contents: compiled.css.toString(),
+      file: require.resolve(normalized, { paths: [baseDir] })
+    }
+  }
+
+function loader(
+  sass: ReturnType<typeof loadSass>,
+  baseDir: string
+): (args: esbuild.OnLoadArgs) => Promise<esbuild.OnLoadResult> {
+  const sassImporter = createSassImporter(baseDir)
+
+  return async ({ path }) => {
+    const { css } = sass.renderSync({ file: path, importer: [sassImporter] })
+    return {
+      contents: css.toString(),
       loader: 'css'
     }
   }
@@ -60,7 +72,10 @@ function createPlugin(
       })
 
       // define a loader
-      build.onLoad({ filter: /.*/, namespace: SASS_NAMESPACE }, loader(sass))
+      build.onLoad(
+        { filter: /.*/, namespace: SASS_NAMESPACE },
+        loader(sass, baseDir)
+      )
     }
   }
 }
