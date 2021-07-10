@@ -1,4 +1,4 @@
-# tsrc
+# esw
 
 A extremely fast cli for building JavaScript/TypeScript library.
 

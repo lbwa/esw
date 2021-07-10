@@ -10,7 +10,7 @@ export default function cli(cwd?: string) {
   parser.commandDir('./scripts')
 
   return parser
-    .scriptName('tsrc')
+    .scriptName('esw')
     .help()
     .version()
     .strictCommands(true)
