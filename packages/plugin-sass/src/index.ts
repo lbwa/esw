@@ -6,7 +6,7 @@ export type SassPluginOptions = {
   baseDir: string
 }
 
-const SASS_NAMESPACE = 'style-sass'
+const SASS_NAMESPACE = 'sass-lang'
 
 function loadSass(impl: SassPluginOptions['implementation'], baseDir: string) {
   try {
@@ -22,6 +22,19 @@ function loadSass(impl: SassPluginOptions['implementation'], baseDir: string) {
   }
 }
 
+function loader(
+  sass: ReturnType<typeof loadSass>
+): (args: esbuild.OnLoadArgs) => Promise<esbuild.OnLoadResult> {
+  return async ({ path }) => {
+    const compiled = sass.renderSync({ file: path })
+
+    return {
+      contents: compiled.css.toString(),
+      loader: 'css'
+    }
+  }
+}
+
 function createPlugin(
   {
     implementation = 'sass',
@@ -33,19 +46,21 @@ function createPlugin(
     name: 'plugin-sass',
     setup(build) {
       // define a resolver
-      build.onResolve({ filter: /\.s[ac]ss$/i }, args => ({
-        path: path.resolve(args.resolveDir, args.path),
-        namespace: SASS_NAMESPACE
-      }))
-
-      // define a loader
-      build.onLoad({ filter: /.*/, namespace: SASS_NAMESPACE }, args => {
-        const compiled = sass.renderSync({ file: args.path })
+      build.onResolve({ filter: /\.(?:(?:s[ac])|c)ss$/i }, args => {
+        const isRelativePath = !path.isAbsolute(args.path)
+        const dir = args.resolveDir || path.dirname(args.importer)
+        const filepath = isRelativePath
+          ? path.resolve(dir, args.path)
+          : require.resolve(args.path, { paths: [dir] })
         return {
-          contents: compiled.css.toString(),
-          loader: 'css'
+          path: filepath,
+          namespace: SASS_NAMESPACE,
+          pluginData: args
         }
       })
+
+      // define a loader
+      build.onLoad({ filter: /.*/, namespace: SASS_NAMESPACE }, loader(sass))
     }
   }
 }

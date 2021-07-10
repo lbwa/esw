@@ -1,22 +1,56 @@
-import fs from 'fs'
+/* eslint-disable jest/expect-expect */
+import fs from 'fs/promises'
 import path from 'path'
 import { build } from 'esbuild'
+import type esbuild from 'esbuild'
 import sassPlugin from '.'
+
+const cacheDir = path.resolve(__dirname, './.cache')
+
+async function run(name: string, options: esbuild.BuildOptions = {}) {
+  const outDir = `${cacheDir}/${name}`
+  const result = await build({
+    entryPoints: ['./fixtures/index.sass'],
+    outdir: outDir,
+    plugins: [sassPlugin()],
+    absWorkingDir: __dirname,
+    ...options
+  })
+  expect(result.errors).toHaveLength(0)
+  expect(result.warnings).toHaveLength(0)
+  const output = await fs.readFile(
+    path.resolve(__dirname, outDir, `./index.css`),
+    { encoding: 'utf8' }
+  )
+  return {
+    result,
+    output
+  }
+}
+
+const getTestName = () =>
+  expect
+    .getState()
+    .currentTestName.replace('sass plugin ', '')
+    .replace(/\s/g, '-')
+
+beforeAll(async () => {
+  await fs.rm(cacheDir, { force: true, recursive: true })
+})
 
 describe('sass plugin', () => {
   it('should work without bundle', async () => {
-    const result = await build({
-      entryPoints: ['./fixtures/index.sass'],
-      outdir: 'lib/without-bundle',
-      plugins: [sassPlugin()],
-      absWorkingDir: __dirname
-    })
-    expect(result.errors).toHaveLength(0)
-    expect(result.warnings).toHaveLength(0)
-    const output = fs.readFileSync(
-      path.resolve(__dirname, './lib/without-bundle/index.css'),
-      { encoding: 'utf8' }
-    )
-    expect(output).toMatchSnapshot('work without bundle')
+    const { output } = await run(getTestName())
+    expect(output).toMatchSnapshot(getTestName())
+  })
+
+  it('should work bundle', async () => {
+    const { output } = await run(getTestName(), { bundle: true })
+    expect(output).toMatchSnapshot(getTestName())
+  })
+
+  it('should work css minify and bundle', async () => {
+    const { output } = await run(getTestName(), { bundle: true, minify: true })
+    expect(output).toMatchSnapshot(getTestName())
   })
 })

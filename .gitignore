@@ -4,8 +4,8 @@ coverage
 dist
 lib
 .tsbuildinfo
+.cache
 
 .DS_Store
-
 
 *.log
