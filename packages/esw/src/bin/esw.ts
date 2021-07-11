@@ -1,32 +1,41 @@
 #!/usr/bin/env node
 import path from 'path'
 import arg from 'arg'
-import { from, of, pipe, zip } from 'rxjs'
-import { tap, map, concatMap } from 'rxjs/operators'
+import {
+  EMPTY,
+  from,
+  of,
+  pipe,
+  throwError,
+  zip,
+  tap,
+  map,
+  concatMap,
+  catchError
+} from 'rxjs'
 import { printAndExit } from '../shared/log'
+import { ProcessCode as Code } from '../shared/constants'
 
 export type CommandRunner = (argv?: string[]) => void
+type AvailableArgs = typeof availableArgs
+type Commands = typeof COMMANDS
 
-enum Code {
-  OK,
-  ERROR
-}
+// eslint-disable-next-line
+const pkgJson = require(path.resolve(__dirname, '../..', 'package.json'))
 const DEFAULT_COMMAND_NAME = 'build'
 const COMMANDS: Record<string, () => Promise<CommandRunner>> = {
   build: () => import('../cli/build').then(({ default: run }) => run)
 }
-const args = arg({
+const availableArgs = {
   '--version': Boolean,
   '--help': Boolean,
 
   // alias
   '-v': '--version',
   '-h': '--help'
-})
-// eslint-disable-next-line
-const pkgJson = require(path.resolve(__dirname, '../..', 'package.json'))
+}
 
-function printVersion<V extends { args: typeof args }>(
+function printVersion<V extends { args: arg.Result<AvailableArgs> }>(
   pkg: Record<string, unknown>
 ) {
   return pipe(
@@ -38,29 +47,34 @@ function printVersion<V extends { args: typeof args }>(
   )
 }
 
-function printHelp<V extends { isValidCommand: boolean; args: typeof args }>(
-  commands: typeof COMMANDS
-) {
+function printHelpIntoTerminal(commands: Commands) {
+  const names = Object.keys(commands)
+  printAndExit(
+    `
+    Usage
+      $ esw <command>
+
+      Available commands
+        ${names.join(', ')}
+
+      Options
+        --version, -v Show version number
+        --help, -h Display help messages
+
+      For more information run a command with the --help flag
+        $ esw ${names[0] ?? ''} --help
+  `,
+    Code.OK
+  )
+}
+
+function printHelp<
+  V extends { isValidCommand: boolean; args: arg.Result<AvailableArgs> }
+>(commands: Commands) {
   return pipe(
     tap(({ isValidCommand, args: { '--help': help } }: V) => {
       if (!isValidCommand && help) {
-        printAndExit(
-          `
-          Usage
-            $ esw <command>
-      
-            Available commands
-              ${Object.keys(commands).join(', ')}
-      
-            Options
-              --version, -v Show version number
-              --help, -h Display help messages
-      
-            For more information run a command with the --help flag
-              $ esw build --help
-        `,
-          Code.OK
-        )
+        printHelpIntoTerminal(commands)
       }
     })
   )
@@ -80,7 +94,7 @@ function setEnv<V extends { commandName: string }>() {
 }
 
 function normalizeArgs<
-  V extends { isValidCommand: boolean; args: typeof args }
+  V extends { isValidCommand: boolean; args: arg.Result<AvailableArgs> }
 >(defaultCommandName: string) {
   return pipe(
     map(({ isValidCommand, args }: V) => {
@@ -108,8 +122,22 @@ function invokeCommand<
   )
 }
 
-of(args)
+of(process.argv.slice(2))
   .pipe(
+    map(argv =>
+      arg(availableArgs, {
+        //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
+        argv,
+        permissive: true
+      })
+    ),
+    catchError((err: Error & { code: string }) => {
+      if (err.code === 'ARG_UNKNOWN_OPTION') {
+        printHelpIntoTerminal(COMMANDS)
+        return EMPTY
+      }
+      return throwError(() => err)
+    }),
     map(args => ({ isValidCommand: !!COMMANDS[args._[0]], args })),
     printVersion(pkgJson),
     printHelp(COMMANDS),
@@ -118,7 +146,7 @@ of(args)
     invokeCommand()
   )
   .subscribe({
-    next() {
+    complete() {
       process.exit(Code.OK)
     },
     error(err: Error) {

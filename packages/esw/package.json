@@ -11,7 +11,7 @@
   "author": "Liu Bowen <mr_lbw@outlook.com>",
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/esw#readme",
   "license": "MIT",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "bin": {
     "esw": "dist/bin/esw.js"
   },
