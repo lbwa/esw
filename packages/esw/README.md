@@ -1,7 +1,11 @@
-# esw
+# `esw`
 
-A extremely fast cli for building JavaScript/TypeScript library.
+> TODO: description
 
-## License
+## Usage
 
-[MIT](./LICENSE) © [Liu Bowen](https://github.com/lbwa)
+```
+const esw = require('esw');
+
+// TODO: DEMONSTRATE API
+```
