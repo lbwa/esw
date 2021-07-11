@@ -46,7 +46,18 @@ describe('sass plugin', () => {
 
   it('should work with bundle', async () => {
     const { output } = await run(getTestName(), { bundle: true })
-    expect(output).toMatchSnapshot(getTestName())
+    expect(output).toContain(`
+html,
+body {
+  font-size: 16px;
+}
+`)
+    expect(output).toContain(`
+html,
+body {
+  color: var(--theme-primary);
+}
+`)
   })
 
   it('should work with css minify and bundle', async () => {
