@@ -1,4 +1,3 @@
-/* eslint-disable jest/expect-expect */
 import fs from 'fs/promises'
 import path from 'path'
 import { build } from 'esbuild'
