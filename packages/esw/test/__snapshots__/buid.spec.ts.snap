@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`node api - build should be works with package.json: node-api---build-should-be-works-with-package.json 1`] = `
+Object {
+  "errors": Array [],
+  "warnings": Array [],
+}
+`;
