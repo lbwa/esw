@@ -1,5 +1,4 @@
 import { Plugin } from 'esbuild'
-import isString from 'lodash/isString'
 
 export default function externalDepsPlugin(deps: string[] = []): Plugin {
   return {
@@ -9,9 +8,7 @@ export default function externalDepsPlugin(deps: string[] = []): Plugin {
 
       const rules = deps.map(name => new RegExp(`^${name}(?:$|\\/|\\\\)`))
       build.onResolve({ filter: /.*/ }, args => {
-        const matched = rules.some(rule =>
-          isString(rule) ? rule === args.path : rule.test(args.path)
-        )
+        const matched = rules.some(rule => rule.test(args.path))
         if (matched) return { path: args.path, external: true }
         // https://esbuild.github.io/plugins/#resolve-results
         return void 0

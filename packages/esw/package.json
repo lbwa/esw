@@ -33,7 +33,7 @@
     "directory": "packages/esw"
   },
   "scripts": {
-    "build": "esbuild src/bin/*.ts src/index.ts --bundle --platform=node --outdir=dist --tsconfig=tsconfig.json --external:rxjs --external:esbuild --external:arg --external:chalk --external:lodash --external:type-fest",
+    "build": "esbuild src/bin/*.ts src/index.ts --bundle --platform=node --outdir=dist --tsconfig=tsconfig.json --external:rxjs --external:esbuild --external:arg --external:chalk --external:type-fest",
     "watch": "yarn build --watch",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
@@ -49,7 +49,6 @@
     "arg": "^5.0.0",
     "chalk": "^4.1.1",
     "esbuild": "^0.12.15",
-    "lodash": "^4.17.21",
     "rxjs": "^7.2.0",
     "type-fest": "^1.2.2"
   }
