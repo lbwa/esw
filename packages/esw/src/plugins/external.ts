@@ -7,10 +7,7 @@ export default function externalDepsPlugin(deps: string[] = []): Plugin {
     setup(build) {
       if (deps.length < 1) return
 
-      const rules = (deps as (string | RegExp)[]).concat(
-        // match `import isString from 'lodash/isString'`
-        deps.map(name => new RegExp(`^${name}(?:$|\\/|\\)`))
-      )
+      const rules = deps.map(name => new RegExp(`^${name}(?:$|\\/|\\\\)`))
       build.onResolve({ filter: /.*/ }, args => {
         const matched = rules.some(rule =>
           isString(rule) ? rule === args.path : rule.test(args.path)
