@@ -10,9 +10,9 @@ import {
   catchError,
   throwError
 } from 'rxjs'
-import { CommandRunner } from '../bin/esw'
 import { printAndExit, error } from '../shared/log'
 import { ProcessCode } from '../shared/constants'
+import { CommandRunner } from '../cli-parser'
 
 function createPrintHelp(code = ProcessCode.OK) {
   return of(code).pipe(
