@@ -1,20 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`node api - build should be output cjs syntax: node-api---build-should-be-output-cjs-syntax 1`] = `
+exports[`node api - build should output cjs syntax: node-api---build-should-output-cjs-syntax 1`] = `
 Object {
   "errors": Array [],
   "warnings": Array [],
 }
 `;
 
-exports[`node api - build should be output iife syntax: node-api---build-should-be-output-iife-syntax 1`] = `
+exports[`node api - build should output iife syntax: node-api---build-should-output-iife-syntax 1`] = `
 Object {
   "errors": Array [],
   "warnings": Array [],
 }
 `;
 
-exports[`node api - build should be works with package.json: node-api---build-should-be-works-with-package.json 1`] = `
+exports[`node api - build should work with package.json: node-api---build-should-work-with-package.json 1`] = `
 Object {
   "errors": Array [],
   "warnings": Array [],

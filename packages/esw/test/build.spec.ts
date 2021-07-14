@@ -21,7 +21,7 @@ beforeAll(async () => {
 })
 
 describe('node api - build', () => {
-  it('should be works with package.json', async () => {
+  it('should work with package.json', async () => {
     const result = await build({
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug'
@@ -43,7 +43,7 @@ describe('node api - build', () => {
     expect(output).toContain(`from "rxjs/operators"`)
   })
 
-  it('should be output cjs syntax', async () => {
+  it('should output cjs syntax', async () => {
     const result = await build({
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug',
@@ -65,7 +65,7 @@ describe('node api - build', () => {
     expect(output).toContain(`require("rxjs/operators")`)
   })
 
-  it('should be output iife syntax', async () => {
+  it('should output iife syntax', async () => {
     const result = await build({
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug',
