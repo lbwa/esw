@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { build as esbuild, BuildOptions, BuildResult } from 'esbuild'
-import { map, of, pipe, switchMap, tap } from 'rxjs'
+import { iif, map, of, pipe, switchMap, tap } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import externalEsBuildPlugin from './plugins/external'
 
@@ -19,7 +19,6 @@ function normalizeBuildOptions(cwd: string) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const pkgJson = require(pkgJsonPath) as PackageJson
       const options: BuildOptions = {
-        format: 'cjs',
         bundle: true,
         logLevel: 'info',
         incremental: process.env['NODE_ENV'] === 'production',
@@ -30,12 +29,27 @@ function normalizeBuildOptions(cwd: string) {
         pkgJson
       }
     }),
+    // infer options.format
+    switchMap(context =>
+      iif(
+        () => !!context.pkgJson.module,
+        of(context).pipe(
+          tap(({ options }) => {
+            options.format ??= 'esm'
+          })
+        ),
+        of(context).pipe(
+          tap(({ options, pkgJson }) => {
+            options.format ??= pkgJson.main ? 'cjs' : 'iife'
+          })
+        )
+      )
+    ),
     // resolve entryPoints and outdir from package.json field
     tap(({ options, pkgJson }) => {
       // use options.format to decide which output path should be chosen.
-      const outPath = options.format?.includes('esm')
-        ? pkgJson.module
-        : pkgJson.main
+      const isESM = options.format === 'esm'
+      const outPath = isESM ? pkgJson.module : pkgJson.main
 
       if (!outPath) {
         throw new Error(
