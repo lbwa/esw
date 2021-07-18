@@ -1,15 +1,17 @@
 import path from 'path'
 import fs from 'fs'
-import { build, BuildOptions, BuildResult } from 'esbuild'
-import { concatMap, iif, map, zip, of, pipe, tap, throwError, from } from 'rxjs'
+import { build, BuildOptions, BuildResult, Format } from 'esbuild'
+import { iif, map, zip, of, pipe, tap, throwError, mergeMap } from 'rxjs'
 import { PackageJson } from 'type-fest'
+import cloneDeep from 'lodash/cloneDeep'
 import externalEsBuildPlugin from './plugins/external'
+import { tuple } from './shared/utils'
 
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx']
 
 function inferBuildOptions(cwd: string) {
   return pipe(
-    concatMap((opts: BuildOptions) => {
+    mergeMap((opts: BuildOptions) => {
       const pkgJsonPath = path.resolve(cwd, './', 'package.json')
       return iif(
         () => fs.existsSync(pkgJsonPath),
@@ -33,27 +35,38 @@ function inferBuildOptions(cwd: string) {
         pkgJson
       }
     }),
-    // infer options.format
-    concatMap(({ options, pkgJson }) => {
-      const contexts = [{ options, pkgJson }]
+    // infer options.format & outExtension
+    mergeMap(metadata => {
+      const { options, pkgJson } = metadata
 
-      if (!pkgJson.main && !pkgJson.module) {
-        options.format ??= 'iife'
-      }
-      if (pkgJson.module) {
-        options.format ??= 'esm'
-      }
-      if (pkgJson.main) {
-        const format = options.format ?? 'cjs'
-        if (pkgJson.module) {
-          // DO NOT modify options.format
-          contexts.push({ options: { ...options, format }, pkgJson })
-        } else {
-          // Modify options.format directly
-          options.format ??= format
-        }
-      }
-      return from(contexts)
+      return of(
+        tuple([pkgJson.main, 'cjs']),
+        tuple([pkgJson.module, 'esm'])
+      ).pipe(
+        mergeMap(([outPath, format]) => {
+          const clonedMeta = { options: cloneDeep(options), pkgJson }
+          return iif(
+            () => !!outPath,
+            of(clonedMeta).pipe(
+              tap(metadata => {
+                metadata.options.format ??= format as Format
+                // We don't judge outExtension available, so there is no
+                // validation which is related to options.format
+                metadata.options.outExtension ??= {
+                  '.js': path
+                    .basename(outPath as string)
+                    .replace(/[^.]+\.(.+)/i, '.$1')
+                }
+              })
+            ),
+            of(clonedMeta).pipe(
+              tap(({ options }) => {
+                options.format ??= 'iife'
+              })
+            )
+          )
+        })
+      )
     }),
     // infer outdir
     map(({ options, pkgJson }) => {
@@ -129,7 +142,7 @@ function applyExternalPlugin() {
 }
 
 function invokeEsBuildBuild<V extends { options: BuildOptions }>() {
-  return pipe(concatMap(({ options }: V) => build(options)))
+  return pipe(mergeMap(({ options }: V) => build(options)))
 }
 
 export default function runBuild(

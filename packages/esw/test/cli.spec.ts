@@ -54,7 +54,7 @@ describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
     const output = await createBuildScript(
       [`--outdir=${cacheDir}/no-bundle`],
-      `./${cacheDir}/no-bundle/index.js`
+      `./${cacheDir}/no-bundle/index.esm.js`
     )
     expect(output).toContain('from "react"')
     expect(output).toContain(`from "react"`)
@@ -65,7 +65,7 @@ describe('cli command', () => {
   it('should work with entry points and bundle', async () => {
     const output = await createBuildScript(
       ['--bundle', `--outdir=${cacheDir}/bundle`],
-      `./${cacheDir}/bundle/index.js`
+      `./${cacheDir}/bundle/index.esm.js`
     )
     expect(output).toContain('from "react"')
     expect(output).toContain(`from "react"`)
