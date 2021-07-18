@@ -31,10 +31,11 @@ describe('node api - build', () => {
     expect(result.errors).toHaveLength(0)
     expect(result.warnings).toHaveLength(0)
     expect(result).toMatchSnapshot(getTestName())
-
-    expect(
-      fs.existsSync(resolveFixture(`typescript/${cacheDir}/index.js`))
-    ).toBeTruthy()
+    ;['', '.esm'].map(type =>
+      expect(
+        fs.existsSync(resolveFixture(`typescript/${cacheDir}/index${type}.js`))
+      ).toBeTruthy()
+    )
 
     const output = await fs.promises.readFile(
       resolveFixture(`typescript/${cacheDir}/index.esm.js`),
@@ -43,6 +44,14 @@ describe('node api - build', () => {
     expect(output).toContain(`from "react"`)
     expect(output).toContain(`from "rxjs"`)
     expect(output).toContain(`from "rxjs/operators"`)
+
+    const cjsOutput = await fs.promises.readFile(
+      resolveFixture(`typescript/${cacheDir}/index.js`),
+      { encoding: 'utf8' }
+    )
+    expect(cjsOutput).toContain(`require("react")`)
+    expect(cjsOutput).toContain(`require("rxjs")`)
+    expect(cjsOutput).toContain(`require("rxjs/operators")`)
   })
 
   it('should output cjs syntax', async () => {
