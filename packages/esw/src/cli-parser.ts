@@ -10,20 +10,24 @@ import {
   tap,
   map,
   concatMap,
-  catchError
+  catchError,
+  Observable,
+  switchMap
 } from 'rxjs'
+import { PackageJson } from 'type-fest'
 import { printAndExit } from './shared/log'
 import { ProcessCode as Code } from './shared/constants'
 
-export type CommandRunner = (argv?: string[]) => void
+export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
 type AvailableArgs = typeof availableArgs
 type Commands = typeof COMMANDS
+type CommandNames = keyof Commands
 
 // eslint-disable-next-line
 const pkgJson = require(path.resolve(__dirname, '../..', 'package.json'))
 const DEFAULT_COMMAND_NAME = 'build'
-const COMMANDS: Record<string, () => Promise<CommandRunner>> = {
-  build: () => import('./cli/build').then(({ default: run }) => run)
+const COMMANDS = {
+  build: () => from(import('./cli/build')).pipe(map(({ default: run }) => run))
 }
 const availableArgs = {
   '--version': Boolean,
@@ -35,12 +39,12 @@ const availableArgs = {
 }
 
 function printVersion<V extends { args: arg.Result<AvailableArgs> }>(
-  pkg: Record<string, unknown>
+  pkg: PackageJson
 ) {
   return pipe(
     tap(({ args }: V) => {
       if (args['--version']) {
-        printAndExit(`v${pkg['version'] as string}`, Code.OK)
+        printAndExit(`v${pkg.version}`, Code.OK)
       }
     })
   )
@@ -67,15 +71,21 @@ function printHelpIntoTerminal(commands: Commands) {
   )
 }
 
-function printHelp<
-  V extends { isValidCommand: boolean; args: arg.Result<AvailableArgs> }
->(commands: Commands) {
+function printHelp(commands: Commands) {
   return pipe(
-    tap(({ isValidCommand, args: { '--help': help } }: V) => {
-      if (!isValidCommand && help) {
-        printHelpIntoTerminal(commands)
+    tap(
+      ({
+        isValidCommand,
+        args: { '--help': help }
+      }: {
+        isValidCommand: boolean
+        args: arg.Result<AvailableArgs>
+      }) => {
+        if (!isValidCommand && help) {
+          printHelpIntoTerminal(commands)
+        }
       }
-    })
+    )
   )
 }
 
@@ -92,8 +102,11 @@ function setEnv<V extends { commandName: string }>() {
   )
 }
 
-function normalizeArgs<
-  V extends { isValidCommand: boolean; args: arg.Result<AvailableArgs> }
+function parseForwardArgs<
+  V extends {
+    isValidCommand: boolean
+    args: arg.Result<AvailableArgs>
+  }
 >(defaultCommandName: string) {
   return pipe(
     map(({ isValidCommand, args }: V) => {
@@ -109,37 +122,49 @@ function normalizeArgs<
     })
   )
 }
-
-function invokeCommand<
-  V extends { commandName: string; forwardArgs: string[] }
->() {
+function invokeCommand() {
   return pipe(
-    concatMap(({ commandName, forwardArgs }: V) =>
-      zip(from(COMMANDS[commandName]()), of(forwardArgs))
+    concatMap(
+      ({
+        commandName,
+        forwardArgs
+      }: {
+        commandName: string
+        forwardArgs: string[]
+      }) => zip(from(COMMANDS[commandName as CommandNames]()), of(forwardArgs))
     ),
-    map(([run, args]) => run(args))
+    switchMap(([run, args]) => run(args))
+  )
+}
+
+function parseRootArgs() {
+  return pipe(
+    map((argv: string[]) =>
+      arg(availableArgs, {
+        //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
+        argv,
+        permissive: true
+      })
+    ),
+    catchError((err: Error & { code: string }) => {
+      if (err.code === 'ARG_UNKNOWN_OPTION') {
+        printHelpIntoTerminal(COMMANDS)
+        return EMPTY
+      }
+      return throwError(() => err)
+    })
   )
 }
 
 export default of(process.argv.slice(2)).pipe(
-  map(argv =>
-    arg(availableArgs, {
-      //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
-      argv,
-      permissive: true
-    })
-  ),
-  catchError((err: Error & { code: string }) => {
-    if (err.code === 'ARG_UNKNOWN_OPTION') {
-      printHelpIntoTerminal(COMMANDS)
-      return EMPTY
-    }
-    return throwError(() => err)
-  }),
-  map(args => ({ isValidCommand: !!COMMANDS[args._[0]], args })),
+  parseRootArgs(),
+  map(args => ({
+    isValidCommand: !!COMMANDS[args._[0] as CommandNames],
+    args
+  })),
   printVersion(pkgJson),
   printHelp(COMMANDS),
-  normalizeArgs(DEFAULT_COMMAND_NAME),
+  parseForwardArgs(DEFAULT_COMMAND_NAME),
   setEnv(),
   invokeCommand()
 )
