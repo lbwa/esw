@@ -18,8 +18,9 @@ function normalizeBuildOptions(cwd: string) {
       }
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const pkgJson = require(pkgJsonPath) as PackageJson
+      // Keep all boolean falsy
       const options: BuildOptions = {
-        bundle: true,
+        bundle: false,
         logLevel: 'info',
         incremental: process.env['NODE_ENV'] === 'production',
         ...raw

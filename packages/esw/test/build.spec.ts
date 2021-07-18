@@ -11,7 +11,8 @@ function resolveFixture(name: string) {
   return path.resolve(__dirname, `./fixture/${name}`)
 }
 
-const outDir = resolveFixture('typescript/dist')
+const cacheDir = 'dist/build'
+const outDir = resolveFixture(`typescript/${cacheDir}`)
 
 beforeAll(async () => {
   await fs.promises.rm(outDir, { force: true, recursive: true })
@@ -24,18 +25,19 @@ describe('node api - build', () => {
   it('should work with package.json', async () => {
     const result = await build({
       absWorkingDir: resolveFixture('typescript'),
-      logLevel: 'debug'
+      logLevel: 'debug',
+      outdir: cacheDir
     })
     expect(result.errors).toHaveLength(0)
     expect(result.warnings).toHaveLength(0)
     expect(result).toMatchSnapshot(getTestName())
 
     expect(
-      fs.existsSync(resolveFixture('typescript/dist/index.js'))
+      fs.existsSync(resolveFixture(`typescript/${cacheDir}/index.js`))
     ).toBeTruthy()
 
     const output = await fs.promises.readFile(
-      resolveFixture('typescript/dist/index.js'),
+      resolveFixture(`typescript/${cacheDir}/index.js`),
       { encoding: 'utf8' }
     )
     expect(output).toContain(`from "react"`)
@@ -48,16 +50,19 @@ describe('node api - build', () => {
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug',
       format: 'cjs',
-      entryPoints: ['src/cjs.ts']
+      entryPoints: ['src/cjs.ts'],
+      outdir: cacheDir
     })
     expect(result.errors).toHaveLength(0)
     expect(result.warnings).toHaveLength(0)
     expect(result).toMatchSnapshot(getTestName())
 
-    expect(fs.existsSync(resolveFixture('typescript/dist/cjs.js'))).toBeTruthy()
+    expect(
+      fs.existsSync(resolveFixture(`typescript/${cacheDir}/cjs.js`))
+    ).toBeTruthy()
 
     const output = await fs.promises.readFile(
-      resolveFixture('typescript/dist/cjs.js'),
+      resolveFixture(`typescript/${cacheDir}/cjs.js`),
       { encoding: 'utf8' }
     )
     expect(output).toContain(`require("react")`)
@@ -70,18 +75,19 @@ describe('node api - build', () => {
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug',
       format: 'iife',
-      entryPoints: ['src/iife.ts']
+      entryPoints: ['src/iife.ts'],
+      outdir: cacheDir
     })
     expect(result.errors).toHaveLength(0)
     expect(result.warnings).toHaveLength(0)
     expect(result).toMatchSnapshot(getTestName())
 
     expect(
-      fs.existsSync(resolveFixture('typescript/dist/iife.js'))
+      fs.existsSync(resolveFixture(`typescript/${cacheDir}/iife.js`))
     ).toBeTruthy()
 
     const output = await fs.promises.readFile(
-      resolveFixture('typescript/dist/iife.js'),
+      resolveFixture(`typescript/${cacheDir}/iife.js`),
       { encoding: 'utf8' }
     )
     expect(output).toContain(`require("react")`)

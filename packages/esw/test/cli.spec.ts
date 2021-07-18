@@ -7,6 +7,7 @@ const libDist = path.resolve(__dirname, '..', 'dist')
 const binDist = path.resolve(libDist, 'bin')
 const testRoot = path.resolve(__dirname, '.')
 const fixtureTypescript = path.resolve(testRoot, 'fixture/typescript')
+const cacheDir = 'dist/cli'
 
 function resolveFixture(p: string) {
   return path.resolve(fixtureTypescript, p)
@@ -14,7 +15,7 @@ function resolveFixture(p: string) {
 
 beforeAll(async () => {
   await fs.promises.rm(libDist, { force: true, recursive: true })
-  await fs.promises.rm(path.resolve(fixtureTypescript, 'dist/cli'), {
+  await fs.promises.rm(path.resolve(fixtureTypescript, cacheDir), {
     force: true,
     recursive: true
   })
@@ -56,8 +57,8 @@ async function createBuildScript(options: string[], outfile: string) {
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
     const output = await createBuildScript(
-      ['src/index.ts', '--outdir=dist/cli/no-bundle', '--bundle=false'],
-      './dist/cli/no-bundle/index.js'
+      ['src/index.ts', `--outdir=${cacheDir}/no-bundle`],
+      `./${cacheDir}/no-bundle/index.js`
     )
     expect(output).toContain('from "react"')
     expect(output).toContain(`from "react"`)
@@ -67,8 +68,8 @@ describe('cli command', () => {
 
   it('should work with entry points and bundle', async () => {
     const output = await createBuildScript(
-      ['src/index.ts', '--bundle', '--outdir=dist/cli/bundle'],
-      './dist/cli/bundle/index.js'
+      ['src/index.ts', '--bundle', `--outdir=${cacheDir}/bundle`],
+      `./${cacheDir}/bundle/index.js`
     )
     expect(output).toContain('from "react"')
     expect(output).toContain(`from "react"`)
