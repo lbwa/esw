@@ -1,3 +1,5 @@
+import { tuple } from './utils'
+
 export enum ProcessCode {
   OK,
   ERROR
@@ -16,18 +18,18 @@ export const BUILD_ARGS_SPEC = {
   },
   '--chunkNames': String,
   '--color': Boolean,
-  '--conditions': [String] as [typeof String],
+  '--conditions': tuple([String]),
   // '--define'
   '--entryNames': String,
-  '--entryPoints': [String] as [typeof String],
-  '--external': [String] as [typeof String],
+  '--entryPoints': tuple([String]),
+  '--external': tuple([String]),
   // '--footer'
   '--format': function (val: string) {
     return ['cjs', 'esm', 'iife'].includes(val) ? val : null
   },
   '--globalName': String,
   '--incremental': Boolean,
-  '--inject': [String] as [typeof String],
+  '--inject': tuple([String]),
   '--jsx': function (val: string) {
     return ['transform', 'preserve'].includes(val) ? val : null
   },
@@ -48,13 +50,13 @@ export const BUILD_ARGS_SPEC = {
       : null
   },
   '--logLimit': Number,
-  '--mainFields': [String] as [typeof String],
+  '--mainFields': tuple([String]),
   '--metafile': Boolean,
   '--minify': Boolean,
   '--minifyIdentifiers': Boolean,
   '--minifySyntax': Boolean,
   '--minifyWhitespace': Boolean,
-  '--nodePaths': [String] as [typeof String],
+  '--nodePaths': tuple([String]),
   // '--outExtension'
   '--outbase': String,
   '--outdir': String,
@@ -64,8 +66,8 @@ export const BUILD_ARGS_SPEC = {
   // '--plugins'
   '--preserveSymlinks': Boolean,
   '--publicPath': String,
-  '--pure': [String] as [typeof String],
-  '--resolveExtensions': [String] as [typeof String],
+  '--pure': tuple([String]),
+  '--resolveExtensions': tuple([String]),
   '--sourceRoot': String,
   '--sourcemap': function (val: string) {
     return ['true', 'false'].includes(val) ? val === 'true' : val
@@ -73,7 +75,7 @@ export const BUILD_ARGS_SPEC = {
   '--sourcesContent': Boolean,
   '--splitting': Boolean,
   // '--stdin'
-  '--target': [String] as [typeof String],
+  '--target': tuple([String]),
   '--treeShaking': function (val: string) {
     return val === 'true' || (val === 'ignore-annotations' ? val : null)
   },
