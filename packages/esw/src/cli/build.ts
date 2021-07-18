@@ -22,7 +22,7 @@ import {
   ProcessCode
 } from '../shared/constants'
 import { CommandRunner } from '../cli-parser'
-import buildRunner from '../build'
+import runBuild from '../build'
 import { isDef } from '../shared/utils'
 
 function createPrintHelp(code = ProcessCode.OK) {
@@ -49,9 +49,8 @@ function normalizeArgs() {
   return pipe(
     map((args: arg.Result<BuildArgsSpec>) => {
       args['--absWorkingDir'] ??= process.cwd()
-      args['--entryPoints'] ??= args._.filter(
-        pending => !pending.startsWith('-')
-      )
+      const entryPoints = args._.filter(pending => !pending.startsWith('-'))
+      args['--entryPoints'] ??= entryPoints.length > 0 ? entryPoints : undefined
       return omit(args, '_')
     }),
     map(args =>
@@ -59,9 +58,9 @@ function normalizeArgs() {
         const value = args[key as keyof BuildArgsSpec]
         // we use null to mark illegal command line value
         if (isDef(value)) {
-          const name = key.replace(/^-+/, '')
+          const name = key.replace(/^-+/, '') as keyof BuildOptions
           // @ts-ignore FIXME
-          options[name as keyof BuildOptions] = value
+          options[name] = value
         }
         return options
       }, {} as BuildOptions)
@@ -102,7 +101,7 @@ const build: CommandRunner<BuildResult> = function (argv = []) {
     }),
     switchMap(args => iif(() => !!args['--help'], createPrintHelp(), of(args))),
     normalizeArgs(),
-    mergeMap(options => from(buildRunner(options)))
+    mergeMap(options => from(runBuild(options)))
   )
 }
 

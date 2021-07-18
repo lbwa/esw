@@ -28,8 +28,8 @@ beforeAll(async () => {
   }
 })
 
-async function createBuildScript(options: string[], outfile: string) {
-  const result = spawn.sync('node', [bin, ...options], {
+async function createBuildScript(commandArgs: string[], outfile: string) {
+  const result = spawn.sync('node', [bin, ...commandArgs], {
     stdio: 'inherit',
     cwd: fixtureTypescript
   })
@@ -53,7 +53,7 @@ async function createBuildScript(options: string[], outfile: string) {
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
     const output = await createBuildScript(
-      ['src/index.ts', `--outdir=${cacheDir}/no-bundle`],
+      [`--outdir=${cacheDir}/no-bundle`],
       `./${cacheDir}/no-bundle/index.js`
     )
     expect(output).toContain('from "react"')
@@ -64,7 +64,7 @@ describe('cli command', () => {
 
   it('should work with entry points and bundle', async () => {
     const output = await createBuildScript(
-      ['src/index.ts', '--bundle', `--outdir=${cacheDir}/bundle`],
+      ['--bundle', `--outdir=${cacheDir}/bundle`],
       `./${cacheDir}/bundle/index.js`
     )
     expect(output).toContain('from "react"')
