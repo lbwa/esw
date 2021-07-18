@@ -8,14 +8,14 @@ const binDist = path.resolve(libDist, 'bin')
 const testRoot = path.resolve(__dirname, '.')
 const fixtureTypescript = path.resolve(testRoot, 'fixture/typescript')
 const cacheDir = 'dist/cli'
+const bin = path.resolve(binDist, 'esw.js')
 
 function resolveFixture(p: string) {
   return path.resolve(fixtureTypescript, p)
 }
 
 beforeAll(async () => {
-  await fs.promises.rm(libDist, { force: true, recursive: true })
-  await fs.promises.rm(path.resolve(fixtureTypescript, cacheDir), {
+  await fs.promises.rm(resolveFixture(cacheDir), {
     force: true,
     recursive: true
   })
@@ -29,14 +29,10 @@ beforeAll(async () => {
 })
 
 async function createBuildScript(options: string[], outfile: string) {
-  const result = spawn.sync(
-    'node',
-    [path.resolve(binDist, 'esw'), ...options],
-    {
-      stdio: 'inherit',
-      cwd: fixtureTypescript
-    }
-  )
+  const result = spawn.sync('node', [bin, ...options], {
+    stdio: 'inherit',
+    cwd: fixtureTypescript
+  })
   // Process exited too early. The system ran out of memory or someone
   // called `kill -9` on the process
   expect(result.signal).not.toEqual('SIGKILL')
