@@ -37,7 +37,7 @@ describe('node api - build', () => {
     ).toBeTruthy()
 
     const output = await fs.promises.readFile(
-      resolveFixture(`typescript/${cacheDir}/index.js`),
+      resolveFixture(`typescript/${cacheDir}/index.esm.js`),
       { encoding: 'utf8' }
     )
     expect(output).toContain(`from "react"`)
