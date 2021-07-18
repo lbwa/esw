@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import { of } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { fib } from './dep'
+import { fib } from './src/dep'
 
 const ConfigContext = createContext({ theme: 'light' })
 
