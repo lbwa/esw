@@ -28,7 +28,10 @@ beforeAll(async () => {
   }
 })
 
-async function createBuildScript(commandArgs: string[], outfile: string) {
+async function createBuildScript(
+  commandArgs: string[],
+  outfile: Record<'esm' | 'cjs', string>
+) {
   const result = spawn.sync('node', [bin, ...commandArgs], {
     stdio: 'inherit',
     cwd: fixtureTypescript
@@ -42,34 +45,53 @@ async function createBuildScript(commandArgs: string[], outfile: string) {
   expect(result.status).toEqual(ProcessCode.OK)
   expect(result.error).toBeNull()
 
-  const outputPath = resolveFixture(outfile)
-  expect(fs.existsSync(outputPath)).toBeTruthy()
-  const output = await fs.promises.readFile(outputPath, {
-    encoding: 'utf8'
-  })
-  return output
+  const { esm, cjs } = outfile
+  Object.values(outfile).map(p =>
+    expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
+  )
+  return {
+    esm: await fs.promises.readFile(resolveFixture(esm), {
+      encoding: 'utf8'
+    }),
+    cjs: await fs.promises.readFile(resolveFixture(cjs), {
+      encoding: 'utf8'
+    })
+  }
 }
 
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
-    const output = await createBuildScript(
-      [`--outdir=${cacheDir}/no-bundle`],
-      `./${cacheDir}/no-bundle/index.esm.js`
-    )
-    expect(output).toContain('from "react"')
-    expect(output).toContain(`from "react"`)
-    expect(output).toContain(`from "rxjs"`)
-    expect(output).toContain(`from "rxjs/operators"`)
+    const output = await createBuildScript([`--outdir=${cacheDir}/no-bundle`], {
+      esm: `./${cacheDir}/no-bundle/index.esm.js`,
+      cjs: `./${cacheDir}/no-bundle/index.js`
+    })
+    expect(output.esm).toContain('from "react"')
+    expect(output.esm).toContain(`from "react"`)
+    expect(output.esm).toContain(`from "rxjs"`)
+    expect(output.esm).toContain(`from "rxjs/operators"`)
+
+    expect(output.cjs).toContain('require("react")')
+    expect(output.cjs).toContain(`require("react")`)
+    expect(output.cjs).toContain(`require("rxjs")`)
+    expect(output.cjs).toContain(`require("rxjs/operators")`)
   })
 
   it('should work with entry points and bundle', async () => {
     const output = await createBuildScript(
       ['--bundle', `--outdir=${cacheDir}/bundle`],
-      `./${cacheDir}/bundle/index.esm.js`
+      {
+        esm: `./${cacheDir}/bundle/index.esm.js`,
+        cjs: `./${cacheDir}/bundle/index.js`
+      }
     )
-    expect(output).toContain('from "react"')
-    expect(output).toContain(`from "react"`)
-    expect(output).toContain(`from "rxjs"`)
-    expect(output).toContain(`from "rxjs/operators"`)
+    expect(output.esm).toContain('from "react"')
+    expect(output.esm).toContain(`from "react"`)
+    expect(output.esm).toContain(`from "rxjs"`)
+    expect(output.esm).toContain(`from "rxjs/operators"`)
+
+    expect(output.cjs).toContain('require("react")')
+    expect(output.cjs).toContain(`require("react")`)
+    expect(output.cjs).toContain(`require("rxjs")`)
+    expect(output.cjs).toContain(`require("rxjs/operators")`)
   })
 })
