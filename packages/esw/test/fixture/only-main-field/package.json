@@ -1,0 +1,5 @@
+{
+  "name": "only-main-field",
+  "version": "0.0.0",
+  "main": "dist/index.js"
+}
