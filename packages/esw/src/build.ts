@@ -1,7 +1,17 @@
 import path from 'path'
 import fs from 'fs'
 import { build, BuildOptions, BuildResult, Format } from 'esbuild'
-import { iif, map, zip, of, pipe, tap, throwError, mergeMap } from 'rxjs'
+import {
+  iif,
+  map,
+  zip,
+  of,
+  pipe,
+  tap,
+  throwError,
+  mergeMap,
+  filter
+} from 'rxjs'
 import { PackageJson } from 'type-fest'
 import cloneDeep from 'lodash/cloneDeep'
 import externalEsBuildPlugin from './plugins/external'
@@ -18,7 +28,8 @@ function inferBuildOptions(cwd: string) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         zip(of(opts), of(require(pkgJsonPath) as PackageJson)),
         throwError(
-          () => new Error(`package.json is required in the ${pkgJsonPath}`)
+          () =>
+            new Error(`package.json file doesn't exists in the ${pkgJsonPath}`)
         )
       )
     }),
@@ -43,32 +54,25 @@ function inferBuildOptions(cwd: string) {
         tuple([pkgJson.main, 'cjs']),
         tuple([pkgJson.module, 'esm'])
       ).pipe(
+        filter(([outPath]) => !!outPath),
         mergeMap(([outPath, format]) => {
-          const clonedMeta = { options: cloneDeep(options), pkgJson }
-          return iif(
-            () => !!outPath,
-            of(clonedMeta).pipe(
-              tap(metadata => {
-                metadata.options.format ??= format as Format
-                // We don't judge outExtension available, so there is no
-                // validation which is related to options.format
-                metadata.options.outExtension ??= {
-                  '.js': path
-                    .basename(outPath as string)
-                    .replace(/[^.]+\.(.+)/i, '.$1')
-                }
-              })
-            ),
-            of(clonedMeta).pipe(
-              tap(({ options }) => {
-                options.format ??= 'iife'
-              })
-            )
+          // create a inference observable if we got a valid outPath
+          return of({ options: cloneDeep(options), pkgJson }).pipe(
+            tap(metadata => {
+              metadata.options.format ??= format as Format
+              // We don't judge outExtension whether is valid, so there is no
+              // validation which is related to options.format
+              metadata.options.outExtension ??= {
+                '.js': path
+                  .basename(outPath as string)
+                  .replace(/[^.]+\.(.+)/i, '.$1')
+              }
+            })
           )
         })
       )
     }),
-    // infer outdir
+    // infer options.outdir
     map(({ options, pkgJson }) => {
       // use options.format to decide which output path should be chosen.
       const isESM = options.format === 'esm'
@@ -86,10 +90,11 @@ function inferBuildOptions(cwd: string) {
         outPath: outPathInPkg
       }
     }),
-    // infer entryPoints
+    // infer options.entryPoints
     map(({ options, pkgJson, outPath }) => {
       const context = { options, pkgJson }
       if (options.entryPoints) {
+        // respect user's entryPoints, skip inference
         return context
       }
       if (!outPath) {
