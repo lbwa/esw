@@ -19,14 +19,16 @@ function clearCacheDir(dir: string) {
 async function runFixtureCase(
   fixtureName: string,
   cacheDir: string,
-  options: BuildOptions
+  options: BuildOptions,
+  singleEntry = 'index.ts',
+  outFile = 'index.js'
 ) {
   await clearCacheDir(resolveFixture(`${fixtureName}/${cacheDir}`))
   const result = await build({
     absWorkingDir: resolveFixture(fixtureName),
     logLevel: 'debug',
     format: 'esm',
-    entryPoints: ['index.ts'],
+    entryPoints: [singleEntry],
     outdir: cacheDir,
     bundle: false,
     ...options
@@ -36,11 +38,11 @@ async function runFixtureCase(
   expect(result).toMatchSnapshot(getTestName())
 
   expect(
-    fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/index.js`))
+    fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/${outFile}`))
   ).toBeTruthy()
 
   return fs.promises.readFile(
-    resolveFixture(`${fixtureName}/${cacheDir}/index.js`),
+    resolveFixture(`${fixtureName}/${cacheDir}/${outFile}`),
     { encoding: 'utf8' }
   )
 }
@@ -102,9 +104,15 @@ describe('node api - build', () => {
   })
 
   it('should work with module field and esm syntax', async () => {
-    const output = await runFixtureCase('only-module-field', 'dist', {
-      format: 'esm'
-    })
+    const output = await runFixtureCase(
+      'only-module-field',
+      'dist',
+      {
+        format: 'esm'
+      },
+      'index.ts',
+      'index.esm.js'
+    )
     expect(output).toContain(`from "./src/fib"`)
   })
 })
