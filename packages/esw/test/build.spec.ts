@@ -98,6 +98,7 @@ describe('node api - build', () => {
 
   it('should work with main field and esm syntax', async () => {
     const output = await runFixtureCase('only-main-field', 'dist/esm', {
+      // should respect option.format
       format: 'esm'
     })
     expect(output).toContain(`from "./src/fib"`)
@@ -107,9 +108,7 @@ describe('node api - build', () => {
     const output = await runFixtureCase(
       'only-module-field',
       'dist',
-      {
-        format: 'esm'
-      },
+      {},
       'index.ts',
       'index.esm.js'
     )

@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@lbwa/tsconfig@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@lbwa/tsconfig/-/tsconfig-0.2.0.tgz#617040674c106bc38b2f9d7a65e1b8c1794def73"
+  integrity sha512-AxR+ScoJFWM7tYjX53mCnP0Dd9NJ3q3iuV//GAhOVDXSZhaBB+70k2Z20o3aaWPhE/4+OCISG704N3qUEQHVtQ==
+
 "@types/prop-types@*":
   version "15.7.4"
   resolved "https://registry.nlark.com/@types/prop-types/download/@types/prop-types-15.7.4.tgz#fcf7205c25dff795ee79af1e30da2c9790808f11"

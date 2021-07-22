@@ -9,14 +9,13 @@ import {
   zip,
   tap,
   map,
-  concatMap,
   catchError,
   Observable,
-  switchMap
+  mergeMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
-import { printAndExit } from './shared/log'
-import { ProcessCode as Code } from './shared/constants'
+import { printAndExit } from '../shared/log'
+import { ProcessCode as Code } from '../shared/constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
 type AvailableArgs = typeof availableArgs
@@ -27,7 +26,7 @@ type CommandNames = keyof Commands
 const pkgJson = require(path.resolve(__dirname, '../..', 'package.json'))
 const DEFAULT_COMMAND_NAME = 'build'
 const COMMANDS = {
-  build: () => from(import('./cli/build')).pipe(map(({ default: run }) => run))
+  build: () => from(import('../cli/build')).pipe(map(({ default: run }) => run))
 }
 const availableArgs = {
   '--version': Boolean,
@@ -122,18 +121,17 @@ function parseForwardArgs<
     })
   )
 }
-function invokeCommand() {
+function invokeCommand<
+  V extends {
+    commandName: string
+    forwardArgs: string[]
+  }
+>() {
   return pipe(
-    concatMap(
-      ({
-        commandName,
-        forwardArgs
-      }: {
-        commandName: string
-        forwardArgs: string[]
-      }) => zip(from(COMMANDS[commandName as CommandNames]()), of(forwardArgs))
+    mergeMap(({ commandName, forwardArgs }: V) =>
+      zip(from(COMMANDS[commandName as CommandNames]()), of(forwardArgs))
     ),
-    switchMap(([run, args]) => run(args))
+    mergeMap(([run, args]) => run(args))
   )
 }
 

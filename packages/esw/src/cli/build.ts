@@ -3,7 +3,6 @@ import {
   EMPTY,
   iif,
   of,
-  switchMap,
   switchMapTo,
   tap,
   map,
@@ -16,14 +15,11 @@ import {
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult } from 'esbuild'
 import { printAndExit } from '../shared/log'
-import {
-  BuildArgsSpec,
-  BUILD_ARGS_SPEC,
-  ProcessCode
-} from '../shared/constants'
-import { CommandRunner } from '../cli-parser'
+import { ProcessCode } from '../shared/constants'
+import { CommandRunner } from '../parser/cli'
 import runBuild from '../build'
 import { isDef } from '../shared/utils'
+import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
 function createPrintHelp(code = ProcessCode.OK) {
   return of(code).pipe(
@@ -45,7 +41,33 @@ function createPrintHelp(code = ProcessCode.OK) {
   )
 }
 
-function normalizeArgs() {
+function normalizeValidArgs() {
+  return pipe(
+    map((argv: string[]) => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
+    mergeMap(args => {
+      const matched = args._.filter(pending => pending.startsWith('-'))
+      return iif(
+        () => matched.length > 0,
+        throwError(
+          () =>
+            new ArgError(
+              `Unknown or unexpected option: ${matched.join(', ')}`,
+              'ARG_UNKNOWN_OPTION'
+            )
+        ),
+        of(args)
+      )
+    }),
+    catchError((err: Error & { code: string }) => {
+      if (err.code === 'ARG_UNKNOWN_OPTION') {
+        return createPrintHelp(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
+      }
+      throw err
+    })
+  )
+}
+
+function normalizeBuildArgs() {
   return pipe(
     map((args: arg.Result<BuildArgsSpec>) => {
       args['--absWorkingDir'] ??= process.cwd()
@@ -69,38 +91,10 @@ function normalizeArgs() {
 }
 
 const build: CommandRunner<BuildResult> = function (argv = []) {
-  const availableArgs = {
-    ...BUILD_ARGS_SPEC,
-    '--help': Boolean,
-
-    // alias
-    '-h': '--help'
-  }
-
   return of(argv).pipe(
-    map(argv => arg(availableArgs, { argv, permissive: true })),
-    switchMap(args => {
-      const matched = args._.filter(pending => pending.startsWith('-'))
-      return iif(
-        () => matched.length > 0,
-        throwError(
-          () =>
-            new ArgError(
-              `Unknown or unexpected option: ${matched.join(', ')}`,
-              'ARG_UNKNOWN_OPTION'
-            )
-        ),
-        of(args)
-      )
-    }),
-    catchError((err: Error & { code: string }) => {
-      if (err.code === 'ARG_UNKNOWN_OPTION') {
-        return createPrintHelp(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
-      }
-      throw err
-    }),
-    switchMap(args => iif(() => !!args['--help'], createPrintHelp(), of(args))),
-    normalizeArgs(),
+    normalizeValidArgs(),
+    mergeMap(args => iif(() => !!args['--help'], createPrintHelp(), of(args))),
+    normalizeBuildArgs(),
     mergeMap(options => from(runBuild(options)))
   )
 }

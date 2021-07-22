@@ -19,14 +19,23 @@ import { tuple } from './shared/utils'
 
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx']
 
+type BuildContext = {
+  options: BuildOptions
+  pkgJson: PackageJson
+}
+
 function inferBuildOptions(cwd: string) {
   return pipe(
     mergeMap((opts: BuildOptions) => {
       const pkgJsonPath = path.resolve(cwd, './', 'package.json')
+      const combineOptionsAndPkg$ = zip(
+        of(opts),
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        of(require(pkgJsonPath) as PackageJson)
+      )
       return iif(
         () => fs.existsSync(pkgJsonPath),
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        zip(of(opts), of(require(pkgJsonPath) as PackageJson)),
+        combineOptionsAndPkg$,
         throwError(
           () =>
             new Error(`package.json file doesn't exists in the ${pkgJsonPath}`)
@@ -50,25 +59,27 @@ function inferBuildOptions(cwd: string) {
     mergeMap(metadata => {
       const { options, pkgJson } = metadata
 
+      function createInferObs(format: Format, outPath: string) {
+        return of({ options: cloneDeep(options), pkgJson }).pipe(
+          tap(metadata => {
+            metadata.options.format ??= format
+            // We don't judge outExtension whether is valid, so there is no
+            // validation which is related to options.format
+            metadata.options.outExtension ??= {
+              '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
+            }
+          })
+        )
+      }
+
       return of(
-        tuple([pkgJson.main, 'cjs']),
-        tuple([pkgJson.module, 'esm'])
+        tuple(['cjs', pkgJson.main]),
+        tuple(['esm', pkgJson.module])
       ).pipe(
-        filter(([outPath]) => !!outPath),
-        mergeMap(([outPath, format]) => {
-          // create a inference observable if we got a valid outPath
-          return of({ options: cloneDeep(options), pkgJson }).pipe(
-            tap(metadata => {
-              metadata.options.format ??= format as Format
-              // We don't judge outExtension whether is valid, so there is no
-              // validation which is related to options.format
-              metadata.options.outExtension ??= {
-                '.js': path
-                  .basename(outPath as string)
-                  .replace(/[^.]+\.(.+)/i, '.$1')
-              }
-            })
-          )
+        filter(([, outPath]) => !!outPath),
+        // create a inference observable if we got a valid outPath
+        mergeMap(pair => {
+          return createInferObs(...(pair as [Format, string]))
         })
       )
     }),
@@ -124,25 +135,17 @@ function inferBuildOptions(cwd: string) {
 
 function applyExternalPlugin() {
   return pipe(
-    tap(
-      ({
-        options,
-        pkgJson
-      }: {
-        options: BuildOptions
-        pkgJson: PackageJson
-      }) => {
-        const peerDeps = pkgJson.peerDependencies ?? {}
-        const deps = pkgJson.dependencies ?? {}
-        const groups = ([] as string[]).concat(
-          Object.keys(peerDeps),
-          Object.keys(deps)
-        )
-        options.plugins = (options.plugins ?? []).concat(
-          externalEsBuildPlugin(groups)
-        )
-      }
-    )
+    tap(({ options, pkgJson }: BuildContext) => {
+      const peerDeps = pkgJson.peerDependencies ?? {}
+      const deps = pkgJson.dependencies ?? {}
+      const groups = ([] as string[]).concat(
+        Object.keys(peerDeps),
+        Object.keys(deps)
+      )
+      options.plugins = (options.plugins ?? []).concat(
+        externalEsBuildPlugin(groups)
+      )
+    })
   )
 }
 
