@@ -1,7 +1,9 @@
 {
   "extends": "@lbwa/tsconfig",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "esModuleInterop": true,
+    "lib": ["esnext"]
   },
   "exclude": ["packages"]
 }

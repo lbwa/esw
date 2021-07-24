@@ -10,7 +10,8 @@ import {
   tap,
   throwError,
   mergeMap,
-  filter
+  filter,
+  toArray
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import cloneDeep from 'lodash/cloneDeep'
@@ -150,7 +151,11 @@ function applyExternalPlugin() {
 }
 
 function invokeEsBuildBuild<V extends { options: BuildOptions }>() {
-  return pipe(mergeMap(({ options }: V) => build(options)))
+  return pipe(
+    toArray<V>(),
+    map(optGroup => optGroup.map(({ options }) => build(options))),
+    mergeMap(buildGroup => Promise.allSettled(buildGroup))
+  )
 }
 
 export default function runBuild(
@@ -162,7 +167,7 @@ export default function runBuild(
     applyExternalPlugin(),
     invokeEsBuildBuild()
   )
-  return new Promise<BuildResult>((resolve, reject) => {
+  return new Promise<PromiseSettledResult<BuildResult>[]>((resolve, reject) => {
     build$.subscribe({
       next: resolve,
       error: reject
