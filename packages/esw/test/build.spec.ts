@@ -114,4 +114,21 @@ describe('node api - build', () => {
     )
     expect(output).toContain(`from "./src/fib"`)
   })
+
+  it("shouldn't work without package.json file", async () => {
+    let err: Error | null = null
+    await build({
+      absWorkingDir: resolveFixture('required-package.json'),
+      logLevel: 'debug',
+      format: 'esm',
+      entryPoints: ['index.ts'],
+      outdir: 'dist',
+      bundle: false
+    }).catch((error: Error) => {
+      err = error
+    })
+    expect(err).not.toBeNull()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expect(err!.message).toContain(`package.json file doesn't exists`)
+  })
 })

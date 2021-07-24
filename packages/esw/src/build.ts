@@ -15,7 +15,8 @@ import {
 import { PackageJson } from 'type-fest'
 import cloneDeep from 'lodash/cloneDeep'
 import externalEsBuildPlugin from './plugins/external'
-import { tuple } from './shared/utils'
+import { isProduction, tuple } from './shared/utils'
+import { lazyRequireObs } from './shared/observable'
 
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx']
 
@@ -28,18 +29,18 @@ function inferBuildOptions(cwd: string) {
   return pipe(
     mergeMap((opts: BuildOptions) => {
       const pkgJsonPath = path.resolve(cwd, './', 'package.json')
-      const combineOptionsAndPkg$ = zip(
+      const buildContext$ = zip(
         of(opts),
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        of(require(pkgJsonPath) as PackageJson)
+        lazyRequireObs<PackageJson>(pkgJsonPath)
+      )
+      const notFoundError$ = throwError(
+        () =>
+          new Error(`package.json file doesn't exists in the ${pkgJsonPath}`)
       )
       return iif(
         () => fs.existsSync(pkgJsonPath),
-        combineOptionsAndPkg$,
-        throwError(
-          () =>
-            new Error(`package.json file doesn't exists in the ${pkgJsonPath}`)
-        )
+        buildContext$,
+        notFoundError$
       )
     }),
     map(([opts, pkgJson]) => {
@@ -47,7 +48,8 @@ function inferBuildOptions(cwd: string) {
       const options: BuildOptions = {
         bundle: false,
         logLevel: 'info',
-        incremental: process.env['NODE_ENV'] === 'production',
+        incremental: isProduction(process),
+        splitting: opts.format === 'esm',
         ...opts
       }
       return {
@@ -93,11 +95,9 @@ function inferBuildOptions(cwd: string) {
           `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
         )
       }
-      const outDir = options.outdir ?? path.dirname(outPathInPkg as string)
       return {
         options,
         pkgJson,
-        outDir,
         outPath: outPathInPkg
       }
     }),

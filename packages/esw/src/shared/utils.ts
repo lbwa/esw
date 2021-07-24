@@ -6,3 +6,7 @@ export function isDef<V>(value: V): value is NonNullable<V> {
 export function tuple<T extends unknown[]>(args: [...T]) {
   return args
 }
+
+export function isProduction(process: NodeJS.Process) {
+  return process.env['NODE_ENV'] === 'production'
+}
