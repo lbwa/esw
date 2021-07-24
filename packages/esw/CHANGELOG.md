@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/lbwa/esw/compare/esw@0.2.0...esw@0.2.1) (2021-07-24)
+
+### Bug Fixes
+
+- should handle pakage.json access error ([0255599](https://github.com/lbwa/esw/commit/02555992c933fa29950d6fa4d2b605eb195103be))
+
 # [0.2.0](https://github.com/lbwa/esw/compare/esw@0.1.0...esw@0.2.0) (2021-07-19)
 
 ### Bug Fixes
