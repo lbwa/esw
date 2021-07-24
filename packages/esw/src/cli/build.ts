@@ -9,7 +9,6 @@ import {
   catchError,
   throwError,
   pipe,
-  from,
   mergeMap
 } from 'rxjs'
 import omit from 'lodash/omit'
@@ -90,12 +89,14 @@ function normalizeBuildArgs() {
   )
 }
 
-const build: CommandRunner<BuildResult> = function (argv = []) {
+const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
+  argv = []
+) {
   return of(argv).pipe(
     normalizeValidArgs(),
     mergeMap(args => iif(() => !!args['--help'], createPrintHelp(), of(args))),
     normalizeBuildArgs(),
-    mergeMap(options => from(runBuild(options)))
+    mergeMap(options => runBuild(options))
   )
 }
 

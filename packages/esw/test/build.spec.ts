@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { exec, ExecException } from 'child_process'
-import { BuildOptions } from 'esbuild'
+import { BuildOptions, BuildResult } from 'esbuild'
 import { build } from '../src'
 
 function getTestName() {
@@ -16,6 +16,23 @@ function clearCacheDir(dir: string) {
   return fs.promises.rm(dir, { force: true, recursive: true })
 }
 
+function formatBuildResult(raw: PromiseSettledResult<BuildResult>[]) {
+  return raw.reduce((errors, result) => {
+    if (result.status === 'fulfilled') {
+      errors.push(result.value)
+    }
+    return errors
+  }, [] as BuildResult[])
+}
+
+function hasErrors(results: BuildResult[]) {
+  return results.every(result => result.errors.length > 1)
+}
+
+function hasWarnings(results: BuildResult[]) {
+  return results.every(result => result.warnings.length > 1)
+}
+
 async function runFixtureCase(
   fixtureName: string,
   cacheDir: string,
@@ -24,7 +41,7 @@ async function runFixtureCase(
   outFile = 'index.js'
 ) {
   await clearCacheDir(resolveFixture(`${fixtureName}/${cacheDir}`))
-  const result = await build({
+  const results = await build({
     absWorkingDir: resolveFixture(fixtureName),
     logLevel: 'debug',
     format: 'esm',
@@ -33,9 +50,10 @@ async function runFixtureCase(
     bundle: false,
     ...options
   })
-  expect(result.errors).toHaveLength(0)
-  expect(result.warnings).toHaveLength(0)
-  expect(result).toMatchSnapshot(getTestName())
+  const buildResults = formatBuildResult(results)
+  expect(hasErrors(buildResults)).toBeFalsy()
+  expect(hasWarnings(buildResults)).toBeFalsy()
+  expect(buildResults).toMatchSnapshot(getTestName())
 
   expect(
     fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/${outFile}`))
@@ -58,14 +76,16 @@ describe('node api - build', () => {
     const cacheDir = 'dist/build'
     const outDir = resolveFixture(`typescript/${cacheDir}`)
     await clearCacheDir(outDir)
-    const result = await build({
+    const results = await build({
       absWorkingDir: resolveFixture('typescript'),
       logLevel: 'debug',
       outdir: cacheDir
     })
-    expect(result.errors).toHaveLength(0)
-    expect(result.warnings).toHaveLength(0)
-    expect(result).toMatchSnapshot(getTestName())
+    const buildResults = formatBuildResult(results)
+    expect(buildResults).toHaveLength(2)
+    expect(hasErrors(buildResults)).toBeFalsy()
+    expect(hasWarnings(buildResults)).toBeFalsy()
+    expect(buildResults).toMatchSnapshot(getTestName())
     ;['', '.esm'].map(type =>
       expect(
         fs.existsSync(resolveFixture(`typescript/${cacheDir}/index${type}.js`))
