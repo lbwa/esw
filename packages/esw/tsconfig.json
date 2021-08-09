@@ -6,5 +6,6 @@
     "tsBuildInfoFile": ".tsbuildinfo",
     "esModuleInterop": true,
     "lib": ["esnext"]
-  }
+  },
+  "exclude": ["**/node_modules", "**/.*/"]
 }
