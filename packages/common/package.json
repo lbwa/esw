@@ -1,0 +1,47 @@
+{
+  "name": "@eswjs/common",
+  "version": "0.0.1",
+  "description": "A extremely fast JavaScript/TypeScript library build tool based on esbuild.",
+  "author": "Liu Bowen <mr_lbw@outlook.com>",
+  "homepage": "https://github.com/lbwa/esw/tree/main/packages/common#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "directories": {
+    "lib": "dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lbwa/esw.git",
+    "directory": "packages/common"
+  },
+  "scripts": {
+    "watch": "yarn build:raw --watch",
+    "build": "yarn build:raw & yarn build:types ",
+    "build:raw": "esbuild src/index.ts --bundle --outdir=dist --format=esm --tsconfig=tsconfig.json  --external:esbuild",
+    "build:types": "tsc -p ./tsconfig.json",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/lbwa/esw/issues"
+  },
+  "devDependencies": {
+    "esbuild": "^0.12.15",
+    "typescript": "^4.3.5"
+  },
+  "peerDependencies": {
+    "esbuild": "^0.12.15",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "consola": "^2.15.3"
+  }
+}

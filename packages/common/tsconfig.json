@@ -1,0 +1,11 @@
+{
+  "extends": "@lbwa/tsconfig",
+  "compilerOptions": {
+    "outDir": "dist",
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "esModuleInterop": true,
+    "emitDeclarationOnly": true
+  },
+  "exclude": ["./dist/**/*"]
+}
