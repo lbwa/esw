@@ -1,6 +1,7 @@
 import path from 'path'
 import esbuild from 'esbuild'
 import type sass from 'sass'
+import { EswPlugin, loadDependency } from '@eswjs/common'
 
 export type SassPluginOptions = {
   implementation: 'sass' | 'node-sass'
@@ -8,20 +9,6 @@ export type SassPluginOptions = {
 }
 
 const SASS_NAMESPACE = 'sass-lang'
-
-function loadSass(impl: SassPluginOptions['implementation'], baseDir: string) {
-  try {
-    const url = require.resolve(impl, { paths: [baseDir] })
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require(url) as typeof import('sass')
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(
-      `Couldn't find module ${impl}, please ensure it has been installed. e.g. yarn add ${impl} -D`
-    )
-    process.exit(1)
-  }
-}
 
 const createSassImporter: (baseDir: string) => sass.Importer =
   baseDir => url => {
@@ -33,7 +20,7 @@ const createSassImporter: (baseDir: string) => sass.Importer =
   }
 
 function loader(
-  sass: ReturnType<typeof loadSass>,
+  sass: typeof import('sass'),
   baseDir: string
 ): (args: esbuild.OnLoadArgs) => Promise<esbuild.OnLoadResult> {
   const sassImporter = createSassImporter(baseDir)
@@ -47,13 +34,10 @@ function loader(
   }
 }
 
-function createPlugin(
-  {
-    implementation = 'sass',
-    baseDir = process.cwd()
-  }: SassPluginOptions = {} as SassPluginOptions
+const plugin: EswPlugin<SassPluginOptions> = function plugin(
+  { implementation = 'sass', baseDir = process.cwd() } = {} as SassPluginOptions
 ): esbuild.Plugin {
-  const sass = loadSass(implementation, baseDir)
+  const sass = loadDependency<typeof import('sass')>(implementation, baseDir)
   return {
     name: 'plugin-sass',
     setup(build) {
@@ -80,5 +64,5 @@ function createPlugin(
   }
 }
 
-export default createPlugin
-module.exports = createPlugin
+export default plugin
+module.exports = plugin
