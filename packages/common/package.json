@@ -6,7 +6,6 @@
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/common#readme",
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "directories": {
     "lib": "dist"
@@ -25,8 +24,9 @@
   },
   "scripts": {
     "watch": "yarn build:raw --watch",
-    "build": "yarn build:raw & yarn build:types ",
-    "build:raw": "esbuild src/index.ts --bundle --outdir=dist --format=esm --tsconfig=tsconfig.json  --external:esbuild",
+    "clear": "rm -rf dist/*.js",
+    "build": "yarn clear && yarn build:raw & yarn build:types ",
+    "build:raw": "esbuild src/index.ts --bundle --outdir=dist --tsconfig=tsconfig.json --format=cjs --external:esbuild",
     "build:types": "tsc -p ./tsconfig.json",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
