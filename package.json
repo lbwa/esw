@@ -25,6 +25,7 @@
   "homepage": "https://github.com/lbwa/esw#readme",
   "scripts": {
     "prepare": "husky install && lerna bootstrap",
+    "prepublishOnly": "yarn build",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,sass,less,md}\"",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
