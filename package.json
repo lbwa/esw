@@ -30,7 +30,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "watch": "lerna run watch --stream --parallel",
-    "build": "lerna run build --stream --parallel"
+    "build": "lerna run build --stream"
   },
   "devDependencies": {
     "@lbwa/eslint-config-typescript": "^0.3.1",
