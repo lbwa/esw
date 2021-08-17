@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { build, BuildOptions, BuildResult, Format } from 'esbuild'
+import { build, BuildOptions, Format } from 'esbuild'
 import {
   iif,
   map,
@@ -11,7 +11,8 @@ import {
   throwError,
   mergeMap,
   filter,
-  toArray
+  toArray,
+  firstValueFrom
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import cloneDeep from 'lodash/cloneDeep'
@@ -158,7 +159,7 @@ function invokeEsBuildBuild<V extends { options: BuildOptions }>() {
   )
 }
 
-export default function runBuild(
+export default async function runBuild(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
 ) {
@@ -167,10 +168,5 @@ export default function runBuild(
     applyExternalPlugin(),
     invokeEsBuildBuild()
   )
-  return new Promise<PromiseSettledResult<BuildResult>[]>((resolve, reject) => {
-    build$.subscribe({
-      next: resolve,
-      error: reject
-    })
-  })
+  return firstValueFrom(build$)
 }
