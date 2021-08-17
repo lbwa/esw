@@ -9,12 +9,12 @@
   "author": "Liu Bowen <mr_lbw@outlook.com>",
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/plugin-sass#readme",
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "directories": {
-    "lib": "lib"
+    "lib": "dist"
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -26,8 +26,10 @@
     "directory": "packages/plugin-sass"
   },
   "scripts": {
+    "clean": "rm -rf dist/",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "esbuild src/index.ts --bundle --external:esbuild --external:sass --platform=node --outdir=lib --tsconfig=tsconfig.json"
+    "prebuild": "yarn clean",
+    "build": "esw src/index.ts --bundle --platform=node --outdir=dist --tsconfig=tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/lbwa/esw/issues"
@@ -39,7 +41,7 @@
   "devDependencies": {
     "@lbwa/tsconfig": "^0.2.0",
     "@types/sass": "^1.16.1",
-    "esbuild": "^0.12.15",
+    "esw": "^0.2.1",
     "sass": "^1.35.1",
     "typescript": "^4.3.5"
   },
