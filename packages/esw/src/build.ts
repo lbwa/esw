@@ -20,7 +20,12 @@ import externalEsBuildPlugin from './plugins/external'
 import { isProduction, tuple } from './shared/utils'
 import { lazyRequireObs } from './shared/observable'
 
-const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx']
+const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
+const AVAILABLE_OUTPUT_FORMATS: readonly Format[] = ['cjs', 'esm']
+const enum InferenceAbility {
+  ON = 1,
+  OFF
+}
 
 type BuildContext = {
   options: BuildOptions
@@ -63,10 +68,16 @@ function inferBuildOptions(cwd: string) {
     mergeMap(metadata => {
       const { options, pkgJson } = metadata
 
-      function createInferObs(format: Format, outPath: string) {
+      function createInferObs(
+        format: Format,
+        outPath: string,
+        inference: InferenceAbility
+      ) {
         return of({ options: cloneDeep(options), pkgJson }).pipe(
           tap(metadata => {
-            metadata.options.format ??= format
+            if (inference === InferenceAbility.ON) {
+              metadata.options.format ??= format
+            }
             // We don't judge outExtension whether is valid, so there is no
             // validation which is related to options.format
             metadata.options.outExtension ??= {
@@ -77,13 +88,20 @@ function inferBuildOptions(cwd: string) {
       }
 
       return of(
-        tuple(['cjs', pkgJson.main]),
-        tuple(['esm', pkgJson.module])
+        tuple(['cjs' as Format, pkgJson.main, InferenceAbility.ON]),
+        /**
+         * @description `module` field always specify the **ES module** entry point.
+         * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
+         */
+        tuple(['esm' as Format, pkgJson.module, InferenceAbility.OFF])
       ).pipe(
-        filter(([, outPath]) => !!outPath),
+        filter(
+          ([format, outPath]) =>
+            AVAILABLE_OUTPUT_FORMATS.includes(format) && !!outPath
+        ),
         // create a inference observable if we got a valid outPath
         mergeMap(pair => {
-          return createInferObs(...(pair as [Format, string]))
+          return createInferObs(...(pair as [Format, string, InferenceAbility]))
         })
       )
     }),
