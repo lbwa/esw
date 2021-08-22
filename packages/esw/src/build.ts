@@ -6,133 +6,120 @@ import {
   map,
   zip,
   of,
-  pipe,
   tap,
   throwError,
   mergeMap,
   filter,
   toArray,
-  firstValueFrom
+  firstValueFrom,
+  combineLatest,
+  from
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
-import cloneDeep from 'lodash/cloneDeep'
+import isNil from 'lodash/isNil'
 import externalEsBuildPlugin from './plugins/external'
-import { isProduction, tuple } from './shared/utils'
-import { lazyRequireObs } from './shared/observable'
+import { isProduction } from './shared/utils'
 
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
-const AVAILABLE_OUTPUT_FORMATS: readonly Format[] = ['cjs', 'esm']
 const enum InferenceAbility {
   ON = 1,
   OFF
 }
 
-type BuildContext = {
-  options: BuildOptions
-  pkgJson: PackageJson
-}
+const FORMAT_TO_PKG_FIELD = new Map<Format, 'main' | 'module'>([
+  ['cjs', 'main'],
+  ['esm', 'module']
+] as const)
 
-function inferBuildOptions(cwd: string) {
-  return pipe(
-    mergeMap((opts: BuildOptions) => {
-      const pkgJsonPath = path.resolve(cwd, './', 'package.json')
-      const buildContext$ = zip(
-        of(opts),
-        lazyRequireObs<PackageJson>(pkgJsonPath)
-      )
-      const notFoundError$ = throwError(
-        () =>
-          new Error(`package.json file doesn't exists in the ${pkgJsonPath}`)
-      )
-      return iif(
-        () => fs.existsSync(pkgJsonPath),
-        buildContext$,
-        notFoundError$
-      )
-    }),
-    map(([opts, pkgJson]) => {
-      // Keep all boolean falsy by default
-      const options: BuildOptions = {
-        bundle: false,
-        logLevel: 'info',
-        incremental: isProduction(process),
-        splitting: opts.format === 'esm',
-        ...opts
-      }
-      return {
-        options,
-        pkgJson
-      }
-    }),
-    // infer options.format & outExtension
-    mergeMap(metadata => {
-      const { options, pkgJson } = metadata
+const PKG_FIELD_TO_FORMAT = new Map<'main' | 'module', Format>([
+  ['main', 'cjs'],
+  ['module', 'esm']
+] as const)
 
-      function createInferObs(
-        format: Format,
-        outPath: string,
-        inference: InferenceAbility
-      ) {
-        return of({ options: cloneDeep(options), pkgJson }).pipe(
-          tap(metadata => {
-            if (inference === InferenceAbility.ON) {
-              metadata.options.format ??= format
-            }
-            // We don't judge outExtension whether is valid, so there is no
-            // validation which is related to options.format
-            metadata.options.outExtension ??= {
-              '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
-            }
-          })
-        )
-      }
+const FIELD_INFERENCE_LOCK = new Map([
+  ['main', InferenceAbility.ON],
+  /**
+   * @description `module` field always specify the **ES module** entry point.
+   * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
+   */
+  ['module', InferenceAbility.OFF]
+] as const)
 
-      return of(
-        tuple(['cjs' as Format, pkgJson.main, InferenceAbility.ON]),
-        /**
-         * @description `module` field always specify the **ES module** entry point.
-         * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
-         */
-        tuple(['esm' as Format, pkgJson.module, InferenceAbility.OFF])
-      ).pipe(
-        filter(
-          ([format, outPath]) =>
-            AVAILABLE_OUTPUT_FORMATS.includes(format) && !!outPath
-        ),
-        // create a inference observable if we got a valid outPath
-        mergeMap(pair => {
-          return createInferObs(...(pair as [Format, string, InferenceAbility]))
-        })
-      )
-    }),
-    // infer options.outdir
-    map(({ options, pkgJson }) => {
-      // use options.format to decide which output path should be chosen.
-      const isESM = options.format === 'esm'
-      const outPathInPkg = isESM ? pkgJson.module : pkgJson.main
-      if (!options.outdir && !outPathInPkg) {
-        throw new Error(
-          `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
+export default function runBuild(
+  options: BuildOptions = {},
+  cwd: string = options.absWorkingDir || process.cwd()
+) {
+  const resolvedPkgJsonPath = path.resolve(cwd, 'package.json')
+  const pkgJsonPath$ = of(resolvedPkgJsonPath)
+  const pkgJson$ = iif(
+    () => fs.existsSync(resolvedPkgJsonPath),
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    pkgJsonPath$.pipe(map(pkgJsonPath => require(pkgJsonPath) as PackageJson)),
+    throwError(
+      () =>
+        new Error(
+          `package.json file doesn't exists in the ${resolvedPkgJsonPath}`
         )
+    )
+  )
+
+  const alternativeFormats$ = from(['cjs', 'esm'] as const)
+  const moduleIdFields$ = alternativeFormats$.pipe(
+    map(format => FORMAT_TO_PKG_FIELD.get(format)),
+    filter(Boolean)
+  )
+
+  const inferredOutPaths$ = combineLatest([pkgJson$, moduleIdFields$]).pipe(
+    map(([pkgJson, field]) => pkgJson[field]),
+    filter(Boolean)
+  )
+
+  const inferenceMeta$ = zip([
+    inferredOutPaths$,
+    moduleIdFields$,
+    alternativeFormats$
+  ]).pipe(
+    map(([outPath, field, alternativeFmt]) => ({
+      outPath,
+      field,
+      alternativeFmt
+    }))
+  )
+
+  const optionsWithDefault$ = of(options).pipe(
+    map<BuildOptions, BuildOptions>(options => ({
+      bundle: false,
+      logLevel: 'info',
+      incremental: isProduction(process),
+      ...options
+    }))
+  )
+
+  const inferredOptions$ = combineLatest([
+    optionsWithDefault$,
+    inferenceMeta$
+  ]).pipe(
+    map(([options, meta]) => {
+      const { field, outPath, alternativeFmt } = meta
+      const fieldLock = FIELD_INFERENCE_LOCK.get(field)
+      // inference has higher priority than user's format
+      const fmt =
+        fieldLock === InferenceAbility.ON && isNil(options.format)
+          ? alternativeFmt
+          : options.format
+      const outExt = options.outExtension ?? {
+        '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
       }
-      return {
-        options,
-        pkgJson,
-        outPath: outPathInPkg
-      }
+      const clonedOptions = {
+        ...options,
+        format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
+        outExtension: outExt
+      } as BuildOptions
+      return [clonedOptions, meta] as const
     }),
-    // infer options.entryPoints
-    map(({ options, pkgJson, outPath }) => {
-      const context = { options, pkgJson }
-      if (options.entryPoints) {
-        // respect user's entryPoints, skip inference
-        return context
-      }
-      if (!outPath) {
-        throw new Error(
-          `Couldn't infer project entry point. Please fill in main or module or both fields in package.json`
-        )
-      }
+    map(([options, { outPath }]) => {
+      if (!isNil(options.entryPoints)) return options
+
       const entry = path.basename(outPath).replace(/\..+/, '')
       const [matchedEntry] = ENTRY_POINTS_EXTS.map(ext =>
         path.resolve(cwd, entry + ext)
@@ -147,17 +134,34 @@ function inferBuildOptions(cwd: string) {
       }
 
       options.entryPoints ??= [matchedEntry]
+      return options
+    }),
+    tap(options => {
+      const { splitting, format } = options
+      if (isNil(splitting) && format === 'esm') {
+        options.splitting = true
+      }
+    }),
+    // check options logics
+    tap(options => {
+      const { splitting, format, outdir } = options
 
-      return context
+      if (splitting && format !== 'esm') {
+        throw new Error(`Splitting currently only works with the 'esm' format`)
+      }
+
+      if (isNil(outdir)) {
+        throw new Error(
+          `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
+        )
+      }
     })
   )
-}
 
-function applyExternalPlugin() {
-  return pipe(
-    tap(({ options, pkgJson }: BuildContext) => {
-      const peerDeps = pkgJson.peerDependencies ?? {}
+  const markDepsAsExternals$ = combineLatest([pkgJson$, inferredOptions$]).pipe(
+    map(([pkgJson, options]) => {
       const deps = pkgJson.dependencies ?? {}
+      const peerDeps = pkgJson.peerDependencies ?? {}
       const groups = ([] as string[]).concat(
         Object.keys(peerDeps),
         Object.keys(deps)
@@ -165,26 +169,15 @@ function applyExternalPlugin() {
       options.plugins = (options.plugins ?? []).concat(
         externalEsBuildPlugin(groups)
       )
+      return options
     })
   )
-}
 
-function invokeEsBuildBuild<V extends { options: BuildOptions }>() {
-  return pipe(
-    toArray<V>(),
-    map(optGroup => optGroup.map(({ options }) => build(options))),
-    mergeMap(buildGroup => Promise.allSettled(buildGroup))
+  const invokeEsBuildBuild$ = markDepsAsExternals$.pipe(
+    toArray(),
+    map(optionGroup => optionGroup.map(options => build(options))),
+    mergeMap(insGroup => Promise.allSettled(insGroup))
   )
-}
 
-export default async function runBuild(
-  options: BuildOptions = {},
-  cwd: string = options.absWorkingDir || process.cwd()
-) {
-  const build$ = of(options).pipe(
-    inferBuildOptions(cwd),
-    applyExternalPlugin(),
-    invokeEsBuildBuild()
-  )
-  return firstValueFrom(build$)
+  return firstValueFrom(invokeEsBuildBuild$)
 }
