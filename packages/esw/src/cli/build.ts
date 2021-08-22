@@ -13,11 +13,11 @@ import {
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult } from 'esbuild'
+import { isDef } from '@eswjs/common'
 import { printAndExit } from '../shared/log'
 import { ProcessCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild from '../build'
-import { isDef } from '../shared/utils'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
 function createPrintHelp(code = ProcessCode.OK) {
