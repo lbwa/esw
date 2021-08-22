@@ -13,7 +13,8 @@ import {
   toArray,
   firstValueFrom,
   combineLatest,
-  from
+  from,
+  pipe
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
@@ -44,6 +45,25 @@ const FIELD_INFERENCE_LOCK = new Map([
    */
   ['module', InferenceAbility.OFF]
 ] as const)
+
+function checkBuildOptions<Options extends BuildOptions>() {
+  return pipe(
+    // check options logics
+    tap<Options>(options => {
+      const { splitting, format, outdir } = options
+
+      if (splitting && format !== 'esm') {
+        throw new Error(`Splitting currently only works with the 'esm' format`)
+      }
+
+      if (isNil(outdir)) {
+        throw new Error(
+          `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
+        )
+      }
+    })
+  )
+}
 
 export default function runBuild(
   options: BuildOptions = {},
@@ -142,20 +162,7 @@ export default function runBuild(
         options.splitting = true
       }
     }),
-    // check options logics
-    tap(options => {
-      const { splitting, format, outdir } = options
-
-      if (splitting && format !== 'esm') {
-        throw new Error(`Splitting currently only works with the 'esm' format`)
-      }
-
-      if (isNil(outdir)) {
-        throw new Error(
-          `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
-        )
-      }
-    })
+    checkBuildOptions()
   )
 
   const markDepsAsExternals$ = combineLatest([pkgJson$, inferredOptions$]).pipe(
