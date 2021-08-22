@@ -102,7 +102,7 @@ export default function runBuild(
     map(([options, meta]) => {
       const { field, outPath, alternativeFmt } = meta
       const fieldLock = FIELD_INFERENCE_LOCK.get(field)
-      // inference has higher priority than user's format
+      // user's format has higher priority than inference
       const fmt =
         fieldLock === InferenceAbility.ON && isNil(options.format)
           ? alternativeFmt
