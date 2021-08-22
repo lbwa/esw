@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import chalk from 'chalk'
+import { isDef } from '@eswjs/common'
 import { ProcessCode } from './constants'
-import { isDef } from './utils'
 
 const prefixes = {
   error: chalk.red('error') + ' -',

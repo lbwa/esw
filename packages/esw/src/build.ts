@@ -18,6 +18,7 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
+import { isDef } from '@eswjs/common'
 import externalEsBuildPlugin from './plugins/external'
 import { isProduction } from './shared/utils'
 
@@ -138,7 +139,7 @@ export default function runBuild(
       return [clonedOptions, meta] as const
     }),
     map(([options, { outPath }]) => {
-      if (!isNil(options.entryPoints)) return options
+      if (isDef(options.entryPoints)) return options
 
       const entry = path.basename(outPath).replace(/\..+/, '')
       const [matchedEntry] = ENTRY_POINTS_EXTS.map(ext =>
