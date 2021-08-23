@@ -8,22 +8,21 @@ import {
   map,
   catchError,
   throwError,
-  pipe,
-  mergeMap
+  concatMap
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult } from 'esbuild'
 import { isDef } from '@eswjs/common'
-import { printAndExit } from '../shared/log'
+import { printToTerminal } from '../shared/printer'
 import { ProcessCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
-function createPrintHelp(code = ProcessCode.OK) {
+function createUsagePrinter(code = ProcessCode.OK) {
   return of(code).pipe(
     tap(code =>
-      printAndExit(
+      printToTerminal(
         `
     Description
       Compiles the codebase for package publish
@@ -33,41 +32,49 @@ function createPrintHelp(code = ProcessCode.OK) {
 
     <entry files> represents the library entry points.
 `,
-        code
+        code,
+        false
       )
     ),
     switchMapTo(EMPTY)
   )
 }
 
-function normalizeValidArgs() {
-  return pipe(
-    map((argv: string[]) => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
-    mergeMap(args => {
-      const matched = args._.filter(pending => pending.startsWith('-'))
+const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
+  argv = []
+) {
+  const argv$ = of(argv)
+  const resolvedArgv$ = argv$.pipe(
+    map(argv => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
+    concatMap(argv => {
+      const unavailable = argv._.filter(pending => pending.startsWith('-'))
       return iif(
-        () => matched.length > 0,
+        () => unavailable.length < 1,
+        of(argv),
         throwError(
           () =>
             new ArgError(
-              `Unknown or unexpected option: ${matched.join(', ')}`,
+              `Unknown or unexpected option: ${unavailable.join(', ')}`,
               'ARG_UNKNOWN_OPTION'
             )
-        ),
-        of(args)
+        )
       )
     }),
     catchError((err: Error & { code: string }) => {
       if (err.code === 'ARG_UNKNOWN_OPTION') {
-        return createPrintHelp(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
+        return createUsagePrinter(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
       }
       throw err
     })
   )
-}
 
-function normalizeBuildArgs() {
-  return pipe(
+  const handlePrintUsage$ = resolvedArgv$.pipe(
+    concatMap(argv =>
+      iif(() => !!argv['--help'], createUsagePrinter(), of(argv))
+    )
+  )
+
+  const normalizedBuildArgs$ = handlePrintUsage$.pipe(
     map((args: arg.Result<BuildArgsSpec>) => {
       args['--absWorkingDir'] ??= process.cwd()
       const entryPoints = args._.filter(pending => !pending.startsWith('-'))
@@ -87,17 +94,12 @@ function normalizeBuildArgs() {
       }, {} as BuildOptions)
     )
   )
-}
 
-const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
-  argv = []
-) {
-  return of(argv).pipe(
-    normalizeValidArgs(),
-    mergeMap(args => iif(() => !!args['--help'], createPrintHelp(), of(args))),
-    normalizeBuildArgs(),
-    mergeMap(options => runBuild(options))
+  const handleCommandStdin$ = normalizedBuildArgs$.pipe(
+    concatMap(options => runBuild(options))
   )
+
+  return handleCommandStdin$
 }
 
 export default build
