@@ -39,6 +39,7 @@
     "typescript": "^4.3.5"
   },
   "peerDependencies": {
+    "lodash": "^4.17.21",
     "typescript": "^4.3.5"
   },
   "peerDependenciesMeta": {
