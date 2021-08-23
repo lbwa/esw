@@ -33,7 +33,7 @@
     "directory": "packages/esw"
   },
   "scripts": {
-    "build": "esbuild src/bin/*.ts src/index.ts --bundle --minify --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:rxjs --external:esbuild --external:arg --external:chalk --external:type-fest --external:lodash",
+    "build": "esbuild src/bin/*.ts src/index.ts --bundle --minify --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:rxjs --external:esbuild --external:arg --external:type-fest --external:lodash",
     "watch": "yarn build --watch",
     "prepublishOnly": "yarn build",
     "test": "echo \"Error: run tests from root\" && exit 1"
@@ -51,7 +51,6 @@
   "peerDependenciesMeta": {},
   "dependencies": {
     "arg": "^5.0.0",
-    "chalk": "^4.1.1",
     "esbuild": "^0.12.20",
     "lodash": "^4.17.21",
     "rxjs": "^7.2.0",

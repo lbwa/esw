@@ -4,28 +4,30 @@ import {
   EMPTY,
   from,
   of,
-  pipe,
   throwError,
   zip,
   tap,
   map,
   catchError,
   Observable,
-  mergeMap
+  concatMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
-import { printAndExit } from '../shared/log'
+import { printToTerminal } from '../shared/printer'
 import { ProcessCode as Code } from '../shared/constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
-type AvailableArgs = typeof availableArgs
-type Commands = typeof COMMANDS
+type Commands = typeof AVAILABLE_COMMANDS
 type CommandNames = keyof Commands
 
-// eslint-disable-next-line
-const pkgJson = require(path.resolve(__dirname, '../..', 'package.json'))
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkgJson = require(path.resolve(
+  __dirname,
+  '../..',
+  'package.json'
+)) as PackageJson
 const DEFAULT_COMMAND_NAME = 'build'
-const COMMANDS = {
+const AVAILABLE_COMMANDS = {
   build: () => from(import('../cli/build')).pipe(map(({ default: run }) => run))
 }
 const availableArgs = {
@@ -37,21 +39,9 @@ const availableArgs = {
   '-h': '--help'
 }
 
-function printVersion<V extends { args: arg.Result<AvailableArgs> }>(
-  pkg: PackageJson
-) {
-  return pipe(
-    tap(({ args }: V) => {
-      if (args['--version']) {
-        printAndExit(`v${pkg.version}`, Code.OK)
-      }
-    })
-  )
-}
-
-function printHelpIntoTerminal(commands: Commands) {
+function printUsageIntoTerminal(commands: Commands) {
   const names = Object.keys(commands)
-  printAndExit(
+  printToTerminal(
     `
     Usage
       $ esw <command>
@@ -70,47 +60,52 @@ function printHelpIntoTerminal(commands: Commands) {
   )
 }
 
-function printHelp(commands: Commands) {
-  return pipe(
-    tap(
-      ({
-        isValidCommand,
-        args: { '--help': help }
-      }: {
-        isValidCommand: boolean
-        args: arg.Result<AvailableArgs>
-      }) => {
-        if (!isValidCommand && help) {
-          printHelpIntoTerminal(commands)
-        }
+/**
+ * @example parse(process.argv.slice(2)).subscribe({ ... })
+ */
+export default function parse(argv: string[]) {
+  const argv$ = of(argv)
+  const resolvedArgv$ = argv$.pipe(
+    map(argv =>
+      arg(availableArgs, {
+        //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
+        argv,
+        permissive: true
+      })
+    ),
+    catchError((err: Error & { code: string }) => {
+      if (err.code === 'ARG_UNKNOWN_OPTION') {
+        printUsageIntoTerminal(AVAILABLE_COMMANDS)
+        return EMPTY
       }
-    )
+      return throwError(() => err)
+    }),
+    map(args => ({
+      isValidStdin: !!AVAILABLE_COMMANDS[args._[0] as CommandNames],
+      args
+    }))
   )
-}
 
-function setEnv<V extends { commandName: string }>() {
-  return pipe(
-    tap(({ commandName }: V) => {
-      const normalizedEnv =
-        commandName === 'build' ? 'production' : 'development'
-      process.env['NODE_ENV'] ||= normalizedEnv
-
-      process.on('SIGTERM', () => process.exit(0))
-      process.on('SIGINT', () => process.exit(0))
+  const handlePrintVersion$ = resolvedArgv$.pipe(
+    tap(({ args }) => {
+      if (args['--version']) {
+        printToTerminal(`v${pkgJson.version}`, Code.OK)
+      }
     })
   )
-}
 
-function parseForwardArgs<
-  V extends {
-    isValidCommand: boolean
-    args: arg.Result<AvailableArgs>
-  }
->(defaultCommandName: string) {
-  return pipe(
-    map(({ isValidCommand, args }: V) => {
-      const commandName = isValidCommand ? args._[0] : defaultCommandName
-      const forwardArgs = isValidCommand ? args._.slice(1) : args._
+  const handlePrintUsage$ = handlePrintVersion$.pipe(
+    tap(({ isValidStdin, args: { '--help': help } }) => {
+      if (!isValidStdin || help) {
+        printUsageIntoTerminal(AVAILABLE_COMMANDS)
+      }
+    })
+  )
+
+  const handleForwardArgs$ = handlePrintUsage$.pipe(
+    map(({ isValidStdin, args }) => {
+      const commandName = isValidStdin ? args._[0] : DEFAULT_COMMAND_NAME
+      const forwardArgs = isValidStdin ? args._.slice(1) : args._
       if (args['--help']) {
         forwardArgs.push('--help')
       }
@@ -120,49 +115,27 @@ function parseForwardArgs<
       }
     })
   )
-}
-function invokeCommand<
-  V extends {
-    commandName: string
-    forwardArgs: string[]
-  }
->() {
-  return pipe(
-    mergeMap(({ commandName, forwardArgs }: V) =>
-      zip(from(COMMANDS[commandName as CommandNames]()), of(forwardArgs))
-    ),
-    mergeMap(([run, args]) => run(args))
-  )
-}
 
-function parseRootArgs() {
-  return pipe(
-    map((argv: string[]) =>
-      arg(availableArgs, {
-        //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
-        argv,
-        permissive: true
-      })
-    ),
-    catchError((err: Error & { code: string }) => {
-      if (err.code === 'ARG_UNKNOWN_OPTION') {
-        printHelpIntoTerminal(COMMANDS)
-        return EMPTY
-      }
-      return throwError(() => err)
+  const setEnvVariables$ = handleForwardArgs$.pipe(
+    tap(({ commandName }) => {
+      const normalizedEnv =
+        commandName === 'build' ? 'production' : 'development'
+      process.env['NODE_ENV'] ||= normalizedEnv
+
+      process.on('SIGTERM', () => process.exit(0))
+      process.on('SIGINT', () => process.exit(0))
     })
   )
-}
 
-export default of(process.argv.slice(2)).pipe(
-  parseRootArgs(),
-  map(args => ({
-    isValidCommand: !!COMMANDS[args._[0] as CommandNames],
-    args
-  })),
-  printVersion(pkgJson),
-  printHelp(COMMANDS),
-  parseForwardArgs(DEFAULT_COMMAND_NAME),
-  setEnv(),
-  invokeCommand()
-)
+  const handleCommandStdin$ = setEnvVariables$.pipe(
+    concatMap(({ commandName, forwardArgs }) =>
+      zip(
+        from(AVAILABLE_COMMANDS[commandName as CommandNames]()),
+        of(forwardArgs)
+      )
+    ),
+    concatMap(([run, args]) => run?.(args))
+  )
+
+  return handleCommandStdin$
+}

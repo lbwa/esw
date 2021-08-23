@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { ProcessCode } from '../shared/constants'
-import cliParser$ from '../parser/cli'
-import { printAndExit } from '../shared/log'
+import parse from '../parser/cli'
+import { printToTerminal } from '../shared/printer'
 
-cliParser$.subscribe({
+parse(process.argv.slice(2)).subscribe({
   complete() {
     process.exit(ProcessCode.OK)
   },
   error(err: Error) {
-    printAndExit(err.message, ProcessCode.ERROR)
+    printToTerminal(err.message, ProcessCode.ERROR)
   }
 })
