@@ -51,7 +51,7 @@
   "peerDependenciesMeta": {},
   "dependencies": {
     "arg": "^5.0.0",
-    "esbuild": "^0.12.20",
+    "esbuild": "^0.12.22",
     "lodash": "^4.17.21",
     "rxjs": "^7.2.0",
     "type-fest": "^1.2.2"
