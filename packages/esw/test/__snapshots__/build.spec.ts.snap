@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`node api - build should override the cjs inference from main field: node-api---build-should-override-the-cjs-inference-from-main-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
 exports[`node api - build should work with main field and cjs syntax: node-api---build-should-work-with-main-field-and-cjs-syntax 1`] = `
 Array [
   Object {
@@ -33,6 +42,15 @@ Array [
     "errors": Array [],
     "warnings": Array [],
   },
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`node api - build shouldn't override the esm inference from module field: node-api---build-shouldn't-override-the-esm-inference-from-module-field 1`] = `
+Array [
   Object {
     "errors": Array [],
     "warnings": Array [],

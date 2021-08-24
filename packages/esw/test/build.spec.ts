@@ -135,6 +135,28 @@ describe('node api - build', () => {
     expect(output).toContain(`from "./src/fib"`)
   })
 
+  it("shouldn't override the esm inference from module field", async () => {
+    const output = await runFixtureCase(
+      'only-module-field',
+      'dist',
+      { format: 'cjs' },
+      'index.ts',
+      'index.esm.js'
+    )
+    expect(output).toContain(`from "./src/fib"`)
+  })
+
+  it('should override the cjs inference from main field', async () => {
+    const output = await runFixtureCase(
+      'only-module-field',
+      'dist',
+      { format: 'esm' },
+      'index.ts',
+      'index.esm.js'
+    )
+    expect(output).toContain(`from "./src/fib"`)
+  })
+
   it("shouldn't work without package.json file", async () => {
     let err: Error | null = null
     await build({

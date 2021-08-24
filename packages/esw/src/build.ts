@@ -4,7 +4,6 @@ import { build, BuildOptions, Format } from 'esbuild'
 import {
   iif,
   map,
-  zip,
   of,
   tap,
   throwError,
@@ -13,8 +12,9 @@ import {
   toArray,
   firstValueFrom,
   combineLatest,
-  from,
-  pipe
+  pipe,
+  asapScheduler,
+  scheduled
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
@@ -23,11 +23,6 @@ import externalEsBuildPlugin from './plugins/external'
 import { isProduction } from './shared/utils'
 
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
-const enum InferenceAbility {
-  ON = 1,
-  OFF
-}
-
 const FORMAT_TO_PKG_FIELD = new Map<Format, 'main' | 'module'>([
   ['cjs', 'main'],
   ['esm', 'module']
@@ -36,15 +31,6 @@ const FORMAT_TO_PKG_FIELD = new Map<Format, 'main' | 'module'>([
 const PKG_FIELD_TO_FORMAT = new Map<'main' | 'module', Format>([
   ['main', 'cjs'],
   ['module', 'esm']
-] as const)
-
-const FIELD_INFERENCE_LOCK = new Map([
-  ['main', InferenceAbility.ON],
-  /**
-   * @description `module` field always specify the **ES module** entry point.
-   * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
-   */
-  ['module', InferenceAbility.OFF]
 ] as const)
 
 function checkBuildOptions<Options extends BuildOptions>() {
@@ -84,7 +70,7 @@ export default function runBuild(
     )
   )
 
-  const alternativeFormats$ = from(['cjs', 'esm'] as const)
+  const alternativeFormats$ = scheduled(['cjs', 'esm'] as const, asapScheduler)
   const moduleIdFields$ = alternativeFormats$.pipe(
     map(format => FORMAT_TO_PKG_FIELD.get(format)),
     filter(Boolean)
@@ -95,12 +81,20 @@ export default function runBuild(
     filter(Boolean)
   )
 
-  const inferenceMeta$ = zip([
+  const inferenceMeta$ = combineLatest([
+    pkgJson$,
     inferredOutPaths$,
     moduleIdFields$,
     alternativeFormats$
   ]).pipe(
-    map(([outPath, field, alternativeFmt]) => ({
+    filter(([pkgJson, outPath, field, format]) => {
+      const isEsModuleEntry = field === 'module'
+      const isAvailableEsModuleEntry = isEsModuleEntry && format === 'esm'
+      const isMatchedField = pkgJson[field] === outPath
+
+      return isMatchedField && (!isEsModuleEntry || isAvailableEsModuleEntry)
+    }),
+    map(([, outPath, field, alternativeFmt]) => ({
       outPath,
       field,
       alternativeFmt
@@ -122,12 +116,14 @@ export default function runBuild(
   ]).pipe(
     map(([options, meta]) => {
       const { field, outPath, alternativeFmt } = meta
-      const fieldLock = FIELD_INFERENCE_LOCK.get(field)
-      // user's format has higher priority than inference
       const fmt =
-        fieldLock === InferenceAbility.ON && isNil(options.format)
-          ? alternativeFmt
-          : options.format
+        field === 'module'
+          ? /**
+             * @description `module` field always specify the **ES module** entry point.
+             * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
+             */
+            alternativeFmt
+          : options.format ?? alternativeFmt
       const outExt = options.outExtension ?? {
         '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
       }
