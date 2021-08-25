@@ -49,52 +49,52 @@ async function createBuildScript(
   Object.values(outfile).map(p =>
     expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
   )
-  return {
-    esm: await fs.promises.readFile(resolveFixture(esm), {
+  return Promise.all([
+    fs.promises.readFile(resolveFixture(esm), {
       encoding: 'utf8'
     }),
-    cjs: await fs.promises.readFile(resolveFixture(cjs), {
+    fs.promises.readFile(resolveFixture(cjs), {
       encoding: 'utf8'
     })
-  }
+  ])
 }
 
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
-    const output = await createBuildScript(
+    const [esm, cjs] = await createBuildScript(
       ['build', `--outdir=${cacheDir}/no-bundle`],
       {
         esm: `./${cacheDir}/no-bundle/index.esm.js`,
         cjs: `./${cacheDir}/no-bundle/index.js`
       }
     )
-    expect(output.esm).toContain('from "react"')
-    expect(output.esm).toContain(`from "react"`)
-    expect(output.esm).toContain(`from "rxjs"`)
-    expect(output.esm).toContain(`from "rxjs/operators"`)
+    expect(esm).toContain('from "react"')
+    expect(esm).toContain(`from "react"`)
+    expect(esm).toContain(`from "rxjs"`)
+    expect(esm).toContain(`from "rxjs/operators"`)
 
-    expect(output.cjs).toContain('require("react")')
-    expect(output.cjs).toContain(`require("react")`)
-    expect(output.cjs).toContain(`require("rxjs")`)
-    expect(output.cjs).toContain(`require("rxjs/operators")`)
+    expect(cjs).toContain('require("react")')
+    expect(cjs).toContain(`require("react")`)
+    expect(cjs).toContain(`require("rxjs")`)
+    expect(cjs).toContain(`require("rxjs/operators")`)
   })
 
   it('should work with entry points and bundle', async () => {
-    const output = await createBuildScript(
+    const [esm, cjs] = await createBuildScript(
       ['build', '--bundle', `--outdir=${cacheDir}/bundle`],
       {
         esm: `./${cacheDir}/bundle/index.esm.js`,
         cjs: `./${cacheDir}/bundle/index.js`
       }
     )
-    expect(output.esm).toContain('from "react"')
-    expect(output.esm).toContain(`from "react"`)
-    expect(output.esm).toContain(`from "rxjs"`)
-    expect(output.esm).toContain(`from "rxjs/operators"`)
+    expect(esm).toContain('from "react"')
+    expect(esm).toContain(`from "react"`)
+    expect(esm).toContain(`from "rxjs"`)
+    expect(esm).toContain(`from "rxjs/operators"`)
 
-    expect(output.cjs).toContain('require("react")')
-    expect(output.cjs).toContain(`require("react")`)
-    expect(output.cjs).toContain(`require("rxjs")`)
-    expect(output.cjs).toContain(`require("rxjs/operators")`)
+    expect(cjs).toContain('require("react")')
+    expect(cjs).toContain(`require("react")`)
+    expect(cjs).toContain(`require("rxjs")`)
+    expect(cjs).toContain(`require("rxjs/operators")`)
   })
 })
