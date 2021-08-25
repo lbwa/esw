@@ -1,6 +1,6 @@
 {
   "name": "sass-esbuild-plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "sass plugin",
   "keywords": [
     "esbuild",
@@ -41,11 +41,11 @@
   "devDependencies": {
     "@lbwa/tsconfig": "^0.2.0",
     "@types/sass": "^1.16.1",
-    "esw": "^0.2.1",
+    "esw": "^0.3.0",
     "sass": "^1.35.1",
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@eswjs/common": "^0.0.1"
+    "@eswjs/common": "^0.1.0"
   }
 }

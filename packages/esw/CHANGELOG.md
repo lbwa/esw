@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/lbwa/esw/compare/esw@0.2.1...esw@0.3.0) (2021-08-25)
+
+### Bug Fixes
+
+- **esw:** add missing dep ([6a9d79a](https://github.com/lbwa/esw/commit/6a9d79a6c4d9efd54fe89e44ac35c39f40961d83))
+- **esw:** module field should always be treated as ESM format ([33b9cbf](https://github.com/lbwa/esw/commit/33b9cbf46c17bf17c618338a61b076438feeb0c1))
+- **esw:** module field should always be treated as ESM format ([6a45a2b](https://github.com/lbwa/esw/commit/6a45a2b95aa6cafdd8dbd1c4efae203c71780267))
+- **esw:** should complete current obs when input wrong/help command ([721af0b](https://github.com/lbwa/esw/commit/721af0bfc1fe608e0949d83292810fb8df96bd7b))
+
+### Features
+
+- **esw:** support to infer outdir ([3aece7e](https://github.com/lbwa/esw/commit/3aece7e3b253ee16b86e331c890b304213924ae0))
+- **esw:** upgrade esbuild@0.12.22 ([bcf5120](https://github.com/lbwa/esw/commit/bcf5120c2512bf876f06a636fbb72247a0f2288b))
+- **esw:** upgrade rxjs@7.3.0 ([b965885](https://github.com/lbwa/esw/commit/b965885898e8b01b67d36130395c091f417f6eae))
+- multiple builds would sent only one notification to observer ([#12](https://github.com/lbwa/esw/issues/12)) ([f6002a1](https://github.com/lbwa/esw/commit/f6002a1cb3cab9889468b8e6a3b71a290b218fd6))
+- upgrade esbuild@v0.12.20 ([e129d7b](https://github.com/lbwa/esw/commit/e129d7bc5567c49fe82ac8fb83ea7ed7208ea578))
+
 ## [0.2.1](https://github.com/lbwa/esw/compare/esw@0.2.0...esw@0.2.1) (2021-07-24)
 
 ### Bug Fixes
