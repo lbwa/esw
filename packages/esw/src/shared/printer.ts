@@ -7,9 +7,9 @@ export function printToTerminal(
   exit = false
 ) {
   if (code === ProcessCode.OK) {
-    console.info(message)
+    process.stdout.write(message)
   } else if (isDef(code)) {
-    console.error(message)
+    process.stderr.write(message)
   }
   if (exit) {
     process.exit(code)
