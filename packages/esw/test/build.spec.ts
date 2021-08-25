@@ -17,11 +17,11 @@ function clearCacheDir(dir: string) {
 }
 
 function formatBuildResult(raw: PromiseSettledResult<BuildResult>[]) {
-  return raw.reduce((errors, result) => {
+  return raw.reduce((results, result) => {
     if (result.status === 'fulfilled') {
-      errors.push(result.value)
+      results.push(result.value)
     }
-    return errors
+    return results
   }, [] as BuildResult[])
 }
 
@@ -172,5 +172,36 @@ describe('node api - build', () => {
     expect(err).not.toBeNull()
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     expect(err!.message).toContain(`package.json file doesn't exists`)
+  })
+
+  it('should work with no options', async () => {
+    const fixtureName = 'no-options'
+    const cacheDir = 'dist/internal'
+    await clearCacheDir(resolveFixture(`${fixtureName}/${cacheDir}`))
+    const results = await build({
+      absWorkingDir: resolveFixture(fixtureName),
+      logLevel: 'debug'
+    })
+    const buildResults = formatBuildResult(results)
+    expect(hasErrors(buildResults)).toBeFalsy()
+    expect(hasWarnings(buildResults)).toBeFalsy()
+    expect(buildResults).toMatchSnapshot(getTestName())
+
+    const outFiles = ['index.js', 'index.esm.js'].map(filename =>
+      fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/${filename}`))
+    )
+    expect(outFiles.every(exists => exists)).toBeTruthy()
+
+    const resolvedCjsOutFile = await fs.promises.readFile(
+      resolveFixture(`${fixtureName}/${cacheDir}/index.js`),
+      { encoding: 'utf8' }
+    )
+    expect(resolvedCjsOutFile).toContain(`__esModule"`)
+
+    const resolvedEsmOutFile = await fs.promises.readFile(
+      resolveFixture(`${fixtureName}/${cacheDir}/index.esm.js`),
+      { encoding: 'utf8' }
+    )
+    expect(resolvedEsmOutFile).not.toContain(`__esModule`)
   })
 })

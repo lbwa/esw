@@ -36,6 +36,19 @@ Array [
 ]
 `;
 
+exports[`node api - build should work with no options: node-api---build-should-work-with-no-options 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
 exports[`node api - build should work with package.json and dependencies: node-api---build-should-work-with-package.json-and-dependencies 1`] = `
 Array [
   Object {

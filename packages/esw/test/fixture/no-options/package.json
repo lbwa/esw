@@ -1,0 +1,6 @@
+{
+  "name": "no-options",
+  "version": "0.0.0",
+  "main": "dist/internal/index.js",
+  "module": "dist/internal/index.esm.js"
+}

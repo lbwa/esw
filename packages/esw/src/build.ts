@@ -45,7 +45,9 @@ function checkBuildOptions<Options extends BuildOptions>() {
 
       if (isNil(outdir)) {
         throw new Error(
-          `main or module field is required in package.json. They are the module IDs that is the primary entry point to the program. more details in https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
+          `main or module field is required in package.json. They are the module
+        IDs that is the primary entry point to the program. more details in
+        https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
         )
       }
     })
@@ -103,7 +105,7 @@ export default function runBuild(
 
   const optionsWithDefault$ = of(options).pipe(
     map<BuildOptions, BuildOptions>(options => ({
-      bundle: false,
+      bundle: true,
       logLevel: 'info',
       incremental: isProduction(process),
       ...options
@@ -129,6 +131,7 @@ export default function runBuild(
       }
       const clonedOptions = {
         ...options,
+        outdir: options.outdir ?? path.dirname(outPath),
         format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
         outExtension: outExt
       } as BuildOptions
