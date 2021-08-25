@@ -25,6 +25,5 @@ jobs:
           cache: 'yarn'
 
       - run: yarn install --frozen-lockfile
-      # FIXME: esw not found in the ci env
-      # - run: yarn build
-      # - run: yarn test --ci --coverage
+      - run: yarn build
+      - run: yarn test --ci --coverage
