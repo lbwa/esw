@@ -144,9 +144,9 @@ export default function runBuild(
 
       if (!matchedEntry) {
         throw new Error(
-          `Couldn't infer project entry point (supports ${ENTRY_POINTS_EXTS.join(
+          `Couldn't infer project entry point (supported ${ENTRY_POINTS_EXTS.join(
             ', '
-          )}) in ${path.resolve(cwd)}`
+          )}) in ${fs.realpathSync(cwd)}`
         )
       }
 

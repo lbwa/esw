@@ -79,15 +79,11 @@ export default function parse(argv: string[]) {
         return EMPTY
       }
       return throwError(() => err)
-    }),
-    map(args => ({
-      isValidStdin: !!AVAILABLE_COMMANDS[args._[0] as CommandNames],
-      args
-    }))
+    })
   )
 
   const handlePrintVersion$ = resolvedArgv$.pipe(
-    tap(({ args }) => {
+    tap(args => {
       if (args['--version']) {
         printToTerminal(`v${pkgJson.version}`, Code.OK)
       }
@@ -95,16 +91,20 @@ export default function parse(argv: string[]) {
   )
 
   const handlePrintUsage$ = handlePrintVersion$.pipe(
-    tap(({ isValidStdin, args: { '--help': help } }) => {
-      if (!isValidStdin || help) {
+    concatMap(args => {
+      const { _: [commandStdin] = [], '--help': isHelpStdin } = args
+      const isValidStdin = !!AVAILABLE_COMMANDS[commandStdin as CommandNames]
+      if (!isValidStdin || isHelpStdin) {
         printUsageIntoTerminal(AVAILABLE_COMMANDS)
+        return EMPTY
       }
+      return of({ isValidStdin, args })
     })
   )
 
   const handleForwardArgs$ = handlePrintUsage$.pipe(
     map(({ isValidStdin, args }) => {
-      const commandName = isValidStdin ? args._[0] : DEFAULT_COMMAND_NAME
+      const commandName = args._[0]
       const forwardArgs = isValidStdin ? args._.slice(1) : args._
       if (args['--help']) {
         forwardArgs.push('--help')

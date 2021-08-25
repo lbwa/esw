@@ -61,10 +61,13 @@ async function createBuildScript(
 
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
-    const output = await createBuildScript([`--outdir=${cacheDir}/no-bundle`], {
-      esm: `./${cacheDir}/no-bundle/index.esm.js`,
-      cjs: `./${cacheDir}/no-bundle/index.js`
-    })
+    const output = await createBuildScript(
+      ['build', `--outdir=${cacheDir}/no-bundle`],
+      {
+        esm: `./${cacheDir}/no-bundle/index.esm.js`,
+        cjs: `./${cacheDir}/no-bundle/index.js`
+      }
+    )
     expect(output.esm).toContain('from "react"')
     expect(output.esm).toContain(`from "react"`)
     expect(output.esm).toContain(`from "rxjs"`)
@@ -78,7 +81,7 @@ describe('cli command', () => {
 
   it('should work with entry points and bundle', async () => {
     const output = await createBuildScript(
-      ['--bundle', `--outdir=${cacheDir}/bundle`],
+      ['build', '--bundle', `--outdir=${cacheDir}/bundle`],
       {
         esm: `./${cacheDir}/bundle/index.esm.js`,
         cjs: `./${cacheDir}/bundle/index.js`
