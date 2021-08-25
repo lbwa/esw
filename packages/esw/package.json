@@ -13,7 +13,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "bin": {
-    "esw": "dist/bin/esw.js"
+    "esw": "bin/esw.js"
   },
   "directories": {
     "lib": "dist",
