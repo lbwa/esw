@@ -29,7 +29,7 @@
     "clean": "rm -rf dist/",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "prebuild": "yarn clean",
-    "build": "esw src/index.ts --bundle --platform=node --outdir=dist --tsconfig=tsconfig.json"
+    "build": "esw build src/index.ts --bundle --platform=node --outdir=dist --tsconfig=tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/lbwa/esw/issues"
