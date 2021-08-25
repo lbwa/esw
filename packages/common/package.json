@@ -5,8 +5,7 @@
   "author": "Liu Bowen <mr_lbw@outlook.com>",
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/common#readme",
   "license": "MIT",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "directories": {
     "lib": "dist"
@@ -27,7 +26,7 @@
     "watch": "yarn build:raw --watch",
     "clear": "rm -rf dist/*",
     "build": "yarn clear && yarn build:raw & yarn build:types ",
-    "build:raw": "esw src/index.ts --bundle --outdir=dist --tsconfig=tsconfig.json",
+    "build:raw": "esbuild src/index.ts --bundle --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:lodash --external:consola",
     "build:types": "tsc -p ./tsconfig.json",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
@@ -35,7 +34,7 @@
     "url": "https://github.com/lbwa/esw/issues"
   },
   "devDependencies": {
-    "esw": "^0.2.1",
+    "esbuild": "^0.12.22",
     "typescript": "^4.3.5"
   },
   "peerDependencies": {
