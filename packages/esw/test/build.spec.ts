@@ -204,4 +204,58 @@ describe('node api - build', () => {
     )
     expect(resolvedEsmOutFile).not.toContain(`__esModule`)
   })
+
+  it('should work with no options and main field', async () => {
+    const fixtureName = 'no-options-with-main'
+    const cacheDir = 'dist/internal'
+    await clearCacheDir(resolveFixture(`${fixtureName}/${cacheDir}`))
+    const results = await build({
+      absWorkingDir: resolveFixture(fixtureName),
+      logLevel: 'debug'
+    })
+    const buildResults = formatBuildResult(results)
+    expect(hasErrors(buildResults)).toBeFalsy()
+    expect(hasWarnings(buildResults)).toBeFalsy()
+    expect(buildResults).toMatchSnapshot(getTestName())
+
+    expect(
+      fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/index.js`))
+    ).toBeTruthy()
+    expect(
+      fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/index.esm.js`))
+    ).toBeFalsy()
+
+    const resolvedCjsOutFile = await fs.promises.readFile(
+      resolveFixture(`${fixtureName}/${cacheDir}/index.js`),
+      { encoding: 'utf8' }
+    )
+    expect(resolvedCjsOutFile).toContain(`__esModule"`)
+  })
+
+  it('should work with no options and module field', async () => {
+    const fixtureName = 'no-options-with-module'
+    const cacheDir = 'dist/internal'
+    await clearCacheDir(resolveFixture(`${fixtureName}/${cacheDir}`))
+    const results = await build({
+      absWorkingDir: resolveFixture(fixtureName),
+      logLevel: 'debug'
+    })
+    const buildResults = formatBuildResult(results)
+    expect(hasErrors(buildResults)).toBeFalsy()
+    expect(hasWarnings(buildResults)).toBeFalsy()
+    expect(buildResults).toMatchSnapshot(getTestName())
+
+    expect(
+      fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/index.js`))
+    ).toBeFalsy()
+    expect(
+      fs.existsSync(resolveFixture(`${fixtureName}/${cacheDir}/index.esm.js`))
+    ).toBeTruthy()
+
+    const resolvedEsmOutFile = await fs.promises.readFile(
+      resolveFixture(`${fixtureName}/${cacheDir}/index.esm.js`),
+      { encoding: 'utf8' }
+    )
+    expect(resolvedEsmOutFile).not.toContain(`__esModule`)
+  })
 })

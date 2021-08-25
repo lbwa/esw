@@ -36,6 +36,24 @@ Array [
 ]
 `;
 
+exports[`node api - build should work with no options and main field: node-api---build-should-work-with-no-options-and-main-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`node api - build should work with no options and module field: node-api---build-should-work-with-no-options-and-module-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
 exports[`node api - build should work with no options: node-api---build-should-work-with-no-options 1`] = `
 Array [
   Object {
