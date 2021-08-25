@@ -26,7 +26,6 @@ const pkgJson = require(path.resolve(
   '../..',
   'package.json'
 )) as PackageJson
-const DEFAULT_COMMAND_NAME = 'build'
 const AVAILABLE_COMMANDS = {
   build: () => from(import('../cli/build')).pipe(map(({ default: run }) => run))
 }
