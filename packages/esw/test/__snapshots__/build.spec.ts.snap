@@ -88,3 +88,5 @@ Array [
   },
 ]
 `;
+
+exports[`node api - build shouldn't work with no valid entry field: node-api---build-shouldn't-work-with-no-valid-entry-field 1`] = `Array []`;

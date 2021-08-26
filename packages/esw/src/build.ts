@@ -18,7 +18,7 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
-import { isDef } from '@eswjs/common'
+import { isDef, log } from '@eswjs/common'
 import externalEsBuildPlugin from './plugins/external'
 import { isProduction } from './shared/utils'
 
@@ -41,15 +41,13 @@ function checkBuildOptions<Options extends BuildOptions>() {
 
       if (splitting && format !== 'esm') {
         throw new Error(
-          `\`splitting\` currently only works with the 'esm' format`
+          `\`splitting\` currently only works with 'esm' format, instead of ${format}`
         )
       }
 
       if (isNil(outdir)) {
         throw new Error(
-          `main or module field is required in package.json. They are the module
-        IDs that is the primary entry point to the program. more details in
-        https://docs.npmjs.com/cli/v7/configuring-npm/package-json/#main`
+          `'outdir' shouldn't be non-string type, we got ${outdir}`
         )
       }
     })
@@ -184,6 +182,14 @@ export default function runBuild(
 
   const invokeEsBuildBuild$ = markDepsAsExternals$.pipe(
     toArray(),
+    tap(
+      options =>
+        options.length < 1 &&
+        log.warn(
+          `No valid building options created, so current operation is no-op.`
+        )
+    ),
+    // invoke building operations concurrently
     map(optionGroup => optionGroup.map(options => build(options))),
     mergeMap(insGroup => Promise.allSettled(insGroup))
   )
