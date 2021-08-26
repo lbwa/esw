@@ -2,7 +2,6 @@ import path from 'path'
 import fs from 'fs'
 import { exec, ExecException } from 'child_process'
 import { BuildOptions, BuildResult } from 'esbuild'
-import { log } from '@eswjs/common'
 import { build } from '../src'
 
 function getTestName() {
