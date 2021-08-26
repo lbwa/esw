@@ -40,7 +40,9 @@ function checkBuildOptions<Options extends BuildOptions>() {
       const { splitting, format, outdir } = options
 
       if (splitting && format !== 'esm') {
-        throw new Error(`Splitting currently only works with the 'esm' format`)
+        throw new Error(
+          `\`splitting\` currently only works with the 'esm' format`
+        )
       }
 
       if (isNil(outdir)) {
@@ -147,7 +149,7 @@ export default function runBuild(
 
       if (!matchedEntry) {
         throw new Error(
-          `Couldn't infer project entry point (supported ${ENTRY_POINTS_EXTS.join(
+          `Couldn't infer the entry point of library (supported ${ENTRY_POINTS_EXTS.join(
             ', '
           )}) in ${fs.realpathSync(cwd)}`
         )
