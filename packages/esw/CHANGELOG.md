@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/lbwa/esw/compare/esw@0.3.0...esw@0.4.0) (2021-08-26)
+
+### Features
+
+- **esw:** print warnings when no valid building options created ([0074587](https://github.com/lbwa/esw/commit/007458775a476dc88e24512226550b6b8a5d6480))
+
 # [0.3.0](https://github.com/lbwa/esw/compare/esw@0.2.1...esw@0.3.0) (2021-08-25)
 
 ### Bug Fixes
