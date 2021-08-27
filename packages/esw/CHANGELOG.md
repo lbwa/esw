@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.1](https://github.com/lbwa/esw/compare/esw@0.4.0...esw@0.4.1) (2021-08-27)
+
+### Bug Fixes
+
+- **esw:** should respect the --help of subcommand ([a57052e](https://github.com/lbwa/esw/commit/a57052e654301616bb72be69d2bb44cfdb3b26fb)), closes [#14](https://github.com/lbwa/esw/issues/14)
+
 # [0.4.0](https://github.com/lbwa/esw/compare/esw@0.3.0...esw@0.4.0) (2021-08-26)
 
 ### Features
