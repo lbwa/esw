@@ -169,4 +169,26 @@ describe('cli command', () => {
     )
     expect(shouldPrintHelpWithAlias.stdout).toEqual(shouldPrintHelpMsg.stdout)
   })
+
+  it('should print the esw version message', () => {
+    const versionReg = /v\d+\.\d+\.\d+/
+    const shouldPrintVersionMsg0 = spawn.sync('node', [bin, '--version'], {
+      encoding: 'utf-8'
+    })
+    expect(shouldPrintVersionMsg0.stdout).toMatch(versionReg)
+
+    const shouldPrintVersionMsg1 = spawn.sync('node', [bin, '-v'], {
+      encoding: 'utf-8'
+    })
+    expect(shouldPrintVersionMsg1.stdout).toMatch(versionReg)
+
+    const shouldPrintVersionMsg2 = spawn.sync(
+      'node',
+      [bin, 'build', '--version'],
+      {
+        encoding: 'utf-8'
+      }
+    )
+    expect(shouldPrintVersionMsg2.stdout).toMatch(versionReg)
+  })
 })

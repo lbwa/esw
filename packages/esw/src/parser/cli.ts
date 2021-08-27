@@ -10,7 +10,8 @@ import {
   map,
   catchError,
   Observable,
-  concatMap
+  concatMap,
+  switchMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import { printToTerminal } from '../shared/printer'
@@ -82,22 +83,29 @@ export default function parse(argv: string[]) {
   )
 
   const handlePrintVersion$ = resolvedArgv$.pipe(
-    tap(args => {
+    switchMap(args => {
       if (args['--version']) {
-        printToTerminal(`v${pkgJson.version}`, Code.OK)
+        printToTerminal(`v${pkgJson.version}\n`, Code.OK)
+        return EMPTY
       }
+      return of(args)
     })
   )
 
   const handlePrintUsage$ = handlePrintVersion$.pipe(
     concatMap(args => {
-      const { _: [commandStdin] = [], '--help': isHelpStdin } = args
+      const { _: [commandStdin] = [] } = args
       const isValidStdin = !!AVAILABLE_COMMANDS[commandStdin as CommandNames]
-      if (!isValidStdin || (!isValidStdin && isHelpStdin)) {
-        printUsageIntoTerminal(AVAILABLE_COMMANDS)
-        return EMPTY
+      if (isValidStdin) {
+        return of({ isValidStdin, args })
       }
-      return of({ isValidStdin, args })
+
+      /**
+       * 1. not a valid stdin,
+       * 2. with a global help flag
+       */
+      printUsageIntoTerminal(AVAILABLE_COMMANDS)
+      return EMPTY
     })
   )
 
