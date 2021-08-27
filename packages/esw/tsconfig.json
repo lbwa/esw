@@ -7,5 +7,5 @@
     "esModuleInterop": true,
     "lib": ["esnext"]
   },
-  "exclude": ["**/node_modules", "**/.*/"]
+  "exclude": ["**/node_modules", "**/.*/", "./bin/*.js"]
 }
