@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`cli command should print root help message: --help should print help message 1`] = `
+Array [
+  null,
+  "
+    Usage
+      $ esw <command>
+
+      Available commands
+        build
+
+      Options
+        --version, -v Show version number
+        --help, -h Display help messages
+
+      For more information run a command with the --help flag
+        $ esw build --help
+  ",
+  "",
+]
+`;
+
+exports[`cli command should print root help message: -h should print help message 1`] = `
+Array [
+  null,
+  "
+    Usage
+      $ esw <command>
+
+      Available commands
+        build
+
+      Options
+        --version, -v Show version number
+        --help, -h Display help messages
+
+      For more information run a command with the --help flag
+        $ esw build --help
+  ",
+  "",
+]
+`;
+
+exports[`cli command should print root help message: wrong command should print help message 1`] = `
+Array [
+  null,
+  "
+    Usage
+      $ esw <command>
+
+      Available commands
+        build
+
+      Options
+        --version, -v Show version number
+        --help, -h Display help messages
+
+      For more information run a command with the --help flag
+        $ esw build --help
+  ",
+  "",
+]
+`;
+
+exports[`cli command should print the help message of build command: build --help should print help message 1`] = `
+Array [
+  null,
+  "
+    Description
+      Compiles the codebase for publishing npm package.
+
+    Usage
+      $ esw build [entry files]
+
+      [entry file] represents the library entry point. If it wasn't specified,
+    esw would infer library entry from 'main' and 'module' field in the package.json.
+",
+  "",
+]
+`;
+
+exports[`cli command should print the help message of build command: build --mini should print help message 1`] = `
+"
+    Description
+      Compiles the codebase for publishing npm package.
+
+    Usage
+      $ esw build [entry files]
+
+      [entry file] represents the library entry point. If it wasn't specified,
+    esw would infer library entry from 'main' and 'module' field in the package.json.
+"
+`;
+
+exports[`cli command should print the help message of build command: build -h should print help message 1`] = `
+Array [
+  null,
+  "
+    Description
+      Compiles the codebase for publishing npm package.
+
+    Usage
+      $ esw build [entry files]
+
+      [entry file] represents the library entry point. If it wasn't specified,
+    esw would infer library entry from 'main' and 'module' field in the package.json.
+",
+  "",
+]
+`;

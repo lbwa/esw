@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import type { SpawnSyncOptions } from 'child_process'
 import spawn from 'cross-spawn'
 import { ProcessCode } from '../src/shared/constants'
 
@@ -30,10 +31,12 @@ beforeAll(async () => {
 
 async function createBuildScript(
   commandArgs: string[],
-  outfile: Record<'esm' | 'cjs', string>
+  outfile: Record<'esm' | 'cjs', string>,
+  spawnOptions = {} as SpawnSyncOptions
 ) {
   const result = spawn.sync('node', [bin, ...commandArgs], {
     stdio: 'inherit',
+    ...spawnOptions,
     cwd: fixtureTypescript
   })
   // Process exited too early. The system ran out of memory or someone
@@ -96,5 +99,74 @@ describe('cli command', () => {
     expect(cjs).toContain(`require("react")`)
     expect(cjs).toContain(`require("rxjs")`)
     expect(cjs).toContain(`require("rxjs/operators")`)
+  })
+
+  it('should print root help message', () => {
+    const shouldPrintHelp = spawn.sync('node', [bin, '--help'], {
+      cwd: process.cwd(),
+      encoding: 'utf8'
+    })
+    expect(shouldPrintHelp.output).toMatchSnapshot(
+      '--help should print help message'
+    )
+
+    const shouldPrintHelpWithAlias = spawn.sync('node', [bin, '-h'], {
+      cwd: process.cwd(),
+      encoding: 'utf8'
+    })
+    expect(shouldPrintHelpWithAlias.output).toMatchSnapshot(
+      '-h should print help message'
+    )
+    expect(shouldPrintHelpWithAlias.output).toEqual(shouldPrintHelp.output)
+
+    const shouldPrintHelpWithWrongCommand = spawn.sync(
+      'node',
+      [bin, 'wrongCommand'],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8'
+      }
+    )
+
+    expect(shouldPrintHelpWithWrongCommand.output).toMatchSnapshot(
+      'wrong command should print help message'
+    )
+    expect(shouldPrintHelp.output).toEqual(
+      shouldPrintHelpWithWrongCommand.output
+    )
+  })
+
+  it('should print the help message of build command', () => {
+    const shouldPrintHelpMsg = spawn.sync('node', [bin, 'build', '--help'], {
+      cwd: process.cwd(),
+      encoding: 'utf8'
+    })
+    expect(shouldPrintHelpMsg.output).toMatchSnapshot(
+      'build --help should print help message'
+    )
+
+    const shouldPrintHelpWithWrongCommand = spawn.sync(
+      'node',
+      [bin, 'build', '--mini'],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8'
+      }
+    )
+    expect(shouldPrintHelpWithWrongCommand.stderr).toMatchSnapshot(
+      'build --mini should print help message'
+    )
+    expect(shouldPrintHelpMsg.stderr).toEqual(
+      shouldPrintHelpWithWrongCommand.stdout
+    )
+
+    const shouldPrintHelpWithAlias = spawn.sync('node', [bin, 'build', '-h'], {
+      cwd: process.cwd(),
+      encoding: 'utf8'
+    })
+    expect(shouldPrintHelpWithAlias.output).toMatchSnapshot(
+      'build -h should print help message'
+    )
+    expect(shouldPrintHelpWithAlias.stdout).toEqual(shouldPrintHelpMsg.stdout)
   })
 })

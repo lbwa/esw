@@ -60,7 +60,7 @@ function printUsageIntoTerminal(commands: Commands) {
 }
 
 /**
- * @example parse(process.argv.slice(2)).subscribe({ ... })
+ * @example parse(process.argv.slice(2)).subscribe({ next: handleArgs })
  */
 export default function parse(argv: string[]) {
   const argv$ = of(argv)
@@ -93,7 +93,7 @@ export default function parse(argv: string[]) {
     concatMap(args => {
       const { _: [commandStdin] = [], '--help': isHelpStdin } = args
       const isValidStdin = !!AVAILABLE_COMMANDS[commandStdin as CommandNames]
-      if (!isValidStdin || isHelpStdin) {
+      if (!isValidStdin || (!isValidStdin && isHelpStdin)) {
         printUsageIntoTerminal(AVAILABLE_COMMANDS)
         return EMPTY
       }

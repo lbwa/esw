@@ -25,12 +25,13 @@ function createUsagePrinter(code = ProcessCode.OK) {
       printToTerminal(
         `
     Description
-      Compiles the codebase for package publish
+      Compiles the codebase for publishing npm package.
 
     Usage
-      $ esw build <entry files>
+      $ esw build [entry files]
 
-    <entry files> represents the library entry points.
+      [entry file] represents the library entry point. If it wasn't specified,
+    esw would infer library entry from 'main' and 'module' field in the package.json.
 `,
         code,
         false
@@ -55,6 +56,7 @@ const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
           () =>
             new ArgError(
               `Unknown or unexpected option: ${unavailable.join(', ')}`,
+              // In the current implementation, we only use this error code, instead of above error message.
               'ARG_UNKNOWN_OPTION'
             )
         )
