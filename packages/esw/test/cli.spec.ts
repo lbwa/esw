@@ -20,7 +20,7 @@ beforeAll(async () => {
 
 async function createBuildScript(
   fixturePath: string,
-  commandArgs: string[] = [],
+  commandArgs: string[] = ['build'],
   outFiles: Partial<Record<'esm' | 'cjs', string>> = {},
   spawnOptions = {} as SpawnSyncOptions
 ) {

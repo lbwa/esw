@@ -1,60 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`node api - build should override the cjs inference from main field: node-api---build-should-override-the-cjs-inference-from-main-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with main field and cjs syntax: node-api---build-should-work-with-main-field-and-cjs-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with main field and esm syntax: node-api---build-should-work-with-main-field-and-esm-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with module field and esm syntax: node-api---build-should-work-with-module-field-and-esm-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with no options and main field: node-api---build-should-work-with-no-options-and-main-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with no options and module field: node-api---build-should-work-with-no-options-and-module-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`node api - build should work with no options: node-api---build-should-work-with-no-options 1`] = `
+exports[`build api should mark all peerDependencies and dependencies as external: build-api-should-mark-all-peerDependencies-and-dependencies-as-external 1`] = `
 Array [
   Object {
     "errors": Array [],
@@ -67,7 +13,61 @@ Array [
 ]
 `;
 
-exports[`node api - build should work with package.json and dependencies: node-api---build-should-work-with-package.json-and-dependencies 1`] = `
+exports[`build api should override the cjs inference from main field: build-api-should-override-the-cjs-inference-from-main-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with main field and cjs syntax: build-api-should-work-with-main-field-and-cjs-syntax 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with main field and esm syntax: build-api-should-work-with-main-field-and-esm-syntax 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with module field and esm syntax: build-api-should-work-with-module-field-and-esm-syntax 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with no options and main field: build-api-should-work-with-no-options-and-main-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with no options and module field: build-api-should-work-with-no-options-and-module-field 1`] = `
+Array [
+  Object {
+    "errors": Array [],
+    "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api should work with no options: build-api-should-work-with-no-options 1`] = `
 Array [
   Object {
     "errors": Array [],
@@ -80,7 +80,7 @@ Array [
 ]
 `;
 
-exports[`node api - build shouldn't override the esm inference from module field: node-api---build-shouldn't-override-the-esm-inference-from-module-field 1`] = `
+exports[`build api shouldn't override the esm inference from module field: build-api-shouldn't-override-the-esm-inference-from-module-field 1`] = `
 Array [
   Object {
     "errors": Array [],
@@ -89,4 +89,4 @@ Array [
 ]
 `;
 
-exports[`node api - build shouldn't work with no valid entry field: node-api---build-shouldn't-work-with-no-valid-entry-field 1`] = `Array []`;
+exports[`build api shouldn't work with no valid entry field: build-api-shouldn't-work-with-no-valid-entry-field 1`] = `Array []`;
