@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/lbwa/esw/compare/esw@0.4.1...esw@0.5.0) (2021-08-28)
+
+### Bug Fixes
+
+- **esw:** --version should return a EMPTY observable ([a3498a7](https://github.com/lbwa/esw/commit/a3498a78244311a54d5343611f3db5ffbdc8608e))
+
+### Features
+
+- **esw:** make entry point inferrence error more clearable ([b5ec7ff](https://github.com/lbwa/esw/commit/b5ec7ff173731642401aa37b65d409391669f2be))
+
 ## [0.4.1](https://github.com/lbwa/esw/compare/esw@0.4.0...esw@0.4.1) (2021-08-27)
 
 ### Bug Fixes
