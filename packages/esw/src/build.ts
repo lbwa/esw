@@ -37,7 +37,7 @@ function checkBuildOptions<Options extends BuildOptions>() {
   return pipe(
     // check options logics
     tap<Options>(options => {
-      const { splitting, format, outdir } = options
+      const { splitting, format, write } = options
 
       if (splitting && format !== 'esm') {
         throw new Error(
@@ -45,9 +45,9 @@ function checkBuildOptions<Options extends BuildOptions>() {
         )
       }
 
-      if (isNil(outdir)) {
+      if (write === true) {
         throw new Error(
-          `'outdir' shouldn't be non-string type, we got ${outdir}`
+          `option 'write' has been forbidden. because library writing has been handled by esw internal.`
         )
       }
     })
@@ -129,10 +129,13 @@ export default function runBuild(
       const outExt = options.outExtension ?? {
         '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
       }
+
       const clonedOptions = {
         ...options,
         outdir: options.outdir ?? path.dirname(outPath),
         format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
+        write: options.write ?? false,
+        metafile: options.metafile ?? true,
         outExtension: outExt
       } as BuildOptions
       return [clonedOptions, meta] as const
