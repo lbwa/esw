@@ -141,15 +141,16 @@ export default function runBuild(
       if (isDef(options.entryPoints)) return options
 
       const entry = path.basename(outPath).replace(/\..+/, '')
-      const [matchedEntry] = ENTRY_POINTS_EXTS.map(ext =>
+      const candidates = ENTRY_POINTS_EXTS.map(ext =>
         path.resolve(cwd, entry + ext)
-      ).filter(file => fs.existsSync(file))
+      )
+      const matchedEntry = candidates.find(file => fs.existsSync(file))
 
       if (!matchedEntry) {
         throw new Error(
-          `Couldn't infer the entry point of library (supported ${ENTRY_POINTS_EXTS.join(
-            ', '
-          )}) in ${fs.realpathSync(cwd)}`
+          `Couldn't infer the entry point of library (supported ${candidates
+            .map(p => path.basename(p))
+            .join(', ')}) in ${fs.realpathSync(cwd)}`
         )
       }
 
