@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`cli command should print root help message: --help should print help message 1`] = `
+exports[`esw cli should print root help message: --help should print help message 1`] = `
 Array [
   null,
   "
@@ -21,7 +21,7 @@ Array [
 ]
 `;
 
-exports[`cli command should print root help message: -h should print help message 1`] = `
+exports[`esw cli should print root help message: -h should print help message 1`] = `
 Array [
   null,
   "
@@ -42,7 +42,7 @@ Array [
 ]
 `;
 
-exports[`cli command should print root help message: wrong command should print help message 1`] = `
+exports[`esw cli should print root help message: wrong command should print help message 1`] = `
 Array [
   null,
   "
@@ -63,7 +63,7 @@ Array [
 ]
 `;
 
-exports[`cli command should print the help message of build command: build --help should print help message 1`] = `
+exports[`esw cli should print the help message of build command: build --help should print help message 1`] = `
 Array [
   null,
   "
@@ -80,7 +80,7 @@ Array [
 ]
 `;
 
-exports[`cli command should print the help message of build command: build --mini should print help message 1`] = `
+exports[`esw cli should print the help message of build command: build --mini should print help message 1`] = `
 "
     Description
       Compiles the codebase for publishing npm package.
@@ -93,7 +93,7 @@ exports[`cli command should print the help message of build command: build --min
 "
 `;
 
-exports[`cli command should print the help message of build command: build -h should print help message 1`] = `
+exports[`esw cli should print the help message of build command: build -h should print help message 1`] = `
 Array [
   null,
   "
