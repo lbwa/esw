@@ -1,3 +1,5 @@
+import fs from 'fs/promises'
+import path from 'path'
 import arg, { ArgError } from 'arg'
 import {
   EMPTY,
@@ -8,11 +10,15 @@ import {
   map,
   catchError,
   throwError,
-  concatMap
+  concatMap,
+  from,
+  partition,
+  toArray,
+  share
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult } from 'esbuild'
-import { isDef } from '@eswjs/common'
+import { isDef, log } from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
 import { ProcessCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
@@ -41,9 +47,13 @@ function createUsagePrinter(code = ProcessCode.OK) {
   )
 }
 
-const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
-  argv = []
-) {
+function fulfillBuildResultFilter(
+  result: PromiseSettledResult<BuildResult>
+): result is PromiseFulfilledResult<BuildResult> {
+  return result.status === 'fulfilled'
+}
+
+const build: CommandRunner<ProcessCode> = function (argv = []) {
   const argv$ = of(argv)
   const resolvedArgv$ = argv$.pipe(
     map(argv => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
@@ -97,11 +107,32 @@ const build: CommandRunner<PromiseSettledResult<BuildResult>[]> = function (
     )
   )
 
-  const handleCommandStdin$ = normalizedBuildArgs$.pipe(
-    concatMap(options => runBuild(options))
+  const [handleBuildResult$, handleExceptionResult$] = partition(
+    normalizedBuildArgs$.pipe(
+      concatMap(options => runBuild(options)),
+      concatMap(allResults => from(allResults)),
+      share()
+    ),
+    fulfillBuildResultFilter
   )
 
-  return handleCommandStdin$
+  handleExceptionResult$
+    .pipe(map(({ reason }) => log.error(reason)))
+    .subscribe({ complete: () => process.exit(ProcessCode.OK) })
+
+  const handleWriteOutFiles$ = handleBuildResult$.pipe(
+    concatMap(({ value: { outputFiles = [] } = {} }) => {
+      return from(outputFiles)
+    }),
+    concatMap(async ({ path: outPath, contents }) => {
+      await fs.mkdir(path.dirname(outPath), { recursive: true })
+      return fs.writeFile(outPath, contents)
+    }),
+    toArray(),
+    map(() => ProcessCode.OK)
+  )
+
+  return handleWriteOutFiles$
 }
 
 export default build
