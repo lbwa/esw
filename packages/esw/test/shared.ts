@@ -1,5 +1,6 @@
 import path from 'path'
 import fsPromises from 'fs/promises'
+import pick from 'lodash/pick'
 import { BuildResult } from 'esbuild'
 
 export function getTestName() {
@@ -14,11 +15,14 @@ export function clearCacheDir(dir: string) {
   return fsPromises.rm(dir, { force: true, recursive: true })
 }
 
-export function formatBuildResult(raw: PromiseSettledResult<BuildResult>[]) {
+export function formatBuildResult(
+  raw: PromiseSettledResult<BuildResult>[],
+  fulfilledResultFilter = (result: BuildResult) =>
+    pick(result, 'warnings', 'errors')
+) {
   return raw.reduce((results, result) => {
     if (result.status === 'fulfilled') {
-      const { warnings, errors } = result.value
-      results.push({ warnings, errors })
+      results.push(fulfilledResultFilter(result.value))
     }
     return results
   }, [] as BuildResult[])

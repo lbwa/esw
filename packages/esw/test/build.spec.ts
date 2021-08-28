@@ -1,127 +1,77 @@
-import path from 'path'
-import fs from 'fs'
-import { exec, ExecException } from 'child_process'
-import { BuildOptions, BuildResult } from 'esbuild'
+import { BuildOptions } from 'esbuild'
+import identity from 'lodash/identity'
+import pick from 'lodash/pick'
 import { build } from '../src'
-
-function getTestName() {
-  return expect.getState().currentTestName.replace(/\s/g, '-')
-}
-
-function resolveFixtureRoot(name: string) {
-  return path.resolve(__dirname, `./fixture/${name}`)
-}
-
-function clearCacheDir(dir: string) {
-  return fs.promises.rm(dir, { force: true, recursive: true })
-}
-
-function formatBuildResult(raw: PromiseSettledResult<BuildResult>[]) {
-  return raw.reduce((results, result) => {
-    if (result.status === 'fulfilled') {
-      results.push(result.value)
-    }
-    return results
-  }, [] as BuildResult[])
-}
-
-function hasErrors(results: BuildResult[]) {
-  return results.length > 1 && results.every(result => result.errors.length > 1)
-}
-
-function hasWarnings(results: BuildResult[]) {
-  return (
-    results.length > 1 && results.every(result => result.warnings.length > 1)
-  )
-}
+import {
+  resolveFixture,
+  getTestName,
+  formatBuildResult,
+  hasErrors,
+  hasWarnings
+} from './shared'
 
 async function runFixtureCase(
   fixtureName: string,
-  cacheDir: string,
   options: BuildOptions,
-  singleEntry = 'index.ts',
-  outFile = 'index.js'
+  singleEntry = 'index.ts'
 ) {
-  await clearCacheDir(resolveFixtureRoot(`${fixtureName}/${cacheDir}`))
   const results = await build({
-    absWorkingDir: resolveFixtureRoot(fixtureName),
+    absWorkingDir: resolveFixture(fixtureName),
     logLevel: 'debug',
     format: 'esm',
     entryPoints: [singleEntry],
-    outdir: cacheDir,
     bundle: false,
     ...options
   })
-  const buildResults = formatBuildResult(results)
+  const buildResults = formatBuildResult(results, identity)
   expect(hasErrors(buildResults)).toBeFalsy()
   expect(hasWarnings(buildResults)).toBeFalsy()
-  expect(buildResults).toMatchSnapshot(getTestName())
-
   expect(
-    fs.existsSync(resolveFixtureRoot(`${fixtureName}/${cacheDir}/${outFile}`))
-  ).toBeTruthy()
+    buildResults.map(result => pick(result, 'warnings', 'errors'))
+  ).toMatchSnapshot(getTestName())
 
-  return fs.promises.readFile(
-    resolveFixtureRoot(`${fixtureName}/${cacheDir}/${outFile}`),
-    { encoding: 'utf8' }
+  const [{ outputFiles: [{ text = null } = {}] = [] } = {}] = buildResults.map(
+    result => pick(result, 'outputFiles')
   )
+  return text
 }
 
-beforeAll(async () => {
-  await new Promise<ExecException | null>(r => {
-    exec('yarn', { cwd: resolveFixtureRoot('typescript') }, r)
-  })
-})
-
-describe('node api - build', () => {
-  it('should work with package.json and dependencies', async () => {
-    const cacheDir = 'dist/build'
-    const outDir = resolveFixtureRoot(`typescript/${cacheDir}`)
-    await clearCacheDir(outDir)
+describe('build api', () => {
+  it('should mark all peerDependencies and dependencies as external', async () => {
     const results = await build({
-      absWorkingDir: resolveFixtureRoot('typescript'),
-      logLevel: 'debug',
-      outdir: cacheDir
+      absWorkingDir: resolveFixture('with-deps'),
+      logLevel: 'debug'
     })
-    const buildResults = formatBuildResult(results)
+    const buildResults = formatBuildResult(results, identity)
     expect(buildResults).toHaveLength(2)
     expect(hasErrors(buildResults)).toBeFalsy()
     expect(hasWarnings(buildResults)).toBeFalsy()
-    expect(buildResults).toMatchSnapshot(getTestName())
-    ;['', '.esm'].map(type =>
-      expect(
-        fs.existsSync(
-          resolveFixtureRoot(`typescript/${cacheDir}/index${type}.js`)
-        )
-      ).toBeTruthy()
-    )
+    expect(
+      buildResults.map(result => pick(result, 'warnings', 'errors'))
+    ).toMatchSnapshot(getTestName())
 
-    const output = await fs.promises.readFile(
-      resolveFixtureRoot(`typescript/${cacheDir}/index.esm.js`),
-      { encoding: 'utf8' }
-    )
-    expect(output).toContain(`from "react"`)
-    expect(output).toContain(`from "rxjs"`)
-    expect(output).toContain(`from "rxjs/operators"`)
+    const [
+      [{ text: cjsOutput = '' } = {}] = [],
+      [{ text: esmOutput = '' } = {}] = []
+    ] = buildResults.map(result => result.outputFiles)
+    expect(esmOutput).toContain(`from "react"`)
+    expect(esmOutput).toContain(`from "rxjs"`)
+    expect(esmOutput).toContain(`from "rxjs/operators"`)
 
-    const cjsOutput = await fs.promises.readFile(
-      resolveFixtureRoot(`typescript/${cacheDir}/index.js`),
-      { encoding: 'utf8' }
-    )
     expect(cjsOutput).toContain(`require("react")`)
     expect(cjsOutput).toContain(`require("rxjs")`)
     expect(cjsOutput).toContain(`require("rxjs/operators")`)
   })
 
   it('should work with main field and cjs syntax', async () => {
-    const output = await runFixtureCase('only-main-field', 'dist/cjs', {
+    const output = await runFixtureCase('only-main-field', {
       format: 'cjs'
     })
     expect(output).toContain(`require("./src/fib")`)
   })
 
   it('should work with main field and esm syntax', async () => {
-    const output = await runFixtureCase('only-main-field', 'dist/esm', {
+    const output = await runFixtureCase('only-main-field', {
       // should respect option.format
       format: 'esm'
     })
@@ -129,23 +79,15 @@ describe('node api - build', () => {
   })
 
   it('should work with module field and esm syntax', async () => {
-    const output = await runFixtureCase(
-      'only-module-field',
-      'dist',
-      {},
-      'index.ts',
-      'index.esm.js'
-    )
+    const output = await runFixtureCase('only-module-field', {}, 'index.ts')
     expect(output).toContain(`from "./src/fib"`)
   })
 
   it("shouldn't override the esm inference from module field", async () => {
     const output = await runFixtureCase(
       'only-module-field',
-      'dist',
       { format: 'cjs' },
-      'index.ts',
-      'index.esm.js'
+      'index.ts'
     )
     expect(output).toContain(`from "./src/fib"`)
   })
@@ -153,10 +95,8 @@ describe('node api - build', () => {
   it('should override the cjs inference from main field', async () => {
     const output = await runFixtureCase(
       'only-module-field',
-      'dist',
       { format: 'esm' },
-      'index.ts',
-      'index.esm.js'
+      'index.ts'
     )
     expect(output).toContain(`from "./src/fib"`)
   })
@@ -164,7 +104,7 @@ describe('node api - build', () => {
   it("shouldn't work without package.json file", async () => {
     let err: Error | null = null
     await build({
-      absWorkingDir: resolveFixtureRoot('required-package.json'),
+      absWorkingDir: resolveFixture('required-package.json'),
       logLevel: 'debug',
       format: 'esm',
       entryPoints: ['index.ts'],
@@ -180,99 +120,65 @@ describe('node api - build', () => {
 
   it('should work with no options', async () => {
     const fixtureName = 'no-options'
-    const cacheDir = 'dist/internal'
-    await clearCacheDir(resolveFixtureRoot(`${fixtureName}/${cacheDir}`))
     const results = await build({
-      absWorkingDir: resolveFixtureRoot(fixtureName),
+      absWorkingDir: resolveFixture(fixtureName),
       logLevel: 'debug'
     })
-    const buildResults = formatBuildResult(results)
+    const buildResults = formatBuildResult(results, identity)
     expect(hasErrors(buildResults)).toBeFalsy()
     expect(hasWarnings(buildResults)).toBeFalsy()
-    expect(buildResults).toMatchSnapshot(getTestName())
+    expect(
+      buildResults.map(result => pick(result, 'warnings', 'errors'))
+    ).toMatchSnapshot(getTestName())
 
-    const outFiles = ['index.js', 'index.esm.js'].map(filename =>
-      fs.existsSync(
-        resolveFixtureRoot(`${fixtureName}/${cacheDir}/${filename}`)
-      )
-    )
-    expect(outFiles.every(exists => exists)).toBeTruthy()
-
-    const resolvedCjsOutFile = await fs.promises.readFile(
-      resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.js`),
-      { encoding: 'utf8' }
-    )
-    expect(resolvedCjsOutFile).toContain(`__esModule"`)
-
-    const resolvedEsmOutFile = await fs.promises.readFile(
-      resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.esm.js`),
-      { encoding: 'utf8' }
-    )
-    expect(resolvedEsmOutFile).not.toContain(`__esModule`)
+    const [
+      { outputFiles: [{ text: cjsOutput = null } = {}] = [] } = {},
+      { outputFiles: [{ text: esmOutput = null } = {}] = [] } = {}
+    ] = buildResults.map(result => pick(result, 'outputFiles'))
+    expect(cjsOutput).toContain(`__esModule"`)
+    expect(esmOutput).not.toContain(`__esModule`)
   })
 
   it('should work with no options and main field', async () => {
-    const fixtureName = 'no-options-with-main'
-    const cacheDir = 'dist/internal'
-    await clearCacheDir(resolveFixtureRoot(`${fixtureName}/${cacheDir}`))
     const results = await build({
-      absWorkingDir: resolveFixtureRoot(fixtureName),
+      absWorkingDir: resolveFixture('no-options-with-main'),
       logLevel: 'debug'
     })
-    const buildResults = formatBuildResult(results)
+    const buildResults = formatBuildResult(results, identity)
+    expect(buildResults).toHaveLength(1)
     expect(hasErrors(buildResults)).toBeFalsy()
     expect(hasWarnings(buildResults)).toBeFalsy()
-    expect(buildResults).toMatchSnapshot(getTestName())
-
     expect(
-      fs.existsSync(resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.js`))
-    ).toBeTruthy()
-    expect(
-      fs.existsSync(
-        resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.esm.js`)
-      )
-    ).toBeFalsy()
+      buildResults.map(result => pick(result, 'warnings', 'errors'))
+    ).toMatchSnapshot(getTestName())
 
-    const resolvedCjsOutFile = await fs.promises.readFile(
-      resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.js`),
-      { encoding: 'utf8' }
-    )
-    expect(resolvedCjsOutFile).toContain(`__esModule"`)
+    const [{ outputFiles: [{ text: cjsOutput = null } = {}] = [] } = {}] =
+      buildResults.map(result => pick(result, 'outputFiles'))
+    expect(cjsOutput).toContain(`__esModule"`)
   })
 
   it('should work with no options and module field', async () => {
-    const fixtureName = 'no-options-with-module'
-    const cacheDir = 'dist/internal'
-    await clearCacheDir(resolveFixtureRoot(`${fixtureName}/${cacheDir}`))
     const results = await build({
-      absWorkingDir: resolveFixtureRoot(fixtureName),
+      absWorkingDir: resolveFixture('no-options-with-module'),
       logLevel: 'debug'
     })
-    const buildResults = formatBuildResult(results)
+    const buildResults = formatBuildResult(results, identity)
+    expect(buildResults).toHaveLength(1)
     expect(hasErrors(buildResults)).toBeFalsy()
     expect(hasWarnings(buildResults)).toBeFalsy()
-    expect(buildResults).toMatchSnapshot(getTestName())
-
     expect(
-      fs.existsSync(resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.js`))
-    ).toBeFalsy()
-    expect(
-      fs.existsSync(
-        resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.esm.js`)
-      )
-    ).toBeTruthy()
+      buildResults.map(result => pick(result, 'warnings', 'errors'))
+    ).toMatchSnapshot(getTestName())
 
-    const resolvedEsmOutFile = await fs.promises.readFile(
-      resolveFixtureRoot(`${fixtureName}/${cacheDir}/index.esm.js`),
-      { encoding: 'utf8' }
-    )
-    expect(resolvedEsmOutFile).not.toContain(`__esModule`)
+    const [{ outputFiles: [{ text: esmOutput = null } = {}] = [] } = {}] =
+      buildResults.map(result => pick(result, 'outputFiles'))
+    expect(esmOutput).not.toContain(`__esModule`)
   })
 
   it("shouldn't work with no valid entry field", async () => {
     const fixtureName = 'no-valid-entry-field'
     const results = await build({
-      absWorkingDir: resolveFixtureRoot(fixtureName),
+      absWorkingDir: resolveFixture(fixtureName),
       logLevel: 'debug'
     })
     const buildResults = formatBuildResult(results)
