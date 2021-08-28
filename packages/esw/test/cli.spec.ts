@@ -11,12 +11,8 @@ const fixtureTypescript = path.resolve(testRoot, 'fixture/typescript')
 const cacheDir = 'dist/cli'
 const bin = path.resolve(binDist, 'esw.js')
 
-function resolveFixture(p: string) {
-  return path.resolve(fixtureTypescript, p)
-}
-
 beforeAll(async () => {
-  await fs.promises.rm(resolveFixture(cacheDir), {
+  await fs.promises.rm(path.resolve(fixtureTypescript, cacheDir), {
     force: true,
     recursive: true
   })
@@ -30,14 +26,18 @@ beforeAll(async () => {
 })
 
 async function createBuildScript(
+  fixturePath: string,
   commandArgs: string[],
-  outfile: Record<'esm' | 'cjs', string>,
+  outFiles: Record<'esm' | 'cjs', string>,
   spawnOptions = {} as SpawnSyncOptions
 ) {
+  function resolveFixture(p: string) {
+    return path.resolve(fixturePath, p)
+  }
   const result = spawn.sync('node', [bin, ...commandArgs], {
     stdio: 'inherit',
     ...spawnOptions,
-    cwd: fixtureTypescript
+    cwd: fixturePath
   })
   // Process exited too early. The system ran out of memory or someone
   // called `kill -9` on the process
@@ -48,8 +48,8 @@ async function createBuildScript(
   expect(result.status).toEqual(ProcessCode.OK)
   expect(result.error).toBeNull()
 
-  const { esm, cjs } = outfile
-  Object.values(outfile).map(p =>
+  const { esm, cjs } = outFiles
+  Object.values(outFiles).map(p =>
     expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
   )
   return Promise.all([
@@ -65,6 +65,7 @@ async function createBuildScript(
 describe('cli command', () => {
   it('should work with entry points and no bundle', async () => {
     const [esm, cjs] = await createBuildScript(
+      path.resolve(testRoot, 'fixture/typescript'),
       ['build', `--outdir=${cacheDir}/no-bundle`],
       {
         esm: `./${cacheDir}/no-bundle/index.esm.js`,
@@ -84,6 +85,7 @@ describe('cli command', () => {
 
   it('should work with entry points and bundle', async () => {
     const [esm, cjs] = await createBuildScript(
+      path.resolve(testRoot, 'fixture/typescript'),
       ['build', '--bundle', `--outdir=${cacheDir}/bundle`],
       {
         esm: `./${cacheDir}/bundle/index.esm.js`,
@@ -172,23 +174,16 @@ describe('cli command', () => {
 
   it('should print the esw version message', () => {
     const versionReg = /v\d+\.\d+\.\d+/
-    const shouldPrintVersionMsg0 = spawn.sync('node', [bin, '--version'], {
-      encoding: 'utf-8'
-    })
-    expect(shouldPrintVersionMsg0.stdout).toMatch(versionReg)
 
-    const shouldPrintVersionMsg1 = spawn.sync('node', [bin, '-v'], {
-      encoding: 'utf-8'
-    })
-    expect(shouldPrintVersionMsg1.stdout).toMatch(versionReg)
-
-    const shouldPrintVersionMsg2 = spawn.sync(
-      'node',
-      [bin, 'build', '--version'],
-      {
+    ;[
+      [bin, '--version'],
+      [bin, '-v'],
+      [bin, 'build', '--version']
+    ].forEach(args => {
+      const shouldPrintVersionMsg = spawn.sync('node', args, {
         encoding: 'utf-8'
-      }
-    )
-    expect(shouldPrintVersionMsg2.stdout).toMatch(versionReg)
+      })
+      expect(shouldPrintVersionMsg.stdout).toMatch(versionReg)
+    })
   })
 })
