@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import { mkdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import arg, { ArgError } from 'arg'
 import {
@@ -13,8 +13,9 @@ import {
   concatMap,
   from,
   partition,
-  toArray,
-  share
+  share,
+  mergeMap,
+  toArray
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult } from 'esbuild'
@@ -51,6 +52,14 @@ function fulfillBuildResultFilter(
   result: PromiseSettledResult<BuildResult>
 ): result is PromiseFulfilledResult<BuildResult> {
   return result.status === 'fulfilled'
+}
+
+async function writeToDisk(
+  outPath: string,
+  content: string | NodeJS.ArrayBufferView
+) {
+  mkdirSync(path.dirname(outPath), { recursive: true })
+  writeFileSync(outPath, content, { encoding: null })
 }
 
 const build: CommandRunner<ProcessCode> = function (argv = []) {
@@ -109,8 +118,8 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
 
   const [handleBuildResult$, handleExceptionResult$] = partition(
     normalizedBuildArgs$.pipe(
-      concatMap(options => runBuild(options)),
-      concatMap(allResults => from(allResults)),
+      mergeMap(options => runBuild(options)),
+      mergeMap(allResults => from(allResults)),
       share()
     ),
     fulfillBuildResultFilter
@@ -121,13 +130,8 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
     .subscribe({ complete: () => process.exit(ProcessCode.OK) })
 
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
-    concatMap(({ value: { outputFiles = [] } = {} }) => {
-      return from(outputFiles)
-    }),
-    concatMap(async ({ path: outPath, contents }) => {
-      await fs.mkdir(path.dirname(outPath), { recursive: true })
-      return fs.writeFile(outPath, contents)
-    }),
+    mergeMap(({ value: { outputFiles = [] } = {} }) => from(outputFiles)),
+    mergeMap(({ path: outPath, contents }) => writeToDisk(outPath, contents)),
     toArray(),
     map(() => ProcessCode.OK)
   )

@@ -43,9 +43,9 @@ async function createBuildScript(
 
   process.stdout.write(result.output.filter(Boolean).join('\n'))
 
-  Object.values(outFiles).map(p =>
+  Object.values(outFiles).forEach(p => {
     expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
-  )
+  })
   const { esm, cjs } = outFiles
   return Promise.all(
     [esm, cjs].filter(Boolean).map(p =>
