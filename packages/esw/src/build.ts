@@ -41,7 +41,7 @@ function checkBuildOptions<Options extends BuildOptions>() {
 
       if (splitting && format !== 'esm') {
         throw new Error(
-          `\`splitting\` currently only works with 'esm' format, instead of ${format}`
+          `'splitting' currently only works with 'esm' format, instead of '${format}'`
         )
       }
 

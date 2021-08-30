@@ -186,4 +186,24 @@ describe('build api', () => {
     expect(hasWarnings(buildResults)).toBeFalsy()
     expect(buildResults).toMatchSnapshot(getTestName())
   })
+
+  it('should emit a error when splitting: true and format !== esm', async () => {
+    await expect(
+      build({
+        absWorkingDir: resolveFixture('no-options'),
+        splitting: true,
+        format: 'cjs'
+      })
+    ).rejects.toThrowErrorMatchingSnapshot('splitting: true and format !== esm')
+  })
+
+  it('should emit a error when write is true', async () => {
+    await expect(
+      build({
+        absWorkingDir: resolveFixture('no-options'),
+        logLevel: 'debug',
+        write: true
+      })
+    ).rejects.toThrowErrorMatchingSnapshot("write shouldn't be true")
+  })
 })
