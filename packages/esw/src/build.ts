@@ -14,7 +14,8 @@ import {
   combineLatest,
   pipe,
   asapScheduler,
-  scheduled
+  scheduled,
+  distinctUntilChanged
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
@@ -96,6 +97,9 @@ export default function runBuild(
 
       return isMatchedField && (!isEsModuleEntry || isAvailableEsModuleEntry)
     }),
+    distinctUntilChanged(
+      ([, prevOutPath], [, currentOutPath]) => prevOutPath === currentOutPath
+    ),
     map(([, outPath, field, alternativeFmt]) => ({
       outPath,
       field,
