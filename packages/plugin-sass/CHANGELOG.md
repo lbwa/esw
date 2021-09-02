@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.4](https://github.com/lbwa/esw/compare/sass-esbuild-plugin@0.2.3...sass-esbuild-plugin@0.2.4) (2021-09-02)
+
+**Note:** Version bump only for package sass-esbuild-plugin
+
 ## [0.2.3](https://github.com/lbwa/esw/compare/sass-esbuild-plugin@0.2.2...sass-esbuild-plugin@0.2.3) (2021-08-28)
 
 **Note:** Version bump only for package sass-esbuild-plugin

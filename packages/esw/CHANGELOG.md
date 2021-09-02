@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/lbwa/esw/compare/esw@0.5.0...esw@0.6.0) (2021-09-02)
+
+### Bug Fixes
+
+- should always respect main and module field value in package.json ([#20](https://github.com/lbwa/esw/issues/20)) ([d3a11a8](https://github.com/lbwa/esw/commit/d3a11a8bbf8d3accf42fe7ab4cc63f1fe19fa387)), closes [#15](https://github.com/lbwa/esw/issues/15)
+
+### Features
+
+- **esw:** avoid duplicated building when we set duplicated path ([#19](https://github.com/lbwa/esw/issues/19)) ([9fa0c71](https://github.com/lbwa/esw/commit/9fa0c719255a477dd53cbb0e35c5230da179b8c6))
+- **esw:** handle emit output files from esw internal ([65dd106](https://github.com/lbwa/esw/commit/65dd10643558a205a8b1b2a342703ecc9cbe260e))
+
 # [0.5.0](https://github.com/lbwa/esw/compare/esw@0.4.1...esw@0.5.0) (2021-08-28)
 
 ### Bug Fixes
