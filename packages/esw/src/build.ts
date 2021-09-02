@@ -55,6 +55,11 @@ function checkBuildOptions<Options extends BuildOptions>() {
   )
 }
 
+/**
+ * {EsBuildInternalOutputPath -> OutputPathResolvedFromPackageJson}
+ */
+export const outputPathMapping = new Map<string, string>()
+
 export default function runBuild(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
@@ -144,8 +149,8 @@ export default function runBuild(
       } as BuildOptions
       return [clonedOptions, meta] as const
     }),
-    map(([options, { outPath }]) => {
-      if (isDef(options.entryPoints)) return options
+    tap(([options, { outPath }]) => {
+      if (isDef(options.entryPoints)) return
 
       const entry = path.basename(outPath).replace(/\..+/, '')
       const candidates = ENTRY_POINTS_EXTS.map(ext =>
@@ -162,6 +167,25 @@ export default function runBuild(
       }
 
       options.entryPoints ??= [matchedEntry]
+    }),
+    map(([options, { outPath }]) => {
+      const { absWorkingDir, entryPoints, outExtension } = options
+      const entry = Array.isArray(entryPoints)
+        ? entryPoints
+        : isDef(entryPoints)
+        ? Object.values(entryPoints)
+        : []
+
+      entry.forEach(entryPoint => {
+        const filename = path.basename(entryPoint).replace(/\..+$/i, '')
+        Object.values(outExtension ?? {}).forEach(key => {
+          outputPathMapping.set(
+            `${absWorkingDir}/${path.dirname(outPath)}/${filename}${key}`,
+            outPath
+          )
+        })
+      })
+
       return options
     }),
     tap(options => {
