@@ -171,25 +171,17 @@ describe('esw cli', () => {
     })
   })
 
-  // eslint-disable-next-line jest/no-commented-out-tests
-  // it('should work with uniq main and module field', async () => {
-  //   const [esm, cjs] = await createBuildScript(
-  //     path.resolve(testRoot, 'fixture/uniq-main-module'),
-  //     ['build', 'index.ts'],
-  //     {
-  //       esm: `./dist/lib.esm.js`,
-  //       cjs: `./dist/index.js`
-  //     }
-  //   )
+  it('should work with uniq main and module field', async () => {
+    const [esm, cjs] = await createBuildScript(
+      path.resolve(testRoot, 'fixture/uniq-main-module'),
+      ['build', 'index.ts'],
+      {
+        esm: `./dist/lib.esm.js`,
+        cjs: `./dist/index.js`
+      }
+    )
 
-  //   expect(esm).toContain('from "react"')
-  //   expect(esm).toContain(`from "react"`)
-  //   expect(esm).toContain(`from "rxjs"`)
-  //   expect(esm).toContain(`from "rxjs/operators"`)
-
-  //   expect(cjs).toContain('require("react")')
-  //   expect(cjs).toContain(`require("react")`)
-  //   expect(cjs).toContain(`require("rxjs")`)
-  //   expect(cjs).toContain(`require("rxjs/operators")`)
-  // })
+    expect(esm).not.toContain(`__esModule`)
+    expect(cjs).toContain(`__esModule"`)
+  })
 })

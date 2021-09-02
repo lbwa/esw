@@ -23,7 +23,7 @@ import { isDef, log } from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
 import { ProcessCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
-import runBuild from '../build'
+import runBuild, { outputPathMapping } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
 function createUsagePrinter(code = ProcessCode.OK) {
@@ -131,7 +131,14 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
 
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
     mergeMap(({ value: { outputFiles = [] } = {} }) => from(outputFiles)),
-    mergeMap(({ path: outPath, contents }) => writeToDisk(outPath, contents)),
+    mergeMap(({ path: outPath, contents }) => {
+      const actualOutPath = outputPathMapping.get(outPath)
+      if (actualOutPath) {
+        return writeToDisk(actualOutPath, contents)
+      }
+      log.warn("Couldn't write output files")
+      return EMPTY
+    }),
     toArray(),
     map(() => ProcessCode.OK)
   )
