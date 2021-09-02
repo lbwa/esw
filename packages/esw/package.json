@@ -42,7 +42,7 @@
     "url": "https://github.com/lbwa/esw/issues"
   },
   "devDependencies": {
-    "@lbwa/tsconfig": "^0.2.0",
+    "@lbwa/tsconfig": "^1.0.0",
     "@types/cross-spawn": "^6.0.2",
     "@types/lodash": "^4.14.171",
     "cross-spawn": "^7.0.3",
