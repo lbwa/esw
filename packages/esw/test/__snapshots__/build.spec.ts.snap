@@ -93,4 +93,4 @@ Array [
 ]
 `;
 
-exports[`build api shouldn't work with no valid entry field: build-api-shouldn't-work-with-no-valid-entry-field 1`] = `Array []`;
+exports[`build api shouldn't work with no valid entry field: build-api-shouldn't-work-with-no-valid-entry-field 1`] = `"Invalid operation. Maybe you forgot to define the main or module field in the package.json file."`;

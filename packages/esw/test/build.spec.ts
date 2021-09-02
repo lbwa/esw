@@ -177,14 +177,12 @@ describe('build api', () => {
 
   it("shouldn't work with no valid entry field", async () => {
     const fixtureName = 'no-valid-entry-field'
-    const results = await build({
-      absWorkingDir: resolveFixture(fixtureName),
-      logLevel: 'debug'
-    })
-    const buildResults = formatBuildResult(results)
-    expect(hasErrors(buildResults)).toBeFalsy()
-    expect(hasWarnings(buildResults)).toBeFalsy()
-    expect(buildResults).toMatchSnapshot(getTestName())
+    await expect(
+      build({
+        absWorkingDir: resolveFixture(fixtureName),
+        logLevel: 'debug'
+      })
+    ).rejects.toThrowErrorMatchingSnapshot(getTestName())
   })
 
   /**

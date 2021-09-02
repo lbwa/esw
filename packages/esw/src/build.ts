@@ -19,7 +19,7 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
-import { isDef, log } from '@eswjs/common'
+import { isDef } from '@eswjs/common'
 import externalEsBuildPlugin from './plugins/external'
 import { isProduction } from './shared/utils'
 
@@ -214,13 +214,13 @@ export default function runBuild(
 
   const invokeEsBuildBuild$ = markDepsAsExternals$.pipe(
     toArray(),
-    tap(
-      options =>
-        options.length < 1 &&
-        log.warn(
-          `No valid building options created, so current operation is no-op.`
+    tap(options => {
+      if (options.length < 1) {
+        throw new Error(
+          `Invalid operation. Maybe you forgot to define the main or module field in the package.json file.`
         )
-    ),
+      }
+    }),
     // invoke building operations concurrently
     map(optionGroup => optionGroup.map(options => build(options))),
     mergeMap(insGroup => Promise.allSettled(insGroup))
