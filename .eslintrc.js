@@ -1,3 +1,3 @@
 module.exports = {
-  extends: '@lbwa/eslint-config-typescript'
+  extends: '@lbwa/typescript'
 }

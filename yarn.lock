@@ -539,10 +539,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@lbwa/eslint-config-typescript@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@lbwa/eslint-config-typescript/-/eslint-config-typescript-0.3.1.tgz#0a8f3b710984d0363c0b3929b1248b8cfd081b96"
-  integrity sha512-m4DMtlYZkKN81tEhjsqsEWEPnHgTnYbmGrxv/PkbYYH05p9eiv1mN0Ql8/yGLfX0BV7aJugQM5nx3FRutE15Tg==
+"@lbwa/eslint-config-typescript@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.nlark.com/@lbwa/eslint-config-typescript/download/@lbwa/eslint-config-typescript-0.4.1.tgz#f8cad7fc68ed03bd3eca7b887e55dc2b2bbce58a"
+  integrity sha1-+MrX/GjtA70+ynuIflXcKyu85Yo=
   dependencies:
     "@lbwa/eslint-config-universal" "^0.2.0"
 

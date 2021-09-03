@@ -5,3 +5,4 @@ dist
 lib
 # don't lint nyc coverage output
 coverage
+packages/esw/test/fixture/with-deps
