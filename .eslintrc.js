@@ -1,3 +1,3 @@
 module.exports = {
-  extends: '@lbwa/typescript'
+  extends: '@lbwa'
 }
