@@ -37,8 +37,10 @@ function createUsagePrinter(code = ProcessCode.OK) {
     Usage
       $ esw build [entry files]
 
-      [entry file] represents the library entry point. If it wasn't specified,
-    esw would infer library entry from 'main' and 'module' field in the package.json.
+      [entry file] represents the library entry point.
+      If no entry is provided, the basename from main and module field in package.json will be used.
+      User should always specific a entry point explicitly when the main and module have a different basename.
+
 `,
         code,
         false
