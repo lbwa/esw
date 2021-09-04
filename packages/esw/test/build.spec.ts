@@ -185,28 +185,13 @@ describe('build api', () => {
     ).rejects.toThrowErrorMatchingSnapshot(getTestName())
   })
 
-  /**
-   * @see https://stackoverflow.com/a/57764111
-   * @see https://stackoverflow.com/a/53166827
-   * @see https://jestjs.io/docs/jest-object#jestdomockmodulename-factory-options
-   */
-  // TODO: Needs to mock esbuild dependency
-  // eslint-disable-next-line jest/no-commented-out-tests
-  // it('should emit building only once when we have duplicated output path', async () => {
-  //   const mockBuild = jest.fn(() => Promise.resolve())
-  //   // use jest.doMock to avoid jest to hoist mock to the beginning of the file
-  //   // @see https://stackoverflow.com/a/53166827
-  //   // @see https://jestjs.io/docs/jest-object#jestdomockmodulename-factory-options
-  //   jest.doMock('esbuild', () => ({
-  //     build: mockBuild
-  //   }))
-  //   await build({
-  //     absWorkingDir: resolveFixture('duplicated-entry-points'),
-  //     logLevel: 'debug'
-  //   })
-  //   expect(mockBuild).toBeCalledTimes(1)
-  //   jest.resetModules()
-  // })
+  it('should emit building only once when we have duplicated output path', async () => {
+    const result = await build({
+      absWorkingDir: resolveFixture('duplicated-entry-points'),
+      logLevel: 'debug'
+    })
+    expect(result).toHaveLength(1)
+  })
 
   it('should emit a error when splitting: true and format !== esm', async () => {
     await expect(
