@@ -128,8 +128,13 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
   )
 
   handleExceptionResult$
-    .pipe(map(({ reason }) => log.error(reason)))
-    .subscribe({ complete: () => process.exit(ProcessCode.OK) })
+    .pipe(
+      tap(({ reason }) => {
+        log.error((reason as Error)?.message ?? reason)
+        process.exitCode = ProcessCode.ERROR
+      })
+    )
+    .subscribe({ complete: () => process.exit() })
 
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
     mergeMap(({ value: { outputFiles = [] } = {} }) => from(outputFiles)),

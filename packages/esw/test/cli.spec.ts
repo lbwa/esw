@@ -184,4 +184,14 @@ describe('esw cli', () => {
     expect(esm).not.toContain(`__esModule`)
     expect(cjs).toContain(`__esModule"`)
   })
+
+  it('should throw a error message when building failed', async () => {
+    const result = spawn.sync('node', [eswBinary, 'build'], {
+      cwd: resolveFixture('build-error'),
+      encoding: 'utf8'
+    })
+    expect(result.status).toEqual(ProcessCode.ERROR)
+    expect(result.stderr).toContain('error')
+    expect(result.stdout).toEqual('')
+  })
 })
