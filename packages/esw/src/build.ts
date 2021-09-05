@@ -55,10 +55,12 @@ function checkBuildOptions<Options extends BuildOptions>() {
   )
 }
 
-/**
- * {EsBuildInternalOutputPath -> OutputPathResolvedFromPackageJson}
- */
-export const outputPathMapping = new Map<string, string>()
+type EsBuildInternalOutputPath = string
+type DestinationPathFromPackageJson = string
+export const outputPathMapping = new Map<
+  EsBuildInternalOutputPath,
+  DestinationPathFromPackageJson
+>()
 
 export default function runBuild(
   options: BuildOptions = {},
@@ -201,10 +203,11 @@ export default function runBuild(
     map(([pkgJson, options]) => {
       const deps = pkgJson.dependencies ?? {}
       const peerDeps = pkgJson.peerDependencies ?? {}
-      const groups = ([] as string[]).concat(
-        Object.keys(peerDeps),
-        Object.keys(deps)
+      const groups = [peerDeps, deps].reduce(
+        (names, deps) => names.concat(Object.keys(deps)),
+        [] as string[]
       )
+
       options.plugins = (options.plugins ?? []).concat(
         externalEsBuildPlugin(groups)
       )

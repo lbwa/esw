@@ -3,7 +3,7 @@ import { ProcessCode } from './constants'
 
 export function printToTerminal(
   message: string,
-  code: number = ProcessCode.ERROR,
+  code: number = ProcessCode.OK,
   exit = false
 ) {
   if (code === ProcessCode.OK) {
