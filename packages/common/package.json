@@ -6,7 +6,7 @@
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/common#readme",
   "license": "MIT",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "directories": {
     "lib": "dist"
   },
@@ -47,6 +47,7 @@
     }
   },
   "dependencies": {
+    "chalk": "^4.1.2",
     "consola": "^2.15.3"
   }
 }
