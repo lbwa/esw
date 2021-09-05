@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import arg, { ArgError } from 'arg'
+import isNil from 'lodash/isNil'
 import {
   EMPTY,
   iif,
@@ -15,18 +16,18 @@ import {
   partition,
   share,
   mergeMap,
-  toArray
+  reduce
 } from 'rxjs'
 import omit from 'lodash/omit'
-import { BuildOptions, BuildResult } from 'esbuild'
-import { isDef, log } from '@eswjs/common'
+import { BuildOptions, BuildResult, Metafile } from 'esbuild'
+import { isDef, log, serializeSize, printTable } from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
 import { ProcessCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild, { outputPathMapping } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
-function createUsagePrinter(code = ProcessCode.OK) {
+function createPrintUsage$(code = ProcessCode.OK) {
   return of(code).pipe(
     tap(code =>
       printToTerminal(
@@ -85,7 +86,7 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
     }),
     catchError((err: Error & { code: string }) => {
       if (err.code === 'ARG_UNKNOWN_OPTION') {
-        return createUsagePrinter(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
+        return createPrintUsage$(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
       }
       throw err
     })
@@ -93,7 +94,7 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
 
   const handlePrintUsage$ = resolvedArgv$.pipe(
     concatMap(argv =>
-      iif(() => !!argv['--help'], createUsagePrinter(), of(argv))
+      iif(() => !!argv['--help'], createPrintUsage$(), of(argv))
     )
   )
 
@@ -134,20 +135,47 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
         process.exitCode = ProcessCode.ERROR
       })
     )
-    .subscribe({ complete: () => process.exit() })
+    .subscribe(() => process.exit())
 
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
-    mergeMap(({ value: { outputFiles = [] } = {} }) => from(outputFiles)),
-    mergeMap(({ path: outPath, contents }) => {
-      const actualOutPath = outputPathMapping.get(outPath)
-      if (actualOutPath) {
-        return writeToDisk(actualOutPath, contents)
-      }
-      log.warn("Couldn't write output files")
-      return EMPTY
-    }),
-    toArray(),
-    map(() => ProcessCode.OK)
+    reduce((metaFiles, { value: buildResult = {} }) => {
+      const { outputFiles = [], metafile = {} as Metafile } = buildResult
+      const writeable = outputFiles.reduce(
+        (writes, { path: outPath, contents }) => {
+          const destinationPath = outputPathMapping.get(outPath)
+          if (isNil(destinationPath)) {
+            log.warn("Couldn't write output files")
+            return writes
+          }
+          writes.push(destinationPath)
+          void writeToDisk(destinationPath, contents)
+          return writes
+        },
+        [] as string[]
+      )
+      return writeable.length > 0 ? metaFiles.concat(metafile) : metaFiles
+    }, [] as Metafile[]),
+    map(metaFiles => {
+      if (metaFiles.length < 1) return ProcessCode.ERROR
+
+      const outputs = metaFiles.reduce(
+        (group, { outputs }) => Object.assign(group, outputs),
+        {} as Metafile['outputs']
+      )
+
+      const message = [
+        ['Files', 'Size'],
+        ...Object.keys(outputs).map(filename => [
+          filename,
+          isDef(outputs[filename]?.bytes)
+            ? serializeSize(outputs[filename]?.bytes as number)
+            : 'unknown'
+        ])
+      ] as string[][]
+
+      printTable(message)
+      return ProcessCode.OK
+    })
   )
 
   return handleWriteOutFiles$
