@@ -3,20 +3,19 @@ import path from 'path'
 import arg, { ArgError } from 'arg'
 import isNil from 'lodash/isNil'
 import {
-  EMPTY,
   iif,
   of,
-  switchMapTo,
   tap,
   map,
-  catchError,
   throwError,
   concatMap,
   from,
   partition,
   share,
   mergeMap,
-  reduce
+  reduce,
+  defer,
+  NEVER
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult, Metafile } from 'esbuild'
@@ -27,28 +26,26 @@ import { CommandRunner } from '../parser/cli'
 import runBuild, { outputPathMapping } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
-function createPrintUsage$(code = ProcessCode.OK) {
-  return of(code).pipe(
-    tap(code =>
-      printToTerminal(
-        `
-    Description
-      Compiles the codebase for publishing npm package.
-
-    Usage
-      $ esw build [entry files]
-
-      [entry file] represents the library entry point.
-      If no entry is provided, the basename from main and module field in package.json will be used.
-      User should always specific a entry point explicitly when the main and module have a different basename.
-
+function createPrintUsage$(exitCode = ProcessCode.OK) {
+  return defer(() => {
+    printToTerminal(
+      `
+      Description
+        Compiles the codebase for publishing npm package.
+  
+      Usage
+        $ esw build [entry files]
+  
+        [entry file] represents the library entry point.
+        If no entry is provided, the basename from main and module field in package.json will be used.
+        User should always specific a entry point explicitly when the main and module have a different basename.
+  
 `,
-        code,
-        false
-      )
-    ),
-    switchMapTo(EMPTY)
-  )
+      exitCode,
+      false
+    )
+    return NEVER
+  })
 }
 
 function fulfillBuildResultFilter(
@@ -77,18 +74,13 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
         throwError(
           () =>
             new ArgError(
-              `Unknown or unexpected option: ${unavailable.join(', ')}`,
-              // In the current implementation, we only use this error code, instead of above error message.
+              `Unknown arguments: ${unavailable.join(
+                ', '
+              )}. \nRun 'esw build --help' to print all available arguments.`,
               'ARG_UNKNOWN_OPTION'
             )
         )
       )
-    }),
-    catchError((err: Error & { code: string }) => {
-      if (err.code === 'ARG_UNKNOWN_OPTION') {
-        return createPrintUsage$(ProcessCode.ERROR).pipe(switchMapTo(EMPTY))
-      }
-      throw err
     })
   )
 
@@ -119,12 +111,13 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
     )
   )
 
+  const handleBuilding$ = normalizedBuildArgs$.pipe(
+    mergeMap(options => runBuild(options)),
+    mergeMap(allResults => from(allResults)),
+    share()
+  )
   const [handleBuildResult$, handleExceptionResult$] = partition(
-    normalizedBuildArgs$.pipe(
-      mergeMap(options => runBuild(options)),
-      mergeMap(allResults => from(allResults)),
-      share()
-    ),
+    handleBuilding$,
     fulfillBuildResultFilter
   )
 
@@ -170,7 +163,8 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
           isDef(outputs[filename]?.bytes)
             ? serializeSize(outputs[filename]?.bytes as number)
             : 'unknown'
-        ])
+        ]),
+        ['', '\n']
       ] as string[][]
 
       printTable(message)
