@@ -26,7 +26,7 @@
     "watch": "yarn build:raw --watch",
     "clear": "rm -rf dist/*",
     "build": "yarn clear && yarn build:raw & yarn build:types ",
-    "build:raw": "esbuild src/index.ts --bundle --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:lodash --external:consola",
+    "build:raw": "esbuild src/index.ts --bundle --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:lodash --external:consola --external:chalk",
     "build:types": "tsc -p ./tsconfig.json",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
