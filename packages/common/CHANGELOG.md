@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.2.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.1.0...@eswjs/common@0.2.0) (2021-09-07)
+
+### Features
+
+- **common:** serialize size ([de00888](https://github.com/lbwa/esw/commit/de00888188fae37515690211bd8276c2b79f2886))
+- **common:** table printer ([62222d3](https://github.com/lbwa/esw/commit/62222d3f9f6835a231a31d4341de469461ad7d61))
+
 # 0.1.0 (2021-08-25)
 
 ### Bug Fixes

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/lbwa/esw/compare/esw@0.6.0...esw@0.7.0) (2021-09-07)
+
+### Bug Fixes
+
+- **esw:** should exit with code 1 when build failed ([3febd4b](https://github.com/lbwa/esw/commit/3febd4bfdf821d3150a755cf296947fcf3d5f53d))
+
+### Features
+
+- **esw:** output a build report when build accomplished ([e32abb1](https://github.com/lbwa/esw/commit/e32abb18616bd078d8b3879e276e430d97eaeba8))
+- **esw:** throw a error when user forgot define main and module fields ([953450f](https://github.com/lbwa/esw/commit/953450f387953613029a32c71e099a97e85e5c8b))
+- **esw:** we don't print usage any more when unknown args occurs ([ddd040c](https://github.com/lbwa/esw/commit/ddd040c9c1dfcc51bb89e5c4a224ee9831599688))
+
 # [0.6.0](https://github.com/lbwa/esw/compare/esw@0.5.0...esw@0.6.0) (2021-09-02)
 
 ### Bug Fixes
