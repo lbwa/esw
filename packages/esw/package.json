@@ -1,6 +1,6 @@
 {
   "name": "esw",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "The lightweight build tool for JavaScript/TypeScript library.",
   "keywords": [
     "esbuild",
@@ -50,7 +50,7 @@
   },
   "peerDependenciesMeta": {},
   "dependencies": {
-    "@eswjs/common": "^0.2.0",
+    "@eswjs/common": "^0.2.1",
     "arg": "^5.0.0",
     "esbuild": "^0.12.22",
     "lodash": "^4.17.21",

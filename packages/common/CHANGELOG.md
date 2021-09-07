@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/lbwa/esw/compare/@eswjs/common@0.2.0...@eswjs/common@0.2.1) (2021-09-07)
+
+### Bug Fixes
+
+- **common:** reduce bundle size ([12dc596](https://github.com/lbwa/esw/commit/12dc596650f32f0c26d39dcbf49f493ba5703488))
+
 # [0.2.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.1.0...@eswjs/common@0.2.0) (2021-09-07)
 
 ### Features

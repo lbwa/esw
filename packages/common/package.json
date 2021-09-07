@@ -1,6 +1,6 @@
 {
   "name": "@eswjs/common",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A extremely fast JavaScript/TypeScript library build tool based on esbuild.",
   "author": "Liu Bowen <mr_lbw@outlook.com>",
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/common#readme",
