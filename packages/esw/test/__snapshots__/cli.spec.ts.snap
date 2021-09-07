@@ -67,33 +67,24 @@ exports[`esw cli should print the help message of build command: build --help sh
 Array [
   null,
   "
-    Description
-      Compiles the codebase for publishing npm package.
-
-    Usage
-      $ esw build [entry files]
-
-      [entry file] represents the library entry point.
-      If no entry is provided, the basename from main and module field in package.json will be used.
-      User should always specific a entry point explicitly when the main and module have a different basename.
-
+      Description
+        Compiles the codebase for publishing npm package.
+  
+      Usage
+        $ esw build [entry files]
+  
+        [entry file] represents the library entry point.
+        If no entry is provided, the basename from main and module field in package.json will be used.
+        User should always specific a entry point explicitly when the main and module have a different basename.
+  
 ",
   "",
 ]
 `;
 
 exports[`esw cli should print the help message of build command: build --mini should print help message 1`] = `
-"
-    Description
-      Compiles the codebase for publishing npm package.
-
-    Usage
-      $ esw build [entry files]
-
-      [entry file] represents the library entry point.
-      If no entry is provided, the basename from main and module field in package.json will be used.
-      User should always specific a entry point explicitly when the main and module have a different basename.
-
+"[error] Unknown arguments: --mini. 
+Run 'esw build --help' to print all available arguments.
 "
 `;
 
@@ -101,16 +92,16 @@ exports[`esw cli should print the help message of build command: build -h should
 Array [
   null,
   "
-    Description
-      Compiles the codebase for publishing npm package.
-
-    Usage
-      $ esw build [entry files]
-
-      [entry file] represents the library entry point.
-      If no entry is provided, the basename from main and module field in package.json will be used.
-      User should always specific a entry point explicitly when the main and module have a different basename.
-
+      Description
+        Compiles the codebase for publishing npm package.
+  
+      Usage
+        $ esw build [entry files]
+  
+        [entry file] represents the library entry point.
+        If no entry is provided, the basename from main and module field in package.json will be used.
+        User should always specific a entry point explicitly when the main and module have a different basename.
+  
 ",
   "",
 ]
