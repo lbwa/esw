@@ -15,7 +15,7 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import { printToTerminal } from '../shared/printer'
-import { ProcessCode as Code } from '../shared/constants'
+import { ExitCode } from '../shared/constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
 type Commands = typeof AVAILABLE_COMMANDS
@@ -56,7 +56,7 @@ function printUsageIntoTerminal(commands: Commands) {
       For more information run a command with the --help flag
         $ esw ${names[0] ?? ''} --help
   `,
-    Code.OK
+    ExitCode.OK
   )
 }
 
@@ -85,7 +85,7 @@ export default function parse(argv: string[]) {
   const handlePrintVersion$ = resolvedArgv$.pipe(
     switchMap(args => {
       if (args['--version']) {
-        printToTerminal(`v${pkgJson.version}\n`, Code.OK)
+        printToTerminal(`v${pkgJson.version}\n`, ExitCode.OK)
         return EMPTY
       }
       return of(args)

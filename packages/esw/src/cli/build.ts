@@ -21,12 +21,12 @@ import omit from 'lodash/omit'
 import { BuildOptions, BuildResult, Metafile } from 'esbuild'
 import { isDef, log, serializeSize, printTable } from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
-import { ProcessCode } from '../shared/constants'
+import { ExitCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild, { outputPathMapping } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
-function createPrintUsage$(exitCode = ProcessCode.OK) {
+function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
     printToTerminal(
       `
@@ -62,7 +62,7 @@ async function writeToDisk(
   writeFileSync(outPath, content, { encoding: null })
 }
 
-const build: CommandRunner<ProcessCode> = function (argv = []) {
+const build: CommandRunner<ExitCode> = function (argv = []) {
   const argv$ = of(argv)
   const resolvedArgv$ = argv$.pipe(
     map(argv => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
@@ -125,7 +125,7 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
     .pipe(
       tap(({ reason }) => {
         log.error((reason as Error)?.message ?? reason)
-        process.exitCode = ProcessCode.ERROR
+        process.exitCode = ExitCode.ERROR
       })
     )
     .subscribe(() => process.exit())
@@ -149,7 +149,7 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
       return writeable.length > 0 ? metaFiles.concat(metafile) : metaFiles
     }, [] as Metafile[]),
     map(metaFiles => {
-      if (metaFiles.length < 1) return ProcessCode.ERROR
+      if (metaFiles.length < 1) return ExitCode.ERROR
 
       const outputs = metaFiles.reduce(
         (group, { outputs }) => Object.assign(group, outputs),
@@ -168,7 +168,7 @@ const build: CommandRunner<ProcessCode> = function (argv = []) {
       ] as string[][]
 
       printTable(message)
-      return ProcessCode.OK
+      return ExitCode.OK
     })
   )
 

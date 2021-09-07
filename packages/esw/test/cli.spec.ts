@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { SpawnSyncOptions } from 'child_process'
 import spawn from 'cross-spawn'
-import { ProcessCode } from '../src/shared/constants'
+import { ExitCode } from '../src/shared/constants'
 import { resolveFixture } from './shared'
 
 const libDist = path.resolve(__dirname, '..', 'dist')
@@ -39,7 +39,7 @@ async function createBuildScript(
   // might have called `kill` or `killall`
   expect(result.signal).not.toEqual('SIGTERM')
   expect(result.error).toBeNull()
-  expect(result.status).toEqual(ProcessCode.OK)
+  expect(result.status).toEqual(ExitCode.OK)
 
   process.stdout.write(result.output.filter(Boolean).join('\n'))
 
@@ -190,7 +190,7 @@ describe('esw cli', () => {
       cwd: resolveFixture('build-error'),
       encoding: 'utf8'
     })
-    expect(result.status).toEqual(ProcessCode.ERROR)
+    expect(result.status).toEqual(ExitCode.ERROR)
     expect(result.stderr).toContain('error')
     expect(result.stdout).toEqual('')
   })

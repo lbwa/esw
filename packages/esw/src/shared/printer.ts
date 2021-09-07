@@ -1,12 +1,12 @@
 import { isDef } from '@eswjs/common'
-import { ProcessCode } from './constants'
+import { ExitCode } from './constants'
 
 export function printToTerminal(
   message: string,
-  code: number = ProcessCode.OK,
+  code: number = ExitCode.OK,
   exit = false
 ) {
-  if (code === ProcessCode.OK) {
+  if (code === ExitCode.OK) {
     process.stdout.write(message)
   } else if (isDef(code)) {
     process.stderr.write(message)
