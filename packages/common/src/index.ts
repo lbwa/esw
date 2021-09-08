@@ -1,6 +1,6 @@
 export * from './types'
-export { default as log } from './log'
 export * from './load'
 export * from './utils'
 export * from './table'
 export * from './serialize-size'
+export * as stdout from './stdout'

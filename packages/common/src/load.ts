@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { log } from '.'
+
+import { stdout } from '.'
 
 function load<Dep>(name: string, baseDir: string, isDevDeps = false): Dep {
   try {
     return require(require.resolve(name, { paths: [baseDir] }))
   } catch (error) {
-    log.error(
+    stdout.error(
       `Couldn't find module ${name}, please ensure it has been installed. e.g. yarn add ${name} ${
         isDevDeps ? '-D' : ''
       }`
