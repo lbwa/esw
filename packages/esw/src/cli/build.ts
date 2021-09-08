@@ -19,7 +19,7 @@ import {
 } from 'rxjs'
 import omit from 'lodash/omit'
 import { BuildOptions, BuildResult, Metafile } from 'esbuild'
-import { isDef, log, serializeSize, printTable } from '@eswjs/common'
+import { isDef, stdout, serializeSize, printTable } from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
 import { ExitCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
@@ -124,7 +124,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
   handleExceptionResult$
     .pipe(
       tap(({ reason }) => {
-        log.error((reason as Error)?.message ?? reason)
+        stdout.error((reason as Error)?.message ?? reason)
         process.exitCode = ExitCode.ERROR
       })
     )
@@ -137,7 +137,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
         (writes, { path: outPath, contents }) => {
           const destinationPath = outputPathMapping.get(outPath)
           if (isNil(destinationPath)) {
-            log.warn("Couldn't write output files")
+            stdout.warn("Couldn't write output files")
             return writes
           }
           writes.push(destinationPath)

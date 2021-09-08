@@ -86,7 +86,7 @@ Usage
 `;
 
 exports[`esw cli should print the help message of build command: build --mini should print help message 1`] = `
-"[error] Unknown arguments: --mini. 
+"[41m[30m ERROR [39m[49m Unknown arguments: --mini. 
 Run 'esw build --help' to print all available arguments.
 "
 `;
