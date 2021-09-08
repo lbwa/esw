@@ -43,19 +43,20 @@ function printUsageIntoTerminal(commands: Commands) {
   const names = Object.keys(commands)
   printToTerminal(
     `
-    Usage
-      $ esw <command>
+Usage
+  $ esw <command>
 
-      Available commands
-        ${names.join(', ')}
+Available commands
+  ${names.join(', ')}
 
-      Options
-        --version, -v Show version number
-        --help, -h Display help messages
+Options
+  --version, -v      Show version number
+  --help, -h         Display help messages
 
-      For more information run a command with the --help flag
-        $ esw ${names[0] ?? ''} --help
-  `,
+For more information run a command with the --help flag
+  $ esw ${names[0] ?? ''} --help
+
+`,
     ExitCode.OK
   )
 }

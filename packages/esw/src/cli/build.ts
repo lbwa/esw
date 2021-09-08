@@ -30,16 +30,16 @@ function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
     printToTerminal(
       `
-      Description
-        Compiles the codebase for publishing npm package.
-  
-      Usage
-        $ esw build [entry files]
-  
-        [entry file] represents the library entry point.
-        If no entry is provided, the basename from main and module field in package.json will be used.
-        User should always specific a entry point explicitly when the main and module have a different basename.
-  
+Description
+  Compiles the codebase for publishing npm package.
+
+Usage
+  $ esw build [entry files]
+
+  [entry file] represents the library entry point.
+  If no entry is provided, the basename from main and module field in package.json will be used.
+  User should always specific a entry point explicitly when the main and module have a different basename.
+
 `,
       exitCode,
       false
