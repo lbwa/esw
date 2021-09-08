@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.2](https://github.com/lbwa/esw/compare/esw@0.7.1...esw@0.7.2) (2021-09-08)
+
+### Bug Fixes
+
+- **esw:** format usage ([68e1fc6](https://github.com/lbwa/esw/commit/68e1fc65a06e33afa351bb1eb7b94f4292ee5e99))
+
 ## [0.7.1](https://github.com/lbwa/esw/compare/esw@0.7.0...esw@0.7.1) (2021-09-07)
 
 **Note:** Version bump only for package esw
