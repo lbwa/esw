@@ -130,8 +130,9 @@ export default function parse(argv: string[]) {
         commandName === 'build' ? 'production' : 'development'
       process.env['NODE_ENV'] ||= normalizedEnv
 
-      process.on('SIGTERM', () => process.exit(0))
-      process.on('SIGINT', () => process.exit(0))
+      // Make sure commands gracefully respect termination signals (e.g. from Docker)
+      process.on('SIGTERM', () => process.exit(ExitCode.OK))
+      process.on('SIGINT', () => process.exit(ExitCode.OK))
     })
   )
 
