@@ -112,6 +112,26 @@ describe('esw cli', () => {
 })
 
 describe('esw cli - build', () => {
+  it('should work with no-options', async () => {
+    await Promise.all(
+      ['index.esm.js', 'index.js'].map(file =>
+        fs.promises.rm(path.resolve(testRoot, 'fixture/no-options', file), {
+          force: true,
+          recursive: true
+        })
+      )
+    )
+    const fixturePath = resolveFixture('no-options')
+    const [esmOutput, cjsOutput] = await createBuildScript(
+      fixturePath,
+      ['build'],
+      { esm: 'index.esm.js', cjs: 'index.js' }
+    )
+
+    expect(esmOutput).not.toContain('__esModule')
+    expect(cjsOutput).toContain('__esModule')
+  })
+
   it('should mark all peerDependencies and dependencies as external', async () => {
     const [esmOutput, cjsOutput] = await createBuildScript(
       resolveFixture('with-deps'),

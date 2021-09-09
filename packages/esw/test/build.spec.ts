@@ -1,3 +1,5 @@
+import fs from 'fs/promises'
+import path from 'path'
 import * as esbuild from 'esbuild'
 import identity from 'lodash/identity'
 import pick from 'lodash/pick'
@@ -119,6 +121,15 @@ describe('build api', () => {
   })
 
   it('should work with no options', async () => {
+    await Promise.all(
+      ['index.esm.js', 'index.js'].map(file =>
+        fs.rm(path.resolve(__dirname, 'fixture/no-options', file), {
+          force: true,
+          recursive: true
+        })
+      )
+    )
+
     const fixtureName = 'no-options'
     const results = await build({
       absWorkingDir: resolveFixture(fixtureName),

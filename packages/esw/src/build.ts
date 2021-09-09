@@ -19,6 +19,7 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import isNil from 'lodash/isNil'
+import isString from 'lodash/isString'
 import { isDef } from '@eswjs/common'
 import externalEsBuildPlugin from './plugins/external'
 import { isProduction } from './shared/utils'
@@ -143,6 +144,7 @@ export default function runBuild(
 
       const clonedOptions = {
         ...options,
+        absWorkingDir: cwd,
         outdir: options.outdir ?? path.dirname(outPath),
         format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
         write: options.write ?? false,
@@ -172,6 +174,13 @@ export default function runBuild(
     }),
     map(([options, { outPath }]) => {
       const { absWorkingDir, entryPoints, outExtension } = options
+
+      if (!isString(absWorkingDir)) {
+        throw new Error(
+          `Expect absWorkingDir is a string type, but we got ${typeof absWorkingDir}. This error is likely caused by a bug in esw. Please file an issue.`
+        )
+      }
+
       const entry = Array.isArray(entryPoints)
         ? entryPoints
         : isDef(entryPoints)
@@ -182,7 +191,11 @@ export default function runBuild(
         const filename = path.basename(entryPoint).replace(/\..+$/i, '')
         Object.values(outExtension ?? {}).forEach(key => {
           outputPathMapping.set(
-            `${absWorkingDir}/${path.dirname(outPath)}/${filename}${key}`,
+            path.join(
+              absWorkingDir,
+              path.dirname(outPath),
+              `${filename}${key}`
+            ),
             outPath
           )
         })
