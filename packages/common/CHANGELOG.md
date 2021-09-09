@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.2.1...@eswjs/common@0.3.0) (2021-09-09)
+
+### Features
+
+- **common:** use customizable stdout ([9f83084](https://github.com/lbwa/esw/commit/9f830849dc92381a7ef15fadf04fe00a4c6ec7fa))
+
 ## [0.2.1](https://github.com/lbwa/esw/compare/@eswjs/common@0.2.0...@eswjs/common@0.2.1) (2021-09-07)
 
 ### Bug Fixes

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.3](https://github.com/lbwa/esw/compare/esw@0.7.2...esw@0.7.3) (2021-09-09)
+
+### Bug Fixes
+
+- **esw:** should use path.join to join multiple path segments ([0641352](https://github.com/lbwa/esw/commit/0641352c4d838fe0d7190234e3dd7d00f753204e))
+
 ## [0.7.2](https://github.com/lbwa/esw/compare/esw@0.7.1...esw@0.7.2) (2021-09-08)
 
 ### Bug Fixes
