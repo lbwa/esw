@@ -1,5 +1,49 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`esw cli - build should print the help message of build command: build --help should print help message 1`] = `
+Array [
+  null,
+  "
+Description
+  Compiles the codebase for publishing npm package.
+
+Usage
+  $ esw build [entry files]
+
+  [entry file] represents the library entry point.
+  If no entry is provided, the basename from main and module field in package.json will be used.
+  User should always specific a entry point explicitly when the main and module have a different basename.
+
+",
+  "",
+]
+`;
+
+exports[`esw cli - build should print the help message of build command: build --mini should print help message 1`] = `
+"[41m[30m ERROR [39m[49m Unknown arguments: --mini. 
+Run 'esw build --help' to print all available arguments.
+"
+`;
+
+exports[`esw cli - build should print the help message of build command: build -h should print help message 1`] = `
+Array [
+  null,
+  "
+Description
+  Compiles the codebase for publishing npm package.
+
+Usage
+  $ esw build [entry files]
+
+  [entry file] represents the library entry point.
+  If no entry is provided, the basename from main and module field in package.json will be used.
+  User should always specific a entry point explicitly when the main and module have a different basename.
+
+",
+  "",
+]
+`;
+
 exports[`esw cli should print root help message: --help should print help message 1`] = `
 Array [
   null,
@@ -60,50 +104,6 @@ Options
 
 For more information run a command with the --help flag
   $ esw build --help
-
-",
-  "",
-]
-`;
-
-exports[`esw cli should print the help message of build command: build --help should print help message 1`] = `
-Array [
-  null,
-  "
-Description
-  Compiles the codebase for publishing npm package.
-
-Usage
-  $ esw build [entry files]
-
-  [entry file] represents the library entry point.
-  If no entry is provided, the basename from main and module field in package.json will be used.
-  User should always specific a entry point explicitly when the main and module have a different basename.
-
-",
-  "",
-]
-`;
-
-exports[`esw cli should print the help message of build command: build --mini should print help message 1`] = `
-"[41m[30m ERROR [39m[49m Unknown arguments: --mini. 
-Run 'esw build --help' to print all available arguments.
-"
-`;
-
-exports[`esw cli should print the help message of build command: build -h should print help message 1`] = `
-Array [
-  null,
-  "
-Description
-  Compiles the codebase for publishing npm package.
-
-Usage
-  $ esw build [entry files]
-
-  [entry file] represents the library entry point.
-  If no entry is provided, the basename from main and module field in package.json will be used.
-  User should always specific a entry point explicitly when the main and module have a different basename.
 
 ",
   "",

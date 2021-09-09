@@ -60,25 +60,6 @@ async function createBuildScript(
 }
 
 describe('esw cli', () => {
-  it('should mark all peerDependencies and dependencies as external', async () => {
-    const [esmOutput, cjsOutput] = await createBuildScript(
-      resolveFixture('with-deps'),
-      ['build'],
-      {
-        esm: 'dist/index.esm.js',
-        cjs: 'dist/index.js'
-      }
-    )
-
-    expect(esmOutput).toContain(`from "react"`)
-    expect(esmOutput).toContain(`from "rxjs"`)
-    expect(esmOutput).toContain(`from "rxjs/operators"`)
-
-    expect(cjsOutput).toContain(`require("react")`)
-    expect(cjsOutput).toContain(`require("rxjs")`)
-    expect(cjsOutput).toContain(`require("rxjs/operators")`)
-  })
-
   it('should print root help message', () => {
     const shouldPrintHelp = spawn.sync('node', [eswBinary, '--help'], {
       cwd: process.cwd(),
@@ -112,6 +93,42 @@ describe('esw cli', () => {
     expect(shouldPrintHelp.output).toEqual(
       shouldPrintHelpWithWrongCommand.output
     )
+  })
+
+  it('should print the esw version message', () => {
+    const versionReg = /v\d+\.\d+\.\d+/
+
+    ;[
+      [eswBinary, '--version'],
+      [eswBinary, '-v'],
+      [eswBinary, 'build', '--version']
+    ].forEach(args => {
+      const shouldPrintVersionMsg = spawn.sync('node', args, {
+        encoding: 'utf-8'
+      })
+      expect(shouldPrintVersionMsg.stdout).toMatch(versionReg)
+    })
+  })
+})
+
+describe('esw cli - build', () => {
+  it('should mark all peerDependencies and dependencies as external', async () => {
+    const [esmOutput, cjsOutput] = await createBuildScript(
+      resolveFixture('with-deps'),
+      ['build'],
+      {
+        esm: 'dist/index.esm.js',
+        cjs: 'dist/index.js'
+      }
+    )
+
+    expect(esmOutput).toContain(`from "react"`)
+    expect(esmOutput).toContain(`from "rxjs"`)
+    expect(esmOutput).toContain(`from "rxjs/operators"`)
+
+    expect(cjsOutput).toContain(`require("react")`)
+    expect(cjsOutput).toContain(`require("rxjs")`)
+    expect(cjsOutput).toContain(`require("rxjs/operators")`)
   })
 
   it('should print the help message of build command', () => {
@@ -154,21 +171,6 @@ describe('esw cli', () => {
       'build -h should print help message'
     )
     expect(shouldPrintHelpWithAlias.stdout).toEqual(shouldPrintHelpMsg.stdout)
-  })
-
-  it('should print the esw version message', () => {
-    const versionReg = /v\d+\.\d+\.\d+/
-
-    ;[
-      [eswBinary, '--version'],
-      [eswBinary, '-v'],
-      [eswBinary, 'build', '--version']
-    ].forEach(args => {
-      const shouldPrintVersionMsg = spawn.sync('node', args, {
-        encoding: 'utf-8'
-      })
-      expect(shouldPrintVersionMsg.stdout).toMatch(versionReg)
-    })
   })
 
   it('should work with uniq main and module field', async () => {
