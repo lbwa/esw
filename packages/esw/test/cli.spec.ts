@@ -172,8 +172,9 @@ describe('esw cli - build', () => {
         encoding: 'utf8'
       }
     )
-    expect(shouldPrintHelpWithWrongCommand.stderr).toMatchSnapshot(
-      'build --mini should print help message'
+    expect(shouldPrintHelpWithWrongCommand.stderr).toMatch(/error/i)
+    expect(shouldPrintHelpWithWrongCommand.stderr).toContain(
+      'Unknown arguments: --mini'
     )
     expect(shouldPrintHelpMsg.stderr).toEqual(
       shouldPrintHelpWithWrongCommand.stdout

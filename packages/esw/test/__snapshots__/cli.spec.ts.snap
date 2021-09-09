@@ -19,12 +19,6 @@ Usage
 ]
 `;
 
-exports[`esw cli - build should print the help message of build command: build --mini should print help message 1`] = `
-"[41m[30m ERROR [39m[49m Unknown arguments: --mini. 
-Run 'esw build --help' to print all available arguments.
-"
-`;
-
 exports[`esw cli - build should print the help message of build command: build -h should print help message 1`] = `
 Array [
   null,
