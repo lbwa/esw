@@ -125,7 +125,7 @@ describe('esw cli - build', () => {
     const [esmOutput, cjsOutput] = await createBuildScript(
       fixturePath,
       ['build'],
-      { esm: 'index.esm.js', cjs: 'index.js' }
+      { esm: 'index.esm.js', cjs: 'dist/cjs/index.js' }
     )
 
     expect(esmOutput).not.toContain('__esModule')

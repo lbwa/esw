@@ -1,7 +1,6 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import arg, { ArgError } from 'arg'
-import isNil from 'lodash/isNil'
 import {
   iif,
   of,
@@ -136,12 +135,10 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
       const writeable = outputFiles.reduce(
         (writes, { path: outPath, contents }) => {
           const destinationPath = outputPathMapping.get(outPath)
-          if (isNil(destinationPath)) {
-            stdout.warn("Couldn't write output files")
-            return writes
-          }
-          writes.push(destinationPath)
-          void writeToDisk(destinationPath, contents)
+          const destination = destinationPath ?? outPath
+
+          writes.push(destination)
+          void writeToDisk(destination, contents)
           return writes
         },
         [] as string[]
