@@ -216,13 +216,16 @@ export default function runBuild(
     map(([pkgJson, options]) => {
       const deps = pkgJson.dependencies ?? {}
       const peerDeps = pkgJson.peerDependencies ?? {}
-      const groups = [peerDeps, deps].reduce(
+      const depGroups = [peerDeps, deps].reduce(
         (names, deps) => names.concat(Object.keys(deps)),
         [] as string[]
       )
 
-      options.plugins = (options.plugins ?? []).concat(
-        externalEsBuildPlugin(groups)
+      /**
+       * make external plugin be the first one, so that we can mark deps as external codes as soon as possible
+       */
+      options.plugins = [externalEsBuildPlugin(depGroups)].concat(
+        options.plugins ?? []
       )
       return options
     })
