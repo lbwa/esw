@@ -23,9 +23,9 @@ import {
   serializeSize,
   printTable,
   printBuildError,
-  stdout
+  stdout,
+  ExitCode
 } from '@eswjs/common'
-import { ExitCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild, { outputPathMapping } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'

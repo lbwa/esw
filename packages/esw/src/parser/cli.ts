@@ -14,8 +14,7 @@ import {
   switchMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
-import { stdout } from '@eswjs/common'
-import { ExitCode } from '../shared/constants'
+import { stdout, ExitCode } from '@eswjs/common'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
 type Commands = typeof AVAILABLE_COMMANDS

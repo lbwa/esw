@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { stdout } from '@eswjs/common'
-import { ExitCode } from '../shared/constants'
+import { stdout, ExitCode } from '@eswjs/common'
 import parse from '../parser/cli'
 
 parse(process.argv.slice(2)).subscribe({

@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { SpawnSyncOptions } from 'child_process'
 import spawn from 'cross-spawn'
-import { ExitCode } from '../src/shared/constants'
+import { ExitCode } from '@eswjs/common'
 import { resolveFixture } from './shared'
 
 const libDist = path.resolve(__dirname, '..', 'dist')
