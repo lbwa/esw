@@ -2,6 +2,7 @@
 
 exports[`serialize build error should print build error with plugin name: stderr 1`] = `
 " ERROR  index.ts:3:20 [plugin: mock plugin name] Could not resolve \\"./src/fib\\"
+
     3 │ import { fib } from './src/fib'
       ╵                     ~~~~~~~~~~~
 
@@ -10,8 +11,28 @@ exports[`serialize build error should print build error with plugin name: stderr
 
 exports[`serialize build error should print build error: stderr 1`] = `
 " ERROR  index.ts:3:20 Could not resolve \\"./src/fib\\"
+
     3 │ import { fib } from './src/fib'
       ╵                     ~~~~~~~~~~~
+
+"
+`;
+
+exports[`serialize build error should print note: stderr 1`] = `
+" ERROR  index.tsx:1:58 Unexpected backslash in JSX element
+
+    1 │ let button = <Button content=\\"some so-called \\\\\\"button text\\\\\\"\\" />
+      ╵                                                           ^
+
+ NOTE  index.tsx:1:45 Quoted JSX attributes use XML-style escapes instead of JavaScript-style escapes
+
+    1 │ let button = <Button content=\\"some so-called \\\\\\"button text\\\\\\"\\" />
+      ╵                                              ~~
+
+ NOTE  index.tsx:1:29 Consider using a JavaScript string inside {...} instead of a quoted JSX attribute
+
+    1 │ let button = <Button content=\\"some so-called \\\\\\"button text\\\\\\"\\" />
+      ╵                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 "
 `;

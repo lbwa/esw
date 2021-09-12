@@ -1,7 +1,22 @@
 import isNil from 'lodash/isNil'
-import { BuildFailure, Message } from 'esbuild'
+import { BuildFailure, Message, Note } from 'esbuild'
 import chalk from './chalk'
 import { isDef } from '.'
+
+const enum MsgKind {
+  ERROR = 1,
+  NOTE
+}
+
+const KIND_COLORS = new Map([
+  [MsgKind.ERROR, chalk.bgRed.black],
+  [MsgKind.NOTE, chalk.bgYellow.black]
+])
+
+const KIND_LABELS = new Map([
+  [MsgKind.ERROR, 'error'],
+  [MsgKind.NOTE, 'note']
+])
 
 function renderTabStops(withTabs: string, spacesPerTab: number): string {
   if (!withTabs.includes('\t')) {
@@ -45,7 +60,7 @@ function emptyMarginText(maxMargin: number, isLast: boolean): string {
   return `    ${space} │ `
 }
 
-function serializeMessage(message: Message, maxMargin: number) {
+function serializeMessage<Data extends Note>(message: Data, maxMargin: number) {
   const { location: loc } = message
 
   if (isNil(loc)) return
@@ -142,35 +157,59 @@ function estimateMaxMargin(message: Message) {
   return maxMargin
 }
 
-export function printBuildError(failure: BuildFailure) {
-  const { errors } = failure
-  const [error] = errors
-  if (isNil(error)) return
+function prettyMessage<Data extends Note>(
+  kind: MsgKind,
+  message: Data,
+  maxMargin: number,
+  pluginName: string
+) {
+  const pluginText = pluginName ? chalk.yellow(`[plugin: ${pluginName}] `) : ''
+  const kindColor = KIND_COLORS.get(kind) ?? chalk.bgWhite.black
+  const kindLabel = KIND_LABELS.get(kind) ?? ''
+  const kindString = kindColor(` ${kindLabel.toUpperCase()} `)
+  const msgColor = chalk.bold
 
-  const pluginText = error.pluginName
-    ? chalk.yellow(`[plugin: ${error.pluginName}] `)
-    : ''
-
-  if (isNil(error.location)) {
-    process.stderr.write(`\n${pluginText} ${chalk.bold(error.text)}\n\n`)
-    return
+  if (isNil(message.location)) {
+    process.stderr.write(`\n${pluginText} ${msgColor(message.text)}\n\n`)
+    return ''
   }
 
-  const maxMargin = estimateMaxMargin(error)
-  const details = serializeMessage(error, maxMargin)
-  if (isNil(details)) return
+  const { location: loc } = message
 
-  process.stderr.write(
-    `${chalk.bgRed.black(' ERROR ')} ${details.path}:${details.line}:${
+  if (isNil(loc)) return `${kindString} ${pluginText} ${message.text}`
+
+  const details = serializeMessage(message, maxMargin)
+  if (isNil(details)) return ''
+
+  return (
+    `${kindString} ${details.path}:${details.line}:${
       details.column
-    } ${pluginText}${chalk.red(details.message)}\n` +
-      `${details.sourceBefore}${chalk.green(details.sourceMarked)}${chalk.dim(
-        details.sourceAfter
-      )}` +
-      `\n` +
-      `${emptyMarginText(maxMargin, true)}${details.indent}${chalk.green(
-        details.marker
-      )}${chalk.dim(details.contentAfter)}` +
-      `\n\n`
+    } ${pluginText}${msgColor(details.message)}\n\n` +
+    `${details.sourceBefore}${chalk.green(details.sourceMarked)}${chalk.dim(
+      details.sourceAfter
+    )}` +
+    `\n` +
+    `${emptyMarginText(maxMargin, true)}${details.indent}${chalk.green(
+      details.marker
+    )}${chalk.dim(details.contentAfter)}` +
+    `\n\n`
   )
+}
+
+export function printBuildError(failure: BuildFailure) {
+  const { errors } = failure
+  const [error] = errors // only print first error
+  if (isNil(error)) return
+
+  const maxMargin = estimateMaxMargin(error)
+  let text = prettyMessage(MsgKind.ERROR, error, maxMargin, error.pluginName)
+  const gap =
+    error.location && error.location.lineText.includes('\n') ? '\n' : ''
+
+  error.notes?.forEach(note => {
+    text += gap
+    text += prettyMessage(MsgKind.NOTE, note, maxMargin, error.pluginName)
+  })
+
+  process.stderr.write(text)
 }
