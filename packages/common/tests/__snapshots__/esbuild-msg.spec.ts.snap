@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`serialize build error should print build error with plugin name: stderr 1`] = `
+" ERROR  index.ts:3:20 [plugin: mock plugin name] Could not resolve \\"./src/fib\\"
+    3 │ import { fib } from './src/fib'
+      ╵                     ~~~~~~~~~~~
+
+"
+`;
+
+exports[`serialize build error should print build error: stderr 1`] = `
+" ERROR  index.ts:3:20 Could not resolve \\"./src/fib\\"
+    3 │ import { fib } from './src/fib'
+      ╵                     ~~~~~~~~~~~
+
+"
+`;
