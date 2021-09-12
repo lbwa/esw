@@ -139,6 +139,7 @@ function serializeMessage<Data extends Note>(message: Data, maxMargin: number) {
 
     indent,
     marker,
+    suggestion: loc.suggestion,
 
     contentAfter: afterFirstLine
   }
@@ -181,19 +182,26 @@ function prettyMessage<Data extends Note>(
   const details = serializeMessage(message, maxMargin)
   if (isNil(details)) return ''
 
-  return (
+  const hasSuggestion = !!details.suggestion
+  const callout = hasSuggestion ? details.suggestion : details.marker
+  const calloutPrefix = hasSuggestion
+    ? `${emptyMarginText(maxMargin, false)}${details.indent}${chalk.green(
+        details.marker
+      )}\n`
+    : ``
+
+  return [
     `${kindString} ${details.path}:${details.line}:${
       details.column
-    } ${pluginText}${msgColor(details.message)}\n\n` +
+    } ${pluginText}${msgColor(details.message)}`,
     `${details.sourceBefore}${chalk.green(details.sourceMarked)}${chalk.dim(
       details.sourceAfter
-    )}` +
-    `\n` +
-    `${emptyMarginText(maxMargin, true)}${details.indent}${chalk.green(
-      details.marker
-    )}${chalk.dim(details.contentAfter)}` +
-    `\n\n`
-  )
+    )}`,
+    `${calloutPrefix}${emptyMarginText(maxMargin, true)}${
+      details.indent
+    }${chalk.green(callout)}${chalk.dim(details.contentAfter)}`,
+    `\n`
+  ].join('\n')
 }
 
 export function printBuildError(failure: BuildFailure) {
