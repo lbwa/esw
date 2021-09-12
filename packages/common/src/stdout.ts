@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import chalk from 'chalk'
+import chalk from './chalk'
 
 export function wait(...message: string[]): void {
   console.log(chalk.bgCyan.black(' WAIT '), ...message)
