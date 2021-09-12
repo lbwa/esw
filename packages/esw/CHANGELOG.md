@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/lbwa/esw/compare/esw@0.7.3...esw@0.8.0) (2021-09-12)
+
+### Bug Fixes
+
+- **esw:** should write common chunk to local disk when splitting enabled ([7d31000](https://github.com/lbwa/esw/commit/7d31000a00e0dae80edf274baa1ff821d74371f6))
+
+### Features
+
+- **esw:** handle esbuild stdout by default ([ac007a3](https://github.com/lbwa/esw/commit/ac007a39673474040f668ac8b3aaf51ebb63c67e))
+
+### Performance Improvements
+
+- **esw:** make external deps be the first plugin ([efa7f13](https://github.com/lbwa/esw/commit/efa7f1345cd88c0173b56688a70cc43e941b971a))
+
 ## [0.7.3](https://github.com/lbwa/esw/compare/esw@0.7.2...esw@0.7.3) (2021-09-09)
 
 ### Bug Fixes

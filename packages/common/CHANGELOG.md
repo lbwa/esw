@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.3.0...@eswjs/common@0.4.0) (2021-09-12)
+
+### Bug Fixes
+
+- **common:** export const ([636005c](https://github.com/lbwa/esw/commit/636005ce451d4716b2cb6231fc214f457e727af5))
+
+### Features
+
+- **common:** esbuild msg printer ([#22](https://github.com/lbwa/esw/issues/22)) ([61e4040](https://github.com/lbwa/esw/commit/61e40405abed52ac192a5e4fbc0f35c5cf0d7036))
+- **common:** ExitCode, printToTerminal ([cbd9e3e](https://github.com/lbwa/esw/commit/cbd9e3ede48a27368e75893a7eda9e8b33bbb473))
+- **common:** printToTerminal ([cc1be73](https://github.com/lbwa/esw/commit/cc1be7358ba11363a3f3418c2d0fafe58cd004a6))
+- **common:** support esbuild note print ([8eae572](https://github.com/lbwa/esw/commit/8eae572d7622f74499438be6c513066ed4f5e322))
+- **common:** support esbuild note suggestion ([7fbbd16](https://github.com/lbwa/esw/commit/7fbbd1632755ad85b673890cecd73a2ff2a7beaf))
+- **common:** use internal chalk instance ([28c84d4](https://github.com/lbwa/esw/commit/28c84d4124fc975133541c91c9d69101589346ea))
+
 # [0.3.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.2.1...@eswjs/common@0.3.0) (2021-09-09)
 
 ### Features
