@@ -15,11 +15,7 @@ export function warn(...message: string[]) {
   console.warn(chalk.bgYellow.black(' WARN '), ...message)
 }
 
-export function printToTerminal(
-  message: string,
-  code: number = ExitCode.OK,
-  exit = false
-) {
+export function raw(message: string, code: number = ExitCode.OK, exit = false) {
   if (code === ExitCode.OK) {
     process.stdout.write(message)
   } else if (isDef(code)) {
