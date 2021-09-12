@@ -118,7 +118,7 @@ export default function runBuild(
   const optionsWithDefault$ = of(options).pipe(
     map<BuildOptions, BuildOptions>(options => ({
       bundle: true,
-      logLevel: 'info',
+      logLevel: 'silent', // disable esbuild internal stdout by default
       incremental: isProduction(process),
       ...options
     }))

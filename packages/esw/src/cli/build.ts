@@ -17,8 +17,13 @@ import {
   NEVER
 } from 'rxjs'
 import omit from 'lodash/omit'
-import { BuildOptions, BuildResult, Metafile } from 'esbuild'
-import { isDef, stdout, serializeSize, printTable } from '@eswjs/common'
+import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
+import {
+  isDef,
+  serializeSize,
+  printTable,
+  printBuildError
+} from '@eswjs/common'
 import { printToTerminal } from '../shared/printer'
 import { ExitCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
@@ -123,8 +128,8 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
   handleExceptionResult$
     .pipe(
       tap(({ reason }) => {
-        stdout.error((reason as Error)?.message ?? reason)
         process.exitCode = ExitCode.ERROR
+        printBuildError(reason as BuildFailure)
       })
     )
     .subscribe(() => process.exit())
