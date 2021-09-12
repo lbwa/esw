@@ -214,7 +214,7 @@ describe('esw cli - build', () => {
       encoding: 'utf8'
     })
     expect(result.status).toEqual(ExitCode.ERROR)
-    expect(result.stderr).toContain('error')
+    expect(result.stderr).toMatch(/could not resolve/i)
     expect(result.stdout).toEqual('')
   })
 })
