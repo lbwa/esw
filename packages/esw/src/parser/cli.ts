@@ -14,7 +14,7 @@ import {
   switchMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
-import { printToTerminal } from '../shared/printer'
+import { stdout } from '@eswjs/common'
 import { ExitCode } from '../shared/constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
@@ -41,7 +41,7 @@ const availableArgs = {
 
 function printUsageIntoTerminal(commands: Commands) {
   const names = Object.keys(commands)
-  printToTerminal(
+  stdout.raw(
     `
 Usage
   $ esw <command>
@@ -86,7 +86,7 @@ export default function parse(argv: string[]) {
   const handlePrintVersion$ = resolvedArgv$.pipe(
     switchMap(args => {
       if (args['--version']) {
-        printToTerminal(`v${pkgJson.version}\n`, ExitCode.OK)
+        stdout.raw(`v${pkgJson.version}\n`, ExitCode.OK)
         return EMPTY
       }
       return of(args)

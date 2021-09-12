@@ -22,9 +22,9 @@ import {
   isDef,
   serializeSize,
   printTable,
-  printBuildError
+  printBuildError,
+  stdout
 } from '@eswjs/common'
-import { printToTerminal } from '../shared/printer'
 import { ExitCode } from '../shared/constants'
 import { CommandRunner } from '../parser/cli'
 import runBuild, { outputPathMapping } from '../build'
@@ -32,7 +32,7 @@ import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
-    printToTerminal(
+    stdout.raw(
       `
 Description
   Compiles the codebase for publishing npm package.
