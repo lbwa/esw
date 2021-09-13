@@ -138,9 +138,25 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     reduce((metaFiles, { value: buildResult = {} }) => {
       const { outputFiles = [], metafile = {} as Metafile } = buildResult
       const writeable = outputFiles.reduce(
-        (writes, { path: outPath, contents }) => {
+        (writes, { path: outPath /* absolute path */, contents }) => {
           const destinationPath = outputPathMapping.get(outPath)
           const destination = destinationPath ?? outPath
+
+          /**
+           * @description re-defined output path in metafile.outputs when we
+           * use internal path, instead of esbuild output path
+           */
+          if (!outPath.endsWith(destination)) {
+            const matchMetaKey = Object.keys(metafile.outputs).find(file =>
+              outPath.endsWith(file)
+            )
+            if (matchMetaKey) {
+              metafile.outputs[destination] = metafile.outputs[
+                matchMetaKey
+              ] as NonNullable<Metafile['outputs'][string]>
+              delete metafile.outputs[matchMetaKey]
+            }
+          }
 
           writes.push(destination)
           void writeToDisk(destination, contents)

@@ -45,6 +45,7 @@ async function createBuildScript(
 
   Object.values(outFiles).forEach(p => {
     expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
+    expect(result.stdout).toContain(p)
   })
   const { esm, cjs } = outFiles
   return Promise.all(
@@ -195,12 +196,23 @@ describe('esw cli - build', () => {
   })
 
   it('should work with uniq main and module field', async () => {
+    await Promise.all(
+      ['lib.esm.js', 'index.js'].map(file =>
+        fs.promises.rm(
+          path.resolve(testRoot, 'fixture/uniq-main-module', file),
+          {
+            force: true,
+            recursive: true
+          }
+        )
+      )
+    )
     const [esm, cjs] = await createBuildScript(
       path.resolve(testRoot, 'fixture/uniq-main-module'),
       ['build', 'index.ts'],
       {
-        esm: `./dist/lib.esm.js`,
-        cjs: `./dist/index.js`
+        esm: `dist/lib.esm.js`,
+        cjs: `dist/index.js`
       }
     )
 
