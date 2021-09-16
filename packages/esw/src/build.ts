@@ -240,9 +240,8 @@ export default function runBuild(
         )
       }
     }),
-    // invoke building operations concurrently
-    map(optionGroup => optionGroup.map(options => build(options))),
-    mergeMap(insGroup => Promise.allSettled(insGroup))
+    map(options => options.map(options => build(options))),
+    mergeMap(handles => Promise.allSettled(handles))
   )
 
   return firstValueFrom(invokeEsBuildBuild$)
