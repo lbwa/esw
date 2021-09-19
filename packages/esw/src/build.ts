@@ -60,7 +60,7 @@ type EsBuildInternalOutputPath = string
 type DestinationPathFromPackageJson = string
 export const outputPathMapping = new Map<
   EsBuildInternalOutputPath,
-  DestinationPathFromPackageJson
+  DestinationPathFromPackageJson[]
 >()
 
 export default function runBuild(
@@ -190,13 +190,14 @@ export default function runBuild(
       entry.forEach(entryPoint => {
         const filename = path.basename(entryPoint).replace(/\..+$/i, '')
         Object.values(outExtension ?? {}).forEach(key => {
+          const rawPath = path.join(
+            absWorkingDir,
+            path.dirname(outPath),
+            `${filename}${key}`
+          )
           outputPathMapping.set(
-            path.join(
-              absWorkingDir,
-              path.dirname(outPath),
-              `${filename}${key}`
-            ),
-            outPath
+            rawPath,
+            (outputPathMapping.get(rawPath) ?? []).concat(outPath)
           )
         })
       })

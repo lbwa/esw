@@ -17,6 +17,7 @@ import {
   NEVER
 } from 'rxjs'
 import omit from 'lodash/omit'
+import cloneDeep from 'lodash/cloneDeep'
 import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
 import {
   isDef,
@@ -134,40 +135,46 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
     .subscribe(() => process.exit())
 
+  const builtRecord = new Set<string>()
+
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
     reduce((metaFiles, { value: buildResult = {} }) => {
       const { outputFiles = [], metafile = {} as Metafile } = buildResult
-      const writeable = outputFiles.reduce(
-        (writes, { path: outPath /* absolute path */, contents }) => {
-          const destinationPath = outputPathMapping.get(outPath)
-          const destination = destinationPath ?? outPath
+      outputFiles.forEach(({ path: outPath /* absolute path */, contents }) => {
+        const destinationPath = outputPathMapping
+          .get(outPath)
+          ?.find(item => !builtRecord.has(item))
+        if (destinationPath) builtRecord.add(destinationPath)
+        const destination = destinationPath ?? /* eg. splitted chunks */ outPath
 
-          /**
-           * @description re-defined output path in metafile.outputs when we
-           * use internal path, instead of esbuild output path
-           */
-          if (!outPath.endsWith(destination)) {
-            const matchMetaKey = Object.keys(metafile.outputs).find(file =>
-              outPath.endsWith(file)
-            )
-            if (matchMetaKey) {
-              metafile.outputs[destination] = metafile.outputs[
-                matchMetaKey
-              ] as NonNullable<Metafile['outputs'][string]>
-              delete metafile.outputs[matchMetaKey]
-            }
+        const cloned = cloneDeep(metafile)
+        if (!outPath.endsWith(destination)) {
+          const matchedDest = Object.keys(cloned.outputs).find(file =>
+            outPath.endsWith(file)
+          )
+          if (matchedDest) {
+            /**
+             * @description re-defined matched dest key in metafile.outputs
+             * when we use internal path, instead of esbuild output path
+             */
+            cloned.outputs[destination] = cloned.outputs[
+              matchedDest
+            ] as NonNullable<Metafile['outputs'][string]>
+            delete cloned.outputs[matchedDest]
           }
+        }
 
-          writes.push(destination)
-          void writeToDisk(destination, contents)
-          return writes
-        },
-        [] as string[]
-      )
-      return writeable.length > 0 ? metaFiles.concat(metafile) : metaFiles
+        void writeToDisk(destination, contents)
+        metaFiles.push(cloned)
+      }, [] as string[])
+      return metaFiles
     }, [] as Metafile[]),
     map(metaFiles => {
-      if (metaFiles.length < 1) return ExitCode.ERROR
+      builtRecord.clear()
+      if (metaFiles.length < 1) {
+        stdout.warn("The file wasn't created.")
+        return ExitCode.ERROR
+      }
 
       const outputs = metaFiles.reduce(
         (group, { outputs }) => Object.assign(group, outputs),

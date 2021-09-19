@@ -197,7 +197,7 @@ describe('esw cli - build', () => {
 
   it('should work with uniq main and module field', async () => {
     await Promise.all(
-      ['lib.esm.js', 'index.js'].map(file =>
+      ['lib.js', 'index.js'].map(file =>
         fs.promises.rm(
           path.resolve(testRoot, 'fixture/uniq-main-module', file),
           {
@@ -211,7 +211,7 @@ describe('esw cli - build', () => {
       path.resolve(testRoot, 'fixture/uniq-main-module'),
       ['build', 'index.ts'],
       {
-        esm: `dist/lib.esm.js`,
+        esm: `dist/lib.js`,
         cjs: `dist/index.js`
       }
     )
