@@ -1,6 +1,6 @@
 {
   "name": "esw",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "A JavaScript/TypeScript library build tool. It offers blazing fast performance utilizing esbuild, and requires zero configuration.",
   "keywords": [
     "esbuild",

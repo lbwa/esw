@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/lbwa/esw/compare/esw@0.8.0...esw@0.9.0) (2021-09-19)
+
+### Bug Fixes
+
+- **esw:** should always print esw writting path ([b796cfb](https://github.com/lbwa/esw/commit/b796cfbaf506a6d48607cc3583cdf937b56bde64))
+- **esw:** should keep correct output format ([df2200d](https://github.com/lbwa/esw/commit/df2200d8c071bba4a4b67c84554d29e0432fa899))
+
+### Features
+
+- **esw:** support clean dist before building start ([04dffdd](https://github.com/lbwa/esw/commit/04dffdd8d6939b4d100d952936db32f49b84c14c))
+
 # [0.8.0](https://github.com/lbwa/esw/compare/esw@0.7.3...esw@0.8.0) (2021-09-12)
 
 ### Bug Fixes
