@@ -231,4 +231,32 @@ describe('esw cli - build', () => {
     expect(result.stderr).toMatch(/could not resolve/i)
     expect(result.stdout).toEqual('')
   })
+
+  it('should clean dist before build start', async () => {
+    const fixture = 'fixture/clean-dist'
+    const cacheFile = path.resolve(testRoot, fixture, 'dist/cache.ts')
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true })
+    fs.writeFileSync(cacheFile, 'export const msg = "should be deleted."')
+    expect(fs.existsSync(cacheFile)).toBeTruthy()
+    await Promise.all(
+      ['index.esm.js', 'index.js'].map(file =>
+        fs.promises.rm(path.resolve(testRoot, fixture, file), {
+          force: true,
+          recursive: true
+        })
+      )
+    )
+    const [esm, cjs] = await createBuildScript(
+      path.resolve(testRoot, fixture),
+      ['build'],
+      {
+        esm: `dist/index.esm.js`,
+        cjs: `dist/index.js`
+      }
+    )
+
+    expect(fs.existsSync(cacheFile)).toBeFalsy()
+    expect(esm).not.toContain(`__esModule`)
+    expect(cjs).toContain(`__esModule"`)
+  })
 })
