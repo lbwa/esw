@@ -234,12 +234,31 @@ export default function runBuild(
 
   const invokeEsBuildBuild$ = markDepsAsExternals$.pipe(
     toArray(),
-    tap(options => {
+    mergeMap(async options => {
       if (options.length < 1) {
         throw new Error(
           `Invalid operation. Maybe you forgot to define the main or module field in the package.json file.`
         )
       }
+
+      const pending = [] as string[]
+      await Promise.all(
+        options.map(async ({ outdir }) => {
+          if (!outdir || !/^(?:\.\/)?[a-zA-Z0-9]+/i.test(outdir)) return
+
+          const stat = await fs.promises.lstat(outdir).catch(() => null)
+          if (isDef(stat) && stat.isDirectory() && !pending.includes(outdir)) {
+            pending.push(outdir)
+          }
+        })
+      )
+      await Promise.all(
+        pending.map(outdir =>
+          fs.promises.rm(outdir, { recursive: true, force: true })
+        )
+      )
+
+      return options
     }),
     map(options => options.map(options => build(options))),
     mergeMap(handles => Promise.allSettled(handles))

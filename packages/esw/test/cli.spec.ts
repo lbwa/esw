@@ -32,6 +32,9 @@ async function createBuildScript(
     ...spawnOptions,
     cwd: fixturePath
   })
+
+  process.stdout.write(result.output.filter(Boolean).join('\n'))
+
   // Process exited too early. The system ran out of memory or someone
   // called `kill -9` on the process
   expect(result.signal).not.toEqual('SIGKILL')
@@ -39,9 +42,8 @@ async function createBuildScript(
   // might have called `kill` or `killall`
   expect(result.signal).not.toEqual('SIGTERM')
   expect(result.error).toBeNull()
+  expect(result.stderr).toBeFalsy()
   expect(result.status).toEqual(ExitCode.OK)
-
-  process.stdout.write(result.output.filter(Boolean).join('\n'))
 
   Object.values(outFiles).forEach(p => {
     expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
