@@ -28,7 +28,7 @@ import {
   ExitCode
 } from '@eswjs/common'
 import { CommandRunner } from '../parser/cli'
-import runBuild, { outputPathMapping } from '../build'
+import { Build } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
@@ -116,8 +116,12 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
   )
 
+  let build: Build
   const handleBuilding$ = normalizedBuildArgs$.pipe(
-    mergeMap(options => runBuild(options)),
+    mergeMap(options => {
+      build = new Build(options)
+      return build.run()
+    }),
     mergeMap(allResults => from(allResults)),
     share()
   )
@@ -141,8 +145,8 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     reduce((metaFiles, { value: buildResult = {} }) => {
       const { outputFiles = [], metafile = {} as Metafile } = buildResult
       outputFiles.forEach(({ path: outPath /* absolute path */, contents }) => {
-        const destinationPath = outputPathMapping
-          .get(outPath)
+        const destinationPath = build?.pathsMap
+          ?.get(outPath)
           ?.find(item => !builtRecord.has(item))
         if (destinationPath) builtRecord.add(destinationPath)
         const destination = destinationPath ?? /* eg. splitted chunks */ outPath
