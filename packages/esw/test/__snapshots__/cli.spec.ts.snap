@@ -46,7 +46,7 @@ Usage
   $ esw <command>
 
 Available commands
-  build
+  build, watch
 
 Options
   --version, -v      Show version number
@@ -68,7 +68,7 @@ Usage
   $ esw <command>
 
 Available commands
-  build
+  build, watch
 
 Options
   --version, -v      Show version number
@@ -90,7 +90,7 @@ Usage
   $ esw <command>
 
 Available commands
-  build
+  build, watch
 
 Options
   --version, -v      Show version number

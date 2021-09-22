@@ -24,7 +24,7 @@ import {
   ExitCode
 } from '@eswjs/common'
 import { CommandRunner } from '../cli/dispatch'
-import { serializeArgv } from '../common/argv'
+import { resolveArgv } from '../common/argv'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
 import { Build } from './node'
 
@@ -65,7 +65,7 @@ async function writeToDisk(
 }
 
 const build: CommandRunner<ExitCode> = function (argv = []) {
-  const handlePrintUsage$ = serializeArgv(
+  const handlePrintUsage$ = resolveArgv(
     argv,
     BUILD_ARGS_SPEC,
     createPrintUsage$()
@@ -81,11 +81,10 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     map(args =>
       Object.keys(args).reduce((options, key) => {
         const value = args[key as keyof BuildArgsSpec]
-        // we use null to mark illegal command line value
         if (isDef(value)) {
           const name = key.replace(/^-+/, '') as keyof BuildOptions
-          // @ts-ignore FIXME
-          options[name] = value
+          // @ts-expect-error mixed types
+          options[name] = value as BuildOptions[keyof BuildOptions]
         }
         return options
       }, {} as BuildOptions)

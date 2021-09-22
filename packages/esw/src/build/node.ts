@@ -42,8 +42,8 @@ export class Build {
     this.options$ = inferBuildOption(options, cwd, this.pathsMap)
   }
 
-  run() {
-    const run$ = this.options$.pipe(
+  run(options$ = this.options$, cleanBeforeBuild = true) {
+    const run$ = options$.pipe(
       checkBuildOptions(),
       toArray(),
       mergeMap(async options => {
@@ -68,11 +68,14 @@ export class Build {
             }
           })
         )
-        await Promise.all(
-          pending.map(outdir =>
-            fs.promises.rm(outdir, { recursive: true, force: true })
+
+        if (cleanBeforeBuild) {
+          await Promise.all(
+            pending.map(outdir =>
+              fs.promises.rm(outdir, { recursive: true, force: true })
+            )
           )
-        )
+        }
 
         return options
       }),
