@@ -1,13 +1,9 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import path from 'path'
-import arg, { ArgError } from 'arg'
+import arg from 'arg'
 import {
-  iif,
-  of,
   tap,
   map,
-  throwError,
-  concatMap,
   from,
   partition,
   share,
@@ -30,6 +26,7 @@ import {
 import { CommandRunner } from '../parser/cli'
 import { Build } from '../build'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
+import { serializeArgv } from '../observable/argv'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
@@ -68,31 +65,10 @@ async function writeToDisk(
 }
 
 const build: CommandRunner<ExitCode> = function (argv = []) {
-  const argv$ = of(argv)
-  const resolvedArgv$ = argv$.pipe(
-    map(argv => arg(BUILD_ARGS_SPEC, { argv, permissive: true })),
-    concatMap(argv => {
-      const unavailable = argv._.filter(pending => pending.startsWith('-'))
-      return iif(
-        () => unavailable.length < 1,
-        of(argv),
-        throwError(
-          () =>
-            new ArgError(
-              `Unknown arguments: ${unavailable.join(
-                ', '
-              )}. \nRun 'esw build --help' to print all available arguments.`,
-              'ARG_UNKNOWN_OPTION'
-            )
-        )
-      )
-    })
-  )
-
-  const handlePrintUsage$ = resolvedArgv$.pipe(
-    concatMap(argv =>
-      iif(() => !!argv['--help'], createPrintUsage$(), of(argv))
-    )
+  const handlePrintUsage$ = serializeArgv(
+    argv,
+    BUILD_ARGS_SPEC,
+    createPrintUsage$()
   )
 
   const normalizedBuildArgs$ = handlePrintUsage$.pipe(
