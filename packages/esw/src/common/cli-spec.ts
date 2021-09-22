@@ -1,9 +1,7 @@
 import { tuple } from './utils'
 
-export type BuildArgsSpec = typeof BUILD_ARGS_SPEC
-
 // shareable cli args spec
-const UNI_ARGS_SPEC = {
+export const UNI_ARGS_SPEC = {
   // esbuild args
   '--absWorkingDir': String,
   '--allowOverwrite': Boolean,
@@ -84,18 +82,4 @@ const UNI_ARGS_SPEC = {
 
   // alias
   '-h': '--help'
-}
-
-export const BUILD_ARGS_SPEC = {
-  ...UNI_ARGS_SPEC
-}
-
-export const WATCH_ARGS_SPEC = {
-  ...UNI_ARGS_SPEC,
-  '--watch': Boolean
-}
-
-export const CLI_ARGS_SPEC = {
-  ...BUILD_ARGS_SPEC,
-  ...WATCH_ARGS_SPEC
 }
