@@ -2,7 +2,7 @@ import fs from 'fs'
 import { build, BuildOptions } from 'esbuild'
 import { map, tap, mergeMap, toArray, firstValueFrom, pipe, of } from 'rxjs'
 import { isDef } from '@eswjs/common'
-import { inferBuildOption } from './observable/build-options'
+import { inferBuildOption } from './options'
 
 function checkBuildOptions<Options extends BuildOptions>() {
   return pipe(
