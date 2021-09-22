@@ -1,5 +1,7 @@
 import { tuple } from './utils'
 
+export type UniArgsSpec = typeof UNI_ARGS_SPEC
+
 // shareable cli args spec
 export const UNI_ARGS_SPEC = {
   // esbuild args

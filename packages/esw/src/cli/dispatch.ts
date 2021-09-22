@@ -27,7 +27,9 @@ const pkgJson = require(path.resolve(
   'package.json'
 )) as PackageJson
 const AVAILABLE_COMMANDS = {
-  build: () => from(import('../build/cli')).pipe(map(({ default: run }) => run))
+  build: () =>
+    from(import('../build/cli')).pipe(map(({ default: run }) => run)),
+  watch: () => from(import('../watch/cli')).pipe(map(({ default: run }) => run))
 }
 const availableArgs = {
   '--version': Boolean,

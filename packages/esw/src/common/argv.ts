@@ -1,7 +1,7 @@
 import arg, { ArgError } from 'arg'
 import { concatMap, iif, map, Observable, of, throwError } from 'rxjs'
 
-export function serializeArgv(
+export function resolveArgv(
   argv: string[] = [],
   spec: arg.Spec,
   printUsage$: Observable<never>

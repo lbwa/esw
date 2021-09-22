@@ -33,7 +33,7 @@
     "directory": "packages/esw"
   },
   "scripts": {
-    "build": "esbuild src/bin/*.ts src/index.ts --bundle --minify --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:rxjs --external:esbuild --external:arg --external:type-fest --external:lodash --external:@eswjs/common",
+    "build": "esbuild src/bin/*.ts src/index.ts --bundle --minify --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:rxjs --external:esbuild --external:arg --external:type-fest --external:lodash --external:@eswjs/common --external:chokidar",
     "watch": "yarn build --watch",
     "prepublishOnly": "yarn build",
     "test": "echo \"Error: run tests from root\" && exit 1"
@@ -45,6 +45,7 @@
     "@lbwa/tsconfig": "^1.0.0",
     "@types/cross-spawn": "^6.0.2",
     "@types/lodash": "^4.14.171",
+    "chokidar": "^3.5.2",
     "cross-spawn": "^7.0.3",
     "typescript": "^4.3.5"
   },
