@@ -23,10 +23,10 @@ import {
   stdout,
   ExitCode
 } from '@eswjs/common'
-import { CommandRunner } from '../parser/cli'
-import { Build } from '../build'
-import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../shared/cli-spec'
-import { serializeArgv } from '../observable/argv'
+import { CommandRunner } from '../cli/dispatch'
+import { BuildArgsSpec, BUILD_ARGS_SPEC } from '../common/cli-spec'
+import { serializeArgv } from '../common/argv'
+import { Build } from './node'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {

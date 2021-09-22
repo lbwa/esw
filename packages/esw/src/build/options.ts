@@ -16,8 +16,8 @@ import isNil from 'lodash/isNil'
 import isString from 'lodash/isString'
 import { isDef } from '@eswjs/common'
 import externalEsBuildPlugin from '../plugins/external'
-import { isProduction } from '../shared/utils'
-import { resolvePackageJson } from './package.json'
+import { isProduction } from '../common/utils'
+import { resolvePackageJson } from '../common/package.json'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
