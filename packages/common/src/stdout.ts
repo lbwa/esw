@@ -15,6 +15,10 @@ export function warn(...message: string[]) {
   console.warn(chalk.bgYellow.black(' WARN '), ...message)
 }
 
+export function info(...message: string[]) {
+  console.info(chalk.bgBlue.black(' INFO '), ...message)
+}
+
 export function raw(message: string, code: number = ExitCode.OK, exit = false) {
   if (code === ExitCode.OK) {
     process.stdout.write(message)
