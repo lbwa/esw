@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { stdout } from '@eswjs/common'
-import { BuildOptions } from 'esbuild'
+import { printBuildError, stdout, isDef } from '@eswjs/common'
+import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
 import {
   catchError,
   combineLatest,
@@ -12,9 +12,13 @@ import {
   switchMap,
   tap,
   last,
-  of
+  of,
+  debounceTime,
+  reduce
 } from 'rxjs'
+import cloneDeep from 'lodash/cloneDeep'
 import { Build } from '../build/node'
+import { isFulfillResult, writeToDiskSync } from '../common/utils'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
 /**
@@ -22,15 +26,10 @@ type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
  */
 type WatchListenerParams = readonly [WatchEvent, string, fs.Stats]
 
-export default async function runWatch(
+export default function runWatch(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
 ) {
-  let done: () => void
-  const handler = new Promise<void>(resolve => {
-    done = resolve
-  })
-
   const watch$ = defer(() => import('chokidar')).pipe(
     map(({ default: { watch } }) => watch),
     catchError(() => {
@@ -41,40 +40,79 @@ export default async function runWatch(
 
   const build = new Build(options, cwd)
 
-  combineLatest([
+  return combineLatest([
     build.options$.pipe(
       last()
       // TODO: use filter(options => options.watch))
     ),
     watch$
-  ])
-    .pipe(
-      tap(() => stdout.wait(`Watching for file changes in ${cwd}`)),
-      switchMap(([options, watch]) => {
-        return (
-          fromEvent(
-            watch([cwd], {
-              ignoreInitial: true,
-              ignorePermissionErrors: true,
-              ignored: ['**/{.git,node_modules}/**', options.outdir]
-            }),
-            'all'
-          ) as Observable<WatchListenerParams>
-        ).pipe(map(() => build.run(of(options))))
-      }),
-      map(data => {
-        // TODO: write to disk
-        return data
-      })
-    )
-    .subscribe({
-      next: () => stdout.wait('File change detected'),
-      error: error => stdout.error(error),
-      complete: () => {
-        stdout.info('Teardown file watching')
-        done?.()
-      }
-    })
+  ]).pipe(
+    tap(() => stdout.wait(`Watching for file changes in ${cwd}`)),
+    switchMap(([options, watch]) => {
+      return (
+        fromEvent(
+          watch([cwd], {
+            ignoreInitial: true,
+            ignorePermissionErrors: true,
+            ignored: [
+              `**/{${['.git', 'node_modules', options.outdir]
+                .filter(Boolean)
+                .join(',')}}/**`
+            ]
+          }),
+          'all'
+        ) as Observable<WatchListenerParams>
+      ).pipe(
+        debounceTime(1_00),
+        tap(() => stdout.info('File change detected')),
+        switchMap(() => build.run(of(options), false)),
+        tap(() => stdout.info('Compilation done'))
+      )
+    }),
+    // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
+    reduce((result, [buildResult]) => {
+      if (!isDef(buildResult)) return result
 
-  return handler
+      const builtRecord = new Set<string>()
+      if (isFulfillResult(buildResult)) {
+        const { outputFiles = [], metafile = {} as Metafile } =
+          buildResult.value
+        outputFiles.forEach(
+          ({ path: outPath /* absolute path */, contents }) => {
+            const destinationPath = build?.pathsMap
+              ?.get(outPath)
+              ?.find(item => !builtRecord.has(item))
+            if (destinationPath) builtRecord.add(destinationPath)
+            const destination =
+              destinationPath ?? /* eg. splitted chunks */ outPath
+
+            const cloned = cloneDeep(metafile)
+            if (!outPath.endsWith(destination)) {
+              const matchedDest = Object.keys(cloned.outputs).find(file =>
+                outPath.endsWith(file)
+              )
+              if (matchedDest) {
+                cloned.outputs[destination] = cloned.outputs[
+                  matchedDest
+                ] as NonNullable<Metafile['outputs'][string]>
+                delete cloned.outputs[matchedDest]
+              }
+            }
+
+            void writeToDiskSync(destination, contents)
+          },
+          [] as string[]
+        )
+        return result
+      }
+
+      const buildFailure = buildResult?.reason as BuildFailure
+      if (isDef(buildFailure)) {
+        printBuildError(buildFailure)
+        return result
+      }
+      stdout.error('Unknown internal error, please file a issue.')
+      return result
+    }, [] as PromiseSettledResult<BuildResult>[])
+  )
 }

@@ -1,5 +1,5 @@
 import { ExitCode, stdout, isDef } from '@eswjs/common'
-import { defer, NEVER, map, mergeMap } from 'rxjs'
+import { defer, NEVER, map, switchMap, tap } from 'rxjs'
 import arg from 'arg'
 import omit from 'lodash/omit'
 import { BuildOptions } from 'esbuild'
@@ -46,7 +46,7 @@ Usage
   )
 
   return normalizedBuildArgs$.pipe(
-    mergeMap(options => runWatch(options)),
+    switchMap(options => runWatch(options)),
     map(() => ExitCode.OK)
   )
 }
