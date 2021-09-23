@@ -1,5 +1,3 @@
-import { mkdirSync, writeFileSync } from 'fs'
-import path from 'path'
 import arg from 'arg'
 import {
   tap,
@@ -14,7 +12,7 @@ import {
 } from 'rxjs'
 import omit from 'lodash/omit'
 import cloneDeep from 'lodash/cloneDeep'
-import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
+import { BuildFailure, BuildOptions, Metafile } from 'esbuild'
 import {
   isDef,
   serializeSize,
@@ -25,6 +23,7 @@ import {
 } from '@eswjs/common'
 import { CommandRunner } from '../cli/dispatch'
 import { resolveArgv } from '../common/argv'
+import { isFulfillResult, writeToDiskSync } from '../common/utils'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
 import { Build } from './node'
 
@@ -48,20 +47,6 @@ Usage
     )
     return NEVER
   })
-}
-
-function fulfillBuildResultFilter(
-  result: PromiseSettledResult<BuildResult>
-): result is PromiseFulfilledResult<BuildResult> {
-  return result.status === 'fulfilled'
-}
-
-async function writeToDisk(
-  outPath: string,
-  content: string | NodeJS.ArrayBufferView
-) {
-  mkdirSync(path.dirname(outPath), { recursive: true })
-  writeFileSync(outPath, content, { encoding: null })
 }
 
 const build: CommandRunner<ExitCode> = function (argv = []) {
@@ -102,7 +87,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
   )
   const [handleBuildResult$, handleExceptionResult$] = partition(
     handleBuilding$,
-    fulfillBuildResultFilter
+    isFulfillResult
   )
 
   handleExceptionResult$
@@ -143,7 +128,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
           }
         }
 
-        void writeToDisk(destination, contents)
+        void writeToDiskSync(destination, contents)
         metaFiles.push(cloned)
       }, [] as string[])
       return metaFiles
