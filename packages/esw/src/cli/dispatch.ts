@@ -11,7 +11,8 @@ import {
   catchError,
   Observable,
   concatMap,
-  switchMap
+  switchMap,
+  pipe
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import { stdout, ExitCode } from '@eswjs/common'
@@ -20,6 +21,10 @@ export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
 type Commands = typeof AVAILABLE_COMMANDS
 type CommandNames = keyof Commands
 
+function interopDefault<Mod extends { default: CommandRunner<ExitCode> }>() {
+  return pipe(map((mod: Mod) => mod.default ?? mod))
+}
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkgJson = require(path.resolve(
   __dirname,
@@ -27,11 +32,10 @@ const pkgJson = require(path.resolve(
   'package.json'
 )) as PackageJson
 const AVAILABLE_COMMANDS = {
-  build: () =>
-    from(import('../build/cli')).pipe(map(({ default: run }) => run)),
-  watch: () => from(import('../watch/cli')).pipe(map(({ default: run }) => run))
+  build: () => from(import('../build/cli')).pipe(interopDefault()),
+  watch: () => from(import('../watch/cli')).pipe(interopDefault())
 }
-const availableArgs = {
+const AVAILABLE_ARGS = {
   '--version': Boolean,
   '--help': Boolean,
 
@@ -69,7 +73,7 @@ export default function parse(argv: string[]) {
   const argv$ = of(argv)
   const resolvedArgv$ = argv$.pipe(
     map(argv =>
-      arg(availableArgs, {
+      arg(AVAILABLE_ARGS, {
         //https://github.com/vercel/arg/blob/5.0.0/index.js#L13
         argv,
         permissive: true
@@ -113,7 +117,7 @@ export default function parse(argv: string[]) {
 
   const handleForwardArgs$ = handlePrintUsage$.pipe(
     map(({ isValidStdin, args }) => {
-      const commandName = args._[0]
+      const [commandName] = args._
       const forwardArgs = isValidStdin ? args._.slice(1) : args._
       if (args['--help']) {
         forwardArgs.push('--help')
