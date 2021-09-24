@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import { printBuildError, stdout, isDef } from '@eswjs/common'
 import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
 import {
@@ -42,7 +43,12 @@ export default function runWatch(
   const build = new Build(options, cwd)
 
   return combineLatest([build.options$.pipe(first()), watch$]).pipe(
-    tap(() => stdout.wait(`Watching for file changes in ${cwd}`)),
+    tap(() => {
+      stdout.clear()
+      stdout.wait(
+        `[${new Date().toLocaleTimeString()}] Watching for file changes in ${cwd}`
+      )
+    }),
     switchMap(([options, watch]) => {
       return (
         fromEvent(
@@ -59,9 +65,17 @@ export default function runWatch(
         ) as Observable<WatchListenerParams>
       ).pipe(
         debounceTime(1_00),
-        tap(() => stdout.info('File change detected')),
-        exhaustMap(() => build.run(of(options), false)),
-        tap(() => stdout.info('Compilation done'))
+        tap(([type, actionPath]) => {
+          stdout.clear()
+          stdout.wait(
+            `${stdout.colors.dim(
+              new Date().toLocaleTimeString()
+            )} ${stdout.colors.green(type)} ${stdout.colors.dim(
+              path.relative(cwd, actionPath) || '.'
+            )}`
+          )
+        }),
+        exhaustMap(() => build.run(of(options), false))
       )
     }),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
