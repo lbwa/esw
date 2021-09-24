@@ -7,3 +7,5 @@ export enum ExitCode {
   OK,
   ERROR
 }
+
+export const isWindows = process.platform === 'win32'
