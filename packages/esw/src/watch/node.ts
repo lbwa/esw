@@ -11,10 +11,11 @@ import {
   Observable,
   switchMap,
   tap,
-  last,
   of,
   debounceTime,
-  reduce
+  reduce,
+  first,
+  exhaustMap
 } from 'rxjs'
 import cloneDeep from 'lodash/cloneDeep'
 import { Build } from '../build/node'
@@ -40,19 +41,13 @@ export default function runWatch(
 
   const build = new Build(options, cwd)
 
-  return combineLatest([
-    build.options$.pipe(
-      last()
-      // TODO: use filter(options => options.watch))
-    ),
-    watch$
-  ]).pipe(
+  return combineLatest([build.options$.pipe(first()), watch$]).pipe(
     tap(() => stdout.wait(`Watching for file changes in ${cwd}`)),
     switchMap(([options, watch]) => {
       return (
         fromEvent(
           watch([cwd], {
-            ignoreInitial: true,
+            ignoreInitial: false,
             ignorePermissionErrors: true,
             ignored: [
               `**/{${['.git', 'node_modules', options.outdir]
@@ -65,7 +60,7 @@ export default function runWatch(
       ).pipe(
         debounceTime(1_00),
         tap(() => stdout.info('File change detected')),
-        switchMap(() => build.run(of(options), false)),
+        exhaustMap(() => build.run(of(options), false)),
         tap(() => stdout.info('Compilation done'))
       )
     }),
