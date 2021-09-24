@@ -40,7 +40,12 @@ export default function runWatch(
     })
   )
 
-  const build = new Build(options, cwd)
+  const build = new Build(
+    isDef(options.incremental)
+      ? options
+      : Object.assign({ incremental: true }, options),
+    cwd
+  )
 
   return combineLatest([build.options$.pipe(first()), watch$]).pipe(
     tap(() => {
