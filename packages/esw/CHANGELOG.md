@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0-alpha.0](https://github.com/lbwa/esw/compare/esw@0.9.0...esw@0.10.0-alpha.0) (2021-09-25)
+
+### Features
+
+- **esw:** ensure first emit when file watcher setup ([d8e1add](https://github.com/lbwa/esw/commit/d8e1add9236c76f010f68af262c4504ec09b5cba))
+- **esw:** info printer in the watch mode ([370d448](https://github.com/lbwa/esw/commit/370d448320bdbbf78a33b7502200f99e8a395df2))
+- **esw:** initial watch mode implementation ([9594450](https://github.com/lbwa/esw/commit/9594450972daa2fde6811dfd58aa95581b6405ab))
+- **esw:** set incretmental: true by default when we are in watch mode ([d694121](https://github.com/lbwa/esw/commit/d694121b2a42351f0b1045aa56ec5a8c020b46f1))
+- **esw:** setup watch mode ([e00ec30](https://github.com/lbwa/esw/commit/e00ec308003f339b632844c8b8e4fe104029189c))
+
 # [0.9.0](https://github.com/lbwa/esw/compare/esw@0.8.0...esw@0.9.0) (2021-09-19)
 
 ### Bug Fixes

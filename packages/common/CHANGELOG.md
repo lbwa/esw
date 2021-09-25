@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0-alpha.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.4.0...@eswjs/common@0.5.0-alpha.0) (2021-09-25)
+
+### Features
+
+- **common:** add stdout.info ([515554c](https://github.com/lbwa/esw/commit/515554c01393f965e182c3f4fe154369d36ba6f0))
+- **common:** clear console ([4fb8b19](https://github.com/lbwa/esw/commit/4fb8b19ca99aa1128b32cffba8238d3dc0bf44b5))
+
 # [0.4.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.3.0...@eswjs/common@0.4.0) (2021-09-12)
 
 ### Bug Fixes
