@@ -62,6 +62,18 @@ esw has supported the most of [esbuild](https://github.com/evanw/esbuild) cli op
 esw build --minify --sourcemap --target=es2019 --format=esm
 ```
 
+### Build codebase
+
+```bash
+esw build
+```
+
+### Watch codebase
+
+```bash
+esw watch
+```
+
 ### Supported source file types
 
 Please refer to [esbuild documentation](https://esbuild.github.io/content-types/).
