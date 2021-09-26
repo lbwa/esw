@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0](https://github.com/lbwa/esw/compare/esw@0.10.0-alpha.0...esw@0.10.0) (2021-09-26)
+
+### Features
+
+- **esw:** serialize watch result error ([6a50b3d](https://github.com/lbwa/esw/commit/6a50b3d98040d404cfa89c5e62114a061bacc257))
+
 # [0.10.0-alpha.0](https://github.com/lbwa/esw/compare/esw@0.9.0...esw@0.10.0-alpha.0) (2021-09-25)
 
 ### Features
