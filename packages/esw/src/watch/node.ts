@@ -125,7 +125,9 @@ export default function runWatch(
         printBuildError(buildFailure)
         return result
       }
-      stdout.error('Unknown internal error, please file a issue.')
+      stdout.error(
+        `Expect buildResult is a success/failure result, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
+      )
       return result
     }, [] as PromiseSettledResult<BuildResult>[])
   )
