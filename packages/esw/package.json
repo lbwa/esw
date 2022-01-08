@@ -53,9 +53,9 @@
     "@eswjs/common": "^0.5.1",
     "arg": "^5.0.0",
     "chokidar": "^3.5.2",
-    "esbuild": "^0.14.10",
+    "esbuild": "~0.14.10",
     "lodash": "^4.17.21",
-    "rxjs": "^7.3.0",
+    "rxjs": "~7.4.0",
     "type-fest": "^1.2.2"
   },
   "engines": {
