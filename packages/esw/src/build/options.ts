@@ -5,12 +5,13 @@ import {
   map,
   of,
   tap,
-  filter,
   combineLatest,
   asapScheduler,
   scheduled,
   distinctUntilChanged,
-  Observable
+  Observable,
+  mergeMap,
+  EMPTY
 } from 'rxjs'
 import isNil from 'lodash/isNil'
 import isString from 'lodash/isString'
@@ -43,38 +44,39 @@ export function inferBuildOption(
 ): Observable<BuildOptions> {
   const pkgJson$ = resolvePackageJson(cwd)
 
-  const alternativeFormats$ = scheduled(PRESET_JS_FORMAT, asapScheduler)
-  const moduleIdFields$ = alternativeFormats$.pipe(
-    map(format => FORMAT_TO_PKG_FIELD.get(format)),
-    filter(Boolean)
-  )
-
-  const inferredOutPaths$ = combineLatest([pkgJson$, moduleIdFields$]).pipe(
-    map(([pkgJson, field]) => pkgJson[field]),
-    filter(Boolean)
-  )
-
   const inferenceMeta$ = combineLatest([
     pkgJson$,
-    inferredOutPaths$,
-    moduleIdFields$,
-    alternativeFormats$
+    scheduled(PRESET_JS_FORMAT, asapScheduler)
   ]).pipe(
-    filter(([pkgJson, outPath, field, format]) => {
-      const isEsModuleEntry = field === 'module'
-      const isAvailableEsModuleEntry = isEsModuleEntry && format === 'esm'
-      const isMatchedField = pkgJson[field] === outPath
+    mergeMap(([pkgJson, format]) => {
+      const outFieldKeyInPkgJson = FORMAT_TO_PKG_FIELD.get(format)
+      if (isNil(outFieldKeyInPkgJson)) return EMPTY
+      const outFieldValueInPkgJson = pkgJson[outFieldKeyInPkgJson]
+      if (isNil(outFieldValueInPkgJson)) return EMPTY
 
-      return isMatchedField && (!isEsModuleEntry || isAvailableEsModuleEntry)
+      const isMainFieldMatched = outFieldKeyInPkgJson === 'main'
+      const isModuleFieldMatched = outFieldKeyInPkgJson == 'module'
+      const isValidModuleFieldMatched = isModuleFieldMatched && format === 'esm'
+
+      if (isMainFieldMatched || isValidModuleFieldMatched) {
+        return of({
+          outPath: outFieldValueInPkgJson,
+          field: outFieldKeyInPkgJson,
+          alternativeFmt: format
+        })
+      }
+
+      if (isModuleFieldMatched && !isValidModuleFieldMatched) {
+        throw new Error("'module' field should alway point to esm format")
+      }
+      throw new Error(
+        "Couldn't find valid 'main' and 'module' field in package.json"
+      )
     }),
     distinctUntilChanged(
-      ([, prevOutPath], [, currentOutPath]) => prevOutPath === currentOutPath
-    ),
-    map(([, outPath, field, alternativeFmt]) => ({
-      outPath,
-      field,
-      alternativeFmt
-    }))
+      ({ outPath: prevOutPath }, { outPath: currentOutPath }) =>
+        prevOutPath === currentOutPath
+    )
   )
 
   const optionsWithDefault$ = of(options).pipe(
