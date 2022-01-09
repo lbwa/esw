@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.3](https://github.com/lbwa/esw/compare/esw@0.10.2...esw@0.10.3) (2022-01-09)
+
+### Bug Fixes
+
+- **esw:** exclude .vscode .husky watching ([dd6335a](https://github.com/lbwa/esw/commit/dd6335a9d6f0997b754dba999924ed6bf6e486c4))
+
 ## [0.10.2](https://github.com/lbwa/esw/compare/esw@0.10.2-alpha.0...esw@0.10.2) (2022-01-08)
 
 ### Bug Fixes
