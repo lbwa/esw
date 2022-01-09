@@ -28,14 +28,24 @@ type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
  */
 type WatchListenerParams = readonly [WatchEvent, string, fs.Stats]
 
+const IGNORED_DIR_WHEN_WATCHING = [
+  '.git',
+  '.husky',
+  '.vscode',
+  'node_modules'
+].map(dir => `**/${dir}/**`)
+
 export default function runWatch(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
 ) {
   const watch$ = defer(() => import('chokidar')).pipe(
     map(({ default: { watch } }) => watch),
-    catchError(() => {
-      stdout.error("'chokidar' is required for file watching")
+    catchError((err: Error) => {
+      stdout.error(
+        "Couldn't load available file watcher, we got error:",
+        err.message ?? err
+      )
       return NEVER
     })
   )
@@ -54,14 +64,17 @@ export default function runWatch(
         `[${new Date().toLocaleTimeString()}] Watching for file changes in ${cwd}`
       )
     }),
-    switchMap(([options, watch]) => {
-      return (
+    switchMap(([options, watch]) =>
+      (
         fromEvent(
           watch([cwd], {
             ignoreInitial: false,
             ignorePermissionErrors: true,
             ignored: [
-              `**/{${['.git', 'node_modules', options.outdir]
+              `**/{${[
+                ...IGNORED_DIR_WHEN_WATCHING,
+                `${options.outdir}${options.outdir?.endsWith('*') ? '' : '/**'}`
+              ]
                 .filter(Boolean)
                 .join(',')}}/**`
             ]
@@ -82,7 +95,7 @@ export default function runWatch(
         }),
         exhaustMap(() => build.run(of(options), false))
       )
-    }),
+    ),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
     reduce((result, [buildResult]) => {
       if (!isDef(buildResult)) return result
@@ -126,7 +139,7 @@ export default function runWatch(
         return result
       }
       stdout.error(
-        `Expect buildResult is a success/failure result, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
+        `Expect a successful or failed buildResult, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
       )
       return result
     }, [] as PromiseSettledResult<BuildResult>[])
