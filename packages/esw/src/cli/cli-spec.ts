@@ -1,4 +1,4 @@
-import { tuple } from './utils'
+import { tuple } from '../utils/data-structure'
 
 export type UniArgsSpec = typeof UNI_ARGS_SPEC
 

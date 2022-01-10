@@ -1,4 +1,4 @@
-import { UNI_ARGS_SPEC } from '../common/cli-spec'
+import { UNI_ARGS_SPEC } from '../../cli/cli-spec'
 
 export type WatchArgsSpec = typeof WATCH_ARGS_SPEC
 

@@ -21,9 +21,10 @@ import {
   stdout,
   ExitCode
 } from '@eswjs/common'
-import { CommandRunner } from '../cli/dispatch'
-import { resolveArgv } from '../common/argv'
-import { isFulfillResult, writeToDiskSync } from '../common/utils'
+import { CommandRunner } from '../../cli/dispatch'
+import { resolveArgv } from '../../cli/argv'
+import { writeToDiskSync } from '../../utils/io'
+import { isFulfillResult } from '../../utils/data-structure'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
 import { Build } from './node'
 

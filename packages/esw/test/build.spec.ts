@@ -117,7 +117,7 @@ describe('build api', () => {
     })
     expect(err).not.toBeNull()
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(err!.message).toContain(`package.json file doesn't exists`)
+    expect(err!.message).toContain(`package.json is required in`)
   })
 
   it('should work with no options', async () => {

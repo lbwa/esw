@@ -19,8 +19,9 @@ import {
   exhaustMap
 } from 'rxjs'
 import cloneDeep from 'lodash/cloneDeep'
+import { writeToDiskSync } from '../../utils/io'
 import { Build } from '../build/node'
-import { isFulfillResult, writeToDiskSync } from '../common/utils'
+import { isFulfillResult } from '../../utils/data-structure'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
 /**
