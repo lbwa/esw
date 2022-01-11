@@ -78,14 +78,6 @@ esw watch
 
 Please refer to [esbuild documentation](https://esbuild.github.io/content-types/).
 
-### Unsupported cli options
-
-|     options      |                     reason                     |
-| :--------------: | :--------------------------------------------: |
-| [write][o-write] | file writing has been handled by esw internal. |
-
-[o-write]: https://esbuild.github.io/api/#write
-
 ## License
 
 [MIT](./LICENSE) © [Liu Bowen](https://github.com/lbwa)

@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { isDef, printBuildError, stdout } from '@eswjs/common'
-import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
-import cloneDeep from 'lodash/cloneDeep'
+import { BuildFailure, BuildOptions, BuildResult } from 'esbuild'
 import {
   catchError,
   combineLatest,
@@ -19,7 +18,6 @@ import {
   toArray
 } from 'rxjs'
 import { isFulfillResult } from '../../utils/data-structure'
-import { writeToDiskSync } from '../../utils/io'
 import { Builder } from '../build/node'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
@@ -105,36 +103,7 @@ export default function runWatch(
         buildResults.reduce((result, buildResult) => {
           if (!isDef(buildResult)) return result
 
-          const builtRecord = new Set<string>()
           if (isFulfillResult(buildResult)) {
-            const { outputFiles = [], metafile = {} as Metafile } =
-              buildResult.value
-            outputFiles.forEach(
-              ({ path: outPath /* absolute path */, contents }) => {
-                const destinationPath = builder?.pathsMap
-                  ?.get(outPath)
-                  ?.find(item => !builtRecord.has(item))
-                if (destinationPath) builtRecord.add(destinationPath)
-                const destination =
-                  destinationPath ?? /* eg. splitted chunks */ outPath
-
-                const cloned = cloneDeep(metafile)
-                if (!outPath.endsWith(destination)) {
-                  const matchedDest = Object.keys(cloned.outputs).find(file =>
-                    outPath.endsWith(file)
-                  )
-                  if (matchedDest) {
-                    cloned.outputs[destination] = cloned.outputs[
-                      matchedDest
-                    ] as NonNullable<Metafile['outputs'][string]>
-                    delete cloned.outputs[matchedDest]
-                  }
-                }
-
-                void writeToDiskSync(destination, contents)
-              },
-              [] as string[]
-            )
             return result
           }
 

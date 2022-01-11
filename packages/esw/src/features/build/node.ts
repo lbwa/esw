@@ -8,31 +8,18 @@ function checkBuildOptions<Options extends BuildOptions>() {
   return pipe(
     // check options logics
     tap<Options>(options => {
-      const { splitting, format, write } = options
+      const { splitting, format } = options
 
       if (splitting && format !== 'esm') {
         throw new Error(
           `'splitting' currently only works with 'esm' format, instead of '${format}'`
         )
       }
-
-      if (write === true) {
-        throw new Error(
-          `option 'write' has been forbidden. because library writing has been handled by esw internal.`
-        )
-      }
     })
   )
 }
 
-type EsBuildInternalOutputPath = string
-type DestinationPathFromPackageJson = string
-
 export class Builder {
-  pathsMap = new Map<
-    EsBuildInternalOutputPath,
-    DestinationPathFromPackageJson[]
-  >()
   options$ = of({} as BuildOptions)
 
   static new(cwd: string) {
@@ -42,7 +29,7 @@ export class Builder {
   constructor(private cwd: string = process.cwd()) {}
 
   inferOptions(options: BuildOptions) {
-    this.options$ = inferBuildOption(options, this.cwd, this.pathsMap).pipe(
+    this.options$ = inferBuildOption(options, this.cwd).pipe(
       checkBuildOptions()
     )
     return this

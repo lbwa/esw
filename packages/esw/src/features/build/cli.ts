@@ -6,12 +6,11 @@ import {
   partition,
   share,
   mergeMap,
-  reduce,
   defer,
-  NEVER
+  NEVER,
+  toArray
 } from 'rxjs'
 import omit from 'lodash/omit'
-import cloneDeep from 'lodash/cloneDeep'
 import { BuildFailure, BuildOptions, Metafile } from 'esbuild'
 import {
   isDef,
@@ -23,7 +22,6 @@ import {
 } from '@eswjs/common'
 import { CommandRunner } from '../../cli/dispatch'
 import { resolveArgv } from '../../cli/argv'
-import { writeToDiskSync } from '../../utils/io'
 import { isFulfillResult } from '../../utils/data-structure'
 import { Builder } from './node'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
@@ -102,44 +100,14 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
     .subscribe(() => process.exit())
 
-  const builtRecord = new Set<string>()
-
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
-    reduce((metaFiles, { value: buildResult = {} }) => {
-      const { outputFiles = [], metafile = {} as Metafile } = buildResult
-      outputFiles.forEach(({ path: outPath /* absolute path */, contents }) => {
-        const destinationPath = builder?.pathsMap
-          ?.get(outPath)
-          ?.find(item => !builtRecord.has(item))
-        if (destinationPath) builtRecord.add(destinationPath)
-        const destination = destinationPath ?? /* eg. splitted chunks */ outPath
-
-        const cloned = cloneDeep(metafile)
-        if (!outPath.endsWith(destination)) {
-          const matchedDest = Object.keys(cloned.outputs).find(file =>
-            outPath.endsWith(file)
-          )
-          if (matchedDest) {
-            /**
-             * @description re-defined matched dest key in metafile.outputs
-             * when we use internal path, instead of esbuild output path
-             */
-            cloned.outputs[destination] = cloned.outputs[
-              matchedDest
-            ] as NonNullable<Metafile['outputs'][string]>
-            delete cloned.outputs[matchedDest]
-          }
-        }
-
-        void writeToDiskSync(destination, contents)
-        metaFiles.push(cloned)
-      }, [] as string[])
-      return metaFiles
-    }, [] as Metafile[]),
-    map(metaFiles => {
-      builtRecord.clear()
+    toArray(),
+    map(buildResult => {
+      const metaFiles = buildResult
+        .map(({ value }) => value.metafile)
+        .filter(Boolean) as Metafile[]
       if (metaFiles.length < 1) {
-        stdout.warn("The file wasn't created.")
+        stdout.warn('no-op creation')
         return ExitCode.ERROR
       }
 
