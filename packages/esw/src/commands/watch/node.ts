@@ -1,27 +1,26 @@
 import fs from 'fs'
 import path from 'path'
-import { printBuildError, stdout, isDef } from '@eswjs/common'
+import { isDef, printBuildError, stdout } from '@eswjs/common'
 import { BuildFailure, BuildOptions, BuildResult, Metafile } from 'esbuild'
+import cloneDeep from 'lodash/cloneDeep'
 import {
   catchError,
   combineLatest,
+  debounceTime,
   defer,
+  exhaustMap,
   fromEvent,
   map,
   NEVER,
   Observable,
+  reduce,
   switchMap,
   tap,
-  of,
-  debounceTime,
-  reduce,
-  first,
-  exhaustMap
+  toArray
 } from 'rxjs'
-import cloneDeep from 'lodash/cloneDeep'
-import { writeToDiskSync } from '../../utils/io'
-import { Build } from '../build/node'
 import { isFulfillResult } from '../../utils/data-structure'
+import { writeToDiskSync } from '../../utils/io'
+import { Builder } from '../build/node'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
 /**
@@ -35,6 +34,16 @@ const IGNORED_DIR_WHEN_WATCHING = [
   '.vscode',
   'node_modules'
 ].map(dir => `**/${dir}/**`)
+
+function resolveEntryPoints(
+  { entryPoints = [] }: BuildOptions,
+  cwd = process.cwd()
+): string[] {
+  if (!Array.isArray(entryPoints)) {
+    return resolveEntryPoints({ entryPoints: Object.values(entryPoints) }, cwd)
+  }
+  return entryPoints.map(entry => path.resolve(cwd, entry))
+}
 
 export default function runWatch(
   options: BuildOptions = {},
@@ -51,41 +60,34 @@ export default function runWatch(
     })
   )
 
-  const build = new Build(
-    isDef(options.incremental)
-      ? options
-      : Object.assign({ incremental: true }, options),
-    cwd
-  )
+  const serializedBuildOptions = isDef(options.incremental)
+    ? options
+    : Object.assign({ incremental: true }, options)
+  const builder = Builder.new(cwd).inferOptions(serializedBuildOptions)
 
-  return combineLatest([build.options$.pipe(first()), watch$]).pipe(
+  return combineLatest([builder.options$.pipe(toArray()), watch$]).pipe(
     tap(() => {
       stdout.clear()
       stdout.wait(
         `[${new Date().toLocaleTimeString()}] Watching for file changes in ${cwd}`
       )
     }),
-    switchMap(([options, watch]) =>
+    switchMap(([optionGroup, watch]) =>
       (
         fromEvent(
-          watch([cwd], {
-            ignoreInitial: false,
-            ignorePermissionErrors: true,
-            ignored: [
-              `**/{${[
-                ...IGNORED_DIR_WHEN_WATCHING,
-                `${options.outdir}${options.outdir?.endsWith('*') ? '' : '/**'}`
-              ]
-                .filter(Boolean)
-                .join(',')}}/**`
-            ]
-          }),
+          watch(
+            optionGroup.map(options => resolveEntryPoints(options)).flat(),
+            {
+              ignoreInitial: false,
+              ignorePermissionErrors: true,
+              ignored: IGNORED_DIR_WHEN_WATCHING.filter(Boolean)
+            }
+          ),
           'all'
         ) as Observable<WatchListenerParams>
       ).pipe(
         debounceTime(1_00),
         tap(([type, actionPath]) => {
-          stdout.clear()
           stdout.wait(
             `${stdout.colors.dim(
               new Date().toLocaleTimeString()
@@ -94,55 +96,59 @@ export default function runWatch(
             )}`
           )
         }),
-        exhaustMap(() => build.run(of(options), false))
+        exhaustMap(() => builder.build(false))
       )
     ),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
-    reduce((result, [buildResult]) => {
-      if (!isDef(buildResult)) return result
+    reduce(
+      (result, buildResults) =>
+        buildResults.reduce((result, buildResult) => {
+          if (!isDef(buildResult)) return result
 
-      const builtRecord = new Set<string>()
-      if (isFulfillResult(buildResult)) {
-        const { outputFiles = [], metafile = {} as Metafile } =
-          buildResult.value
-        outputFiles.forEach(
-          ({ path: outPath /* absolute path */, contents }) => {
-            const destinationPath = build?.pathsMap
-              ?.get(outPath)
-              ?.find(item => !builtRecord.has(item))
-            if (destinationPath) builtRecord.add(destinationPath)
-            const destination =
-              destinationPath ?? /* eg. splitted chunks */ outPath
+          const builtRecord = new Set<string>()
+          if (isFulfillResult(buildResult)) {
+            const { outputFiles = [], metafile = {} as Metafile } =
+              buildResult.value
+            outputFiles.forEach(
+              ({ path: outPath /* absolute path */, contents }) => {
+                const destinationPath = builder?.pathsMap
+                  ?.get(outPath)
+                  ?.find(item => !builtRecord.has(item))
+                if (destinationPath) builtRecord.add(destinationPath)
+                const destination =
+                  destinationPath ?? /* eg. splitted chunks */ outPath
 
-            const cloned = cloneDeep(metafile)
-            if (!outPath.endsWith(destination)) {
-              const matchedDest = Object.keys(cloned.outputs).find(file =>
-                outPath.endsWith(file)
-              )
-              if (matchedDest) {
-                cloned.outputs[destination] = cloned.outputs[
-                  matchedDest
-                ] as NonNullable<Metafile['outputs'][string]>
-                delete cloned.outputs[matchedDest]
-              }
-            }
+                const cloned = cloneDeep(metafile)
+                if (!outPath.endsWith(destination)) {
+                  const matchedDest = Object.keys(cloned.outputs).find(file =>
+                    outPath.endsWith(file)
+                  )
+                  if (matchedDest) {
+                    cloned.outputs[destination] = cloned.outputs[
+                      matchedDest
+                    ] as NonNullable<Metafile['outputs'][string]>
+                    delete cloned.outputs[matchedDest]
+                  }
+                }
 
-            void writeToDiskSync(destination, contents)
-          },
-          [] as string[]
-        )
-        return result
-      }
+                void writeToDiskSync(destination, contents)
+              },
+              [] as string[]
+            )
+            return result
+          }
 
-      const buildFailure = buildResult?.reason as BuildFailure
-      if (isDef(buildFailure)) {
-        printBuildError(buildFailure)
-        return result
-      }
-      stdout.error(
-        `Expect a successful or failed buildResult, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
-      )
-      return result
-    }, [] as PromiseSettledResult<BuildResult>[])
+          const buildFailure = buildResult?.reason as BuildFailure
+          if (isDef(buildFailure)) {
+            printBuildError(buildFailure)
+            return result
+          }
+          stdout.error(
+            `Expect a successful or failed buildResult, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
+          )
+          return result
+        }, result),
+      [] as PromiseSettledResult<BuildResult>[]
+    )
   )
 }
