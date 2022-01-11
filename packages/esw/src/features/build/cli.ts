@@ -21,11 +21,12 @@ import {
   stdout,
   ExitCode
 } from '@eswjs/common'
-import { CommandRunner } from '../cli/dispatch'
-import { resolveArgv } from '../common/argv'
-import { isFulfillResult, writeToDiskSync } from '../common/utils'
+import { CommandRunner } from '../../cli/dispatch'
+import { resolveArgv } from '../../cli/argv'
+import { writeToDiskSync } from '../../utils/io'
+import { isFulfillResult } from '../../utils/data-structure'
+import { Builder } from './node'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
-import { Build } from './node'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
@@ -76,11 +77,13 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
   )
 
-  let build: Build
+  let builder: Builder
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
-      build = new Build(options)
-      return build.run()
+      builder = Builder.new(
+        options?.absWorkingDir ?? process.cwd()
+      ).inferOptions(options)
+      return builder.build(true)
     }),
     mergeMap(allResults => from(allResults)),
     share()
@@ -105,7 +108,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     reduce((metaFiles, { value: buildResult = {} }) => {
       const { outputFiles = [], metafile = {} as Metafile } = buildResult
       outputFiles.forEach(({ path: outPath /* absolute path */, contents }) => {
-        const destinationPath = build?.pathsMap
+        const destinationPath = builder?.pathsMap
           ?.get(outPath)
           ?.find(item => !builtRecord.has(item))
         if (destinationPath) builtRecord.add(destinationPath)

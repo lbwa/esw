@@ -28,23 +28,28 @@ function checkBuildOptions<Options extends BuildOptions>() {
 type EsBuildInternalOutputPath = string
 type DestinationPathFromPackageJson = string
 
-export class Build {
+export class Builder {
   pathsMap = new Map<
     EsBuildInternalOutputPath,
     DestinationPathFromPackageJson[]
   >()
   options$ = of({} as BuildOptions)
 
-  constructor(
-    options: BuildOptions = {},
-    cwd: string = options.absWorkingDir || process.cwd()
-  ) {
-    this.options$ = inferBuildOption(options, cwd, this.pathsMap)
+  static new(cwd: string) {
+    return new Builder(cwd)
   }
 
-  run(options$ = this.options$, cleanBeforeBuild = true) {
+  constructor(private cwd: string = process.cwd()) {}
+
+  inferOptions(options: BuildOptions) {
+    this.options$ = inferBuildOption(options, this.cwd, this.pathsMap).pipe(
+      checkBuildOptions()
+    )
+    return this
+  }
+
+  build(cleanBeforeBuild = true, options$ = this.options$) {
     const run$ = options$.pipe(
-      checkBuildOptions(),
       toArray(),
       mergeMap(async options => {
         if (options.length < 1) {
@@ -82,7 +87,7 @@ export class Build {
       map(options => options.map(options => build(options))),
       mergeMap(handles => Promise.allSettled(handles))
     )
-    return firstValueFrom(run$)
+    return run$
   }
 }
 
@@ -90,5 +95,5 @@ export default function runBuild(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
 ) {
-  return new Build(options, cwd).run()
+  return firstValueFrom(Builder.new(cwd).inferOptions(options).build(true))
 }

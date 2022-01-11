@@ -1,10 +1,10 @@
 import { ExitCode, stdout, isDef } from '@eswjs/common'
-import { defer, NEVER, map, switchMap, tap } from 'rxjs'
+import { defer, NEVER, map, switchMap } from 'rxjs'
 import arg from 'arg'
 import omit from 'lodash/omit'
 import { BuildOptions } from 'esbuild'
-import { CommandRunner } from '../cli/dispatch'
-import { resolveArgv } from '../common/argv'
+import { CommandRunner } from '../../cli/dispatch'
+import { resolveArgv } from '../../cli/argv'
 import { WatchArgsSpec, WATCH_ARGS_SPEC } from './cli-spec'
 import runWatch from './node'
 

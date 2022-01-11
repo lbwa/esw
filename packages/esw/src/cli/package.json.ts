@@ -14,10 +14,7 @@ export function resolvePackageJson(cwd: string) {
     () => fs.existsSync(resolvedPkgJsonPath),
     resolve$,
     throwError(
-      () =>
-        new Error(
-          `package.json file doesn't exists in the ${resolvedPkgJsonPath}`
-        )
+      () => new Error(`package.json is required in ${resolvedPkgJsonPath}`)
     )
   )
 }
