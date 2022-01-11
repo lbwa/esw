@@ -2,8 +2,6 @@
 
 exports[`build api should emit a error when splitting: true and format !== esm: splitting: true and format !== esm 1`] = `"'splitting' currently only works with 'esm' format, instead of 'cjs'"`;
 
-exports[`build api should emit a error when write is true: write shouldn't be true 1`] = `"option 'write' has been forbidden. because library writing has been handled by esw internal."`;
-
 exports[`build api should mark all peerDependencies and dependencies as external: build-api-should-mark-all-peerDependencies-and-dependencies-as-external 1`] = `
 Array [
   Object {
@@ -80,6 +78,93 @@ Array [
   Object {
     "errors": Array [],
     "warnings": Array [],
+  },
+]
+`;
+
+exports[`build api shouldn't emit a error when write is true: works 1`] = `
+Array [
+  Object {
+    "status": "fulfilled",
+    "value": Object {
+      "errors": Array [],
+      "metafile": Object {
+        "inputs": Object {
+          "index.ts": Object {
+            "bytes": 111,
+            "imports": Array [
+              Object {
+                "kind": "import-statement",
+                "path": "src/fib.ts",
+              },
+            ],
+          },
+          "src/fib.ts": Object {
+            "bytes": 135,
+            "imports": Array [],
+          },
+        },
+        "outputs": Object {
+          "dist/cjs/index.js": Object {
+            "bytes": 1521,
+            "entryPoint": "index.ts",
+            "exports": Array [],
+            "imports": Array [],
+            "inputs": Object {
+              "index.ts": Object {
+                "bytesInOutput": 179,
+              },
+              "src/fib.ts": Object {
+                "bytesInOutput": 121,
+              },
+            },
+          },
+        },
+      },
+      "warnings": Array [],
+    },
+  },
+  Object {
+    "status": "fulfilled",
+    "value": Object {
+      "errors": Array [],
+      "metafile": Object {
+        "inputs": Object {
+          "index.ts": Object {
+            "bytes": 111,
+            "imports": Array [
+              Object {
+                "kind": "import-statement",
+                "path": "src/fib.ts",
+              },
+            ],
+          },
+          "src/fib.ts": Object {
+            "bytes": 135,
+            "imports": Array [],
+          },
+        },
+        "outputs": Object {
+          "index.esm.js": Object {
+            "bytes": 271,
+            "entryPoint": "index.ts",
+            "exports": Array [
+              "default",
+            ],
+            "imports": Array [],
+            "inputs": Object {
+              "index.ts": Object {
+                "bytesInOutput": 79,
+              },
+              "src/fib.ts": Object {
+                "bytesInOutput": 121,
+              },
+            },
+          },
+        },
+      },
+      "warnings": Array [],
+    },
   },
 ]
 `;

@@ -14,8 +14,7 @@ import {
   EMPTY
 } from 'rxjs'
 import isNil from 'lodash/isNil'
-import isString from 'lodash/isString'
-import { isDef } from '@eswjs/common'
+import { isDef, stdout } from '@eswjs/common'
 import externalEsBuildPlugin from '../../plugins/external'
 import { isProduction } from '../../utils/env'
 import { resolvePackageJson } from '../../cli/package.json'
@@ -31,16 +30,35 @@ const PKG_FIELD_TO_FORMAT = new Map<'main' | 'module', Format>([
   ['module', 'esm']
 ] as const)
 
-type EsBuildInternalOutputPath = string
-type DestinationPathFromPackageJson = string
+function serializeEntryPoints<Meta extends { outPath: string }>(
+  options: BuildOptions,
+  { outPath }: Meta
+): BuildOptions {
+  const { entryPoints } = options
+
+  if (!Array.isArray(entryPoints)) return options
+
+  options.entryPoints = entryPoints.reduce((entries, entry) => {
+    const serializedOutPath = path
+      .relative(options.outdir as string, outPath)
+      .replace(/\..+$/, '')
+    if (!isNil(entries[serializedOutPath])) {
+      stdout.warn(
+        `Duplicated outPath detected. : ${path.relative(
+          options.absWorkingDir ?? process.cwd(),
+          outPath
+        )}`
+      )
+    }
+    entries[serializedOutPath] = entry
+    return entries
+  }, {} as Record<string, string>)
+  return options
+}
 
 export function inferBuildOption(
   options: BuildOptions = {},
-  cwd: string = options.absWorkingDir || process.cwd(),
-  outputPathMapping?: Map<
-    EsBuildInternalOutputPath,
-    DestinationPathFromPackageJson[]
-  >
+  cwd: string = options.absWorkingDir || process.cwd()
 ): Observable<BuildOptions> {
   const pkgJson$ = resolvePackageJson(cwd)
 
@@ -111,7 +129,7 @@ export function inferBuildOption(
         absWorkingDir: cwd,
         outdir: options.outdir ?? path.dirname(outPath),
         format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
-        write: options.write ?? false,
+        write: true,
         metafile: options.metafile ?? true,
         outExtension: outExt
       } as BuildOptions
@@ -124,7 +142,8 @@ export function inferBuildOption(
       const candidates = ENTRY_POINTS_EXTS.map(ext =>
         path.resolve(cwd, entry + ext)
       )
-      const matchedEntry = candidates.find(file => fs.existsSync(file))
+
+      const matchedEntry = candidates.filter(file => fs.existsSync(file))
 
       if (!matchedEntry) {
         throw new Error(
@@ -134,40 +153,9 @@ export function inferBuildOption(
         )
       }
 
-      options.entryPoints ??= [matchedEntry]
+      options.entryPoints ??= matchedEntry
     }),
-    map(([options, { outPath }]) => {
-      const { absWorkingDir, entryPoints, outExtension } = options
-
-      if (!isString(absWorkingDir)) {
-        throw new Error(
-          `Expect absWorkingDir is a string type, but we got ${typeof absWorkingDir}. This error is likely caused by a bug in esw. Please file an issue.`
-        )
-      }
-
-      const entry = Array.isArray(entryPoints)
-        ? entryPoints
-        : isDef(entryPoints)
-        ? Object.values(entryPoints)
-        : []
-
-      entry.forEach(entryPoint => {
-        const filename = path.basename(entryPoint).replace(/\..+$/i, '')
-        Object.values(outExtension ?? {}).forEach(key => {
-          const rawPath = path.join(
-            absWorkingDir,
-            path.dirname(outPath),
-            `${filename}${key}`
-          )
-          outputPathMapping?.set(
-            rawPath,
-            (outputPathMapping?.get(rawPath) ?? []).concat(outPath)
-          )
-        })
-      })
-
-      return options
-    }),
+    map(([options, meta]) => serializeEntryPoints(options, meta)),
     tap(options => {
       const { splitting, format } = options
       if (isNil(splitting) && format === 'esm') {

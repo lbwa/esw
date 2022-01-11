@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import fs from 'fs/promises'
 import path from 'path'
 import * as esbuild from 'esbuild'
 import identity from 'lodash/identity'
 import pick from 'lodash/pick'
+import { PackageJson } from 'type-fest'
 import { build } from '../src'
 import {
   resolveFixture,
@@ -12,13 +14,26 @@ import {
   hasWarnings
 } from './shared'
 
+async function readOutputs(cwd: string) {
+  const { main: cjsPath, module: esmPath } = require(path.resolve(
+    cwd,
+    'package.json'
+  )) as PackageJson
+  return Promise.all(
+    ([cjsPath, esmPath].filter(Boolean) as string[]).map(p =>
+      fs.readFile(path.resolve(cwd, p), { encoding: 'utf8' })
+    )
+  )
+}
+
 async function runFixtureCase(
   fixtureName: string,
   options: esbuild.BuildOptions,
   singleEntry = 'index.ts'
 ) {
+  const cwd = resolveFixture(fixtureName)
   const results = await build({
-    absWorkingDir: resolveFixture(fixtureName),
+    absWorkingDir: cwd,
     logLevel: 'debug',
     format: 'esm',
     entryPoints: [singleEntry],
@@ -32,16 +47,14 @@ async function runFixtureCase(
     buildResults.map(result => pick(result, 'warnings', 'errors'))
   ).toMatchSnapshot(getTestName())
 
-  const [{ outputFiles: [{ text = null } = {}] = [] } = {}] = buildResults.map(
-    result => pick(result, 'outputFiles')
-  )
-  return text
+  return readOutputs(cwd)
 }
 
 describe('build api', () => {
   it('should mark all peerDependencies and dependencies as external', async () => {
+    const cwd = resolveFixture('with-deps')
     const results = await build({
-      absWorkingDir: resolveFixture('with-deps'),
+      absWorkingDir: cwd,
       logLevel: 'debug'
     })
     const buildResults = formatBuildResult(results, identity)
@@ -52,10 +65,15 @@ describe('build api', () => {
       buildResults.map(result => pick(result, 'warnings', 'errors'))
     ).toMatchSnapshot(getTestName())
 
-    const [
-      [{ text: cjsOutput = '' } = {}] = [],
-      [{ text: esmOutput = '' } = {}] = []
-    ] = buildResults.map(result => result.outputFiles)
+    const { main: cjsPath, module: esmPath } = require(path.resolve(
+      cwd,
+      'package.json'
+    )) as PackageJson
+    const [cjsOutput, esmOutput] = await Promise.all([
+      fs.readFile(path.resolve(cwd, cjsPath as string), { encoding: 'utf8' }),
+      fs.readFile(path.resolve(cwd, esmPath as string), { encoding: 'utf8' })
+    ])
+
     expect(esmOutput).toContain(`from "react"`)
     expect(esmOutput).toContain(`from "rxjs"`)
     expect(esmOutput).toContain(`from "rxjs/operators"`)
@@ -66,14 +84,14 @@ describe('build api', () => {
   })
 
   it('should work with main field and cjs syntax', async () => {
-    const output = await runFixtureCase('only-main-field', {
+    const [output] = await runFixtureCase('only-main-field', {
       format: 'cjs'
     })
     expect(output).toContain(`require("./src/fib")`)
   })
 
   it('should work with main field and esm syntax', async () => {
-    const output = await runFixtureCase('only-main-field', {
+    const [output] = await runFixtureCase('only-main-field', {
       // should respect option.format
       format: 'esm'
     })
@@ -81,12 +99,12 @@ describe('build api', () => {
   })
 
   it('should work with module field and esm syntax', async () => {
-    const output = await runFixtureCase('only-module-field', {}, 'index.ts')
+    const [output] = await runFixtureCase('only-module-field', {}, 'index.ts')
     expect(output).toContain(`from "./src/fib"`)
   })
 
   it("shouldn't override the esm inference from module field", async () => {
-    const output = await runFixtureCase(
+    const [output] = await runFixtureCase(
       'only-module-field',
       { format: 'cjs' },
       'index.ts'
@@ -95,7 +113,7 @@ describe('build api', () => {
   })
 
   it('should override the cjs inference from main field', async () => {
-    const output = await runFixtureCase(
+    const [output] = await runFixtureCase(
       'only-module-field',
       { format: 'esm' },
       'index.ts'
@@ -131,8 +149,9 @@ describe('build api', () => {
     )
 
     const fixtureName = 'no-options'
+    const cwd = resolveFixture(fixtureName)
     const results = await build({
-      absWorkingDir: resolveFixture(fixtureName),
+      absWorkingDir: cwd,
       logLevel: 'debug'
     })
     const buildResults = formatBuildResult(results, identity)
@@ -142,17 +161,16 @@ describe('build api', () => {
       buildResults.map(result => pick(result, 'warnings', 'errors'))
     ).toMatchSnapshot(getTestName())
 
-    const [
-      { outputFiles: [{ text: cjsOutput = null } = {}] = [] } = {},
-      { outputFiles: [{ text: esmOutput = null } = {}] = [] } = {}
-    ] = buildResults.map(result => pick(result, 'outputFiles'))
+    const [cjsOutput, esmOutput] = await readOutputs(cwd)
+
     expect(cjsOutput).toContain(`__esModule"`)
     expect(esmOutput).not.toContain(`__esModule`)
   })
 
   it('should work with no options and main field', async () => {
+    const cwd = resolveFixture('no-options-with-main')
     const results = await build({
-      absWorkingDir: resolveFixture('no-options-with-main'),
+      absWorkingDir: cwd,
       logLevel: 'debug'
     })
     const buildResults = formatBuildResult(results, identity)
@@ -163,14 +181,14 @@ describe('build api', () => {
       buildResults.map(result => pick(result, 'warnings', 'errors'))
     ).toMatchSnapshot(getTestName())
 
-    const [{ outputFiles: [{ text: cjsOutput = null } = {}] = [] } = {}] =
-      buildResults.map(result => pick(result, 'outputFiles'))
+    const [cjsOutput] = await readOutputs(cwd)
     expect(cjsOutput).toContain(`__esModule"`)
   })
 
   it('should work with no options and module field', async () => {
+    const cwd = resolveFixture('no-options-with-module')
     const results = await build({
-      absWorkingDir: resolveFixture('no-options-with-module'),
+      absWorkingDir: cwd,
       logLevel: 'debug'
     })
     const buildResults = formatBuildResult(results, identity)
@@ -181,8 +199,7 @@ describe('build api', () => {
       buildResults.map(result => pick(result, 'warnings', 'errors'))
     ).toMatchSnapshot(getTestName())
 
-    const [{ outputFiles: [{ text: esmOutput = null } = {}] = [] } = {}] =
-      buildResults.map(result => pick(result, 'outputFiles'))
+    const [esmOutput] = await readOutputs(cwd)
     expect(esmOutput).not.toContain(`__esModule`)
   })
 
@@ -214,13 +231,13 @@ describe('build api', () => {
     ).rejects.toThrowErrorMatchingSnapshot('splitting: true and format !== esm')
   })
 
-  it('should emit a error when write is true', async () => {
+  it("shouldn't emit a error when write is true", async () => {
     await expect(
       build({
         absWorkingDir: resolveFixture('no-options'),
         logLevel: 'debug',
         write: true
       })
-    ).rejects.toThrowErrorMatchingSnapshot("write shouldn't be true")
+    ).resolves.toMatchSnapshot('works')
   })
 })
