@@ -1,2 +1,2 @@
-export { default as build } from './commands/build/node'
-export { default as watch } from './commands/watch/node'
+export { default as build } from './features/build/node'
+export { default as watch } from './features/watch/node'
