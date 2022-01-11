@@ -33,14 +33,40 @@ const IGNORED_DIR_WHEN_WATCHING = [
   'node_modules'
 ].map(dir => `**/${dir}/**`)
 
-function resolveEntryPoints(
-  { entryPoints = [] }: BuildOptions,
-  cwd = process.cwd()
-): string[] {
-  if (!Array.isArray(entryPoints)) {
-    return resolveEntryPoints({ entryPoints: Object.values(entryPoints) }, cwd)
-  }
-  return entryPoints.map(entry => path.resolve(cwd, entry))
+function createIgnoredFromOptions(group: BuildOptions[]) {
+  return group.reduce((paths, options) => {
+    const {
+      entryPoints = {},
+      absWorkingDir = process.cwd(),
+      outdir = absWorkingDir,
+      outExtension
+    } = options
+    return paths.concat(
+      Object.keys(entryPoints as Record<string, string>).reduce(
+        (paths, filename) => {
+          const serializedPath = path.resolve(
+            absWorkingDir,
+            outdir,
+            `${filename}${
+              (outExtension as NonNullable<BuildOptions['outExtension']>)['.js']
+            }`
+          )
+          // Do not ignore working dir
+          if (absWorkingDir === serializedPath) return paths
+
+          const dir = path.dirname(serializedPath)
+          // ignore output file
+          paths.push(serializedPath)
+          if (dir !== absWorkingDir) {
+            // ignore outPath dir
+            paths.push(dir)
+          }
+          return paths
+        },
+        [] as string[]
+      )
+    )
+  }, [] as string[])
 }
 
 export default function runWatch(
@@ -70,17 +96,17 @@ export default function runWatch(
         `[${new Date().toLocaleTimeString()}] Watching for file changes in ${cwd}`
       )
     }),
-    switchMap(([optionGroup, watch]) =>
-      (
+    switchMap(([optionGroup, watch]) => {
+      const ignored = IGNORED_DIR_WHEN_WATCHING.filter(Boolean).concat(
+        createIgnoredFromOptions(optionGroup)
+      )
+      return (
         fromEvent(
-          watch(
-            optionGroup.map(options => resolveEntryPoints(options)).flat(),
-            {
-              ignoreInitial: false,
-              ignorePermissionErrors: true,
-              ignored: IGNORED_DIR_WHEN_WATCHING.filter(Boolean)
-            }
-          ),
+          watch(cwd, {
+            ignoreInitial: false,
+            ignorePermissionErrors: true,
+            ignored
+          }),
           'all'
         ) as Observable<WatchListenerParams>
       ).pipe(
@@ -96,7 +122,7 @@ export default function runWatch(
         }),
         exhaustMap(() => builder.build(false))
       )
-    ),
+    }),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
     reduce(
       (result, buildResults) =>
