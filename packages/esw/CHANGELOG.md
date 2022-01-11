@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.1](https://github.com/lbwa/esw/compare/esw@0.11.0...esw@0.11.1) (2022-01-11)
+
+### Bug Fixes
+
+- **esw:** should occur build again when children files changed ([24bc6b3](https://github.com/lbwa/esw/commit/24bc6b32ef98afdc3d5484e4a446bbc0a2d6942f))
+
 # [0.11.0](https://github.com/lbwa/esw/compare/esw@0.10.3...esw@0.11.0) (2022-01-11)
 
 ### Bug Fixes
