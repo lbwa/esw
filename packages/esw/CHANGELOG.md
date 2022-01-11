@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/lbwa/esw/compare/esw@0.10.3...esw@0.11.0) (2022-01-11)
+
+### Bug Fixes
+
+- **esw:** should occur all builds in watch mode ([#31](https://github.com/lbwa/esw/issues/31)) ([0ad8edd](https://github.com/lbwa/esw/commit/0ad8eddf88ffb5e495d0fc11a22fc0bac9fc7b2f))
+
+### Features
+
+- **esw:** use esbuild io ([#32](https://github.com/lbwa/esw/issues/32)) ([9e7a711](https://github.com/lbwa/esw/commit/9e7a711ff93ecae4bb229a640744e0b14ccb4cb9))
+
 ## [0.10.3](https://github.com/lbwa/esw/compare/esw@0.10.2...esw@0.10.3) (2022-01-09)
 
 ### Bug Fixes
