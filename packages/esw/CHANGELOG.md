@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.11.2](https://github.com/lbwa/esw/compare/esw@0.11.1...esw@0.11.2) (2022-01-12)
+
+### Bug Fixes
+
+- **esw:** should occur error when user encounter empty entry points ([ba8836f](https://github.com/lbwa/esw/commit/ba8836f3711c3d193c757e476e61b83b4ea3ea4a))
+
+### Features
+
+- **esw:** add more details in cli usage ([8f82e7c](https://github.com/lbwa/esw/commit/8f82e7c30b23f74ed8491bf11cfae047f9f3b97c))
+
 ## [0.11.1](https://github.com/lbwa/esw/compare/esw@0.11.0...esw@0.11.1) (2022-01-11)
 
 ### Bug Fixes
