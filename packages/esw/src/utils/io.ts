@@ -1,10 +1,7 @@
-import path from 'path'
-import { mkdirSync, writeFileSync } from 'fs'
+import { promises as fs } from 'fs'
 
-export async function writeToDiskSync(
-  outPath: string,
-  content: string | NodeJS.ArrayBufferView
-) {
-  mkdirSync(path.dirname(outPath), { recursive: true })
-  writeFileSync(outPath, content, { encoding: null })
+export function rmDirs(dirs: string[]) {
+  return Promise.all(
+    dirs.map(dir => fs.rm(dir, { recursive: true, force: true }))
+  )
 }

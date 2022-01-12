@@ -1,7 +1,9 @@
 import fs from 'fs'
+import path from 'path'
 import { build, BuildOptions } from 'esbuild'
 import { map, tap, mergeMap, toArray, firstValueFrom, pipe, of } from 'rxjs'
 import { isDef } from '@eswjs/common'
+import { rmDirs } from '../../utils/io'
 import { inferBuildOption } from './options'
 
 function checkBuildOptions<Options extends BuildOptions>() {
@@ -17,6 +19,26 @@ function checkBuildOptions<Options extends BuildOptions>() {
       }
     })
   )
+}
+
+async function findAllStaleDir(options: BuildOptions[]) {
+  const dirs = [] as string[]
+  await Promise.all(
+    options.map(async ({ outdir, absWorkingDir = process.cwd() }) => {
+      if (
+        !outdir ||
+        path.isAbsolute(outdir) ||
+        path.resolve(absWorkingDir, outdir) === path.resolve(absWorkingDir)
+      )
+        return
+
+      const stat = await fs.promises.lstat(outdir).catch(() => null)
+      if (isDef(stat) && stat.isDirectory() && !dirs.includes(outdir)) {
+        dirs.push(outdir)
+      }
+    })
+  )
+  return dirs
 }
 
 export class Builder {
@@ -45,28 +67,8 @@ export class Builder {
           )
         }
 
-        const pending = [] as string[]
-        await Promise.all(
-          options.map(async ({ outdir }) => {
-            if (!outdir || !/^(?:\.\/)?[a-zA-Z0-9]+/i.test(outdir)) return
-
-            const stat = await fs.promises.lstat(outdir).catch(() => null)
-            if (
-              isDef(stat) &&
-              stat.isDirectory() &&
-              !pending.includes(outdir)
-            ) {
-              pending.push(outdir)
-            }
-          })
-        )
-
         if (cleanBeforeBuild) {
-          await Promise.all(
-            pending.map(outdir =>
-              fs.promises.rm(outdir, { recursive: true, force: true })
-            )
-          )
+          await rmDirs(await findAllStaleDir(options))
         }
 
         return options

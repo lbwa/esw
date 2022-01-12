@@ -44,22 +44,20 @@ function createIgnoredFromOptions(group: BuildOptions[]) {
     return paths.concat(
       Object.keys(entryPoints as Record<string, string>).reduce(
         (paths, filename) => {
+          const absOutDir = path.resolve(absWorkingDir, outdir)
           const serializedPath = path.resolve(
-            absWorkingDir,
-            outdir,
+            absOutDir,
             `${filename}${
               (outExtension as NonNullable<BuildOptions['outExtension']>)['.js']
             }`
           )
-          // Do not ignore working dir
-          if (absWorkingDir === serializedPath) return paths
 
-          const dir = path.dirname(serializedPath)
-          // ignore output file
-          paths.push(serializedPath)
-          if (dir !== absWorkingDir) {
+          if (absOutDir !== absWorkingDir) {
             // ignore outPath dir
-            paths.push(dir)
+            paths.push(`${absOutDir.replace(/\/$/, '')}/**`)
+          } else {
+            // ignore output file
+            paths.push(serializedPath)
           }
           return paths
         },
@@ -84,10 +82,11 @@ export default function runWatch(
     })
   )
 
-  const serializedBuildOptions = isDef(options.incremental)
-    ? options
-    : Object.assign({ incremental: true }, options)
-  const builder = Builder.new(cwd).inferOptions(serializedBuildOptions)
+  const builder = Builder.new(cwd).inferOptions(
+    isDef(options.incremental)
+      ? options
+      : Object.assign({ incremental: true }, options)
+  )
 
   return combineLatest([builder.options$.pipe(toArray()), watch$]).pipe(
     tap(() => {
