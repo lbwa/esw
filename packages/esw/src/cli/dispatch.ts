@@ -59,7 +59,7 @@ Options
   --help, -h         Display help messages
 
 For more information run a command with the --help flag
-  $ esw ${names[0] ?? ''} --help
+  esw <available command> --help
 
 `,
     ExitCode.OK

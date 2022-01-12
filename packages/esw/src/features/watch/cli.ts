@@ -15,11 +15,17 @@ const watch: CommandRunner<ExitCode> = function (argv = []) {
     defer(() => {
       stdout.raw(`
 Description:
-  watch files and run command when files change
+  watch working directory, run build again when files change
 
 Usage
-  $ esw watch [options]
-    
+  esw watch [entry] [options]
+
+  [entry] represents the library entry point.
+          esw would run options inference when an entry files isn't explicity specified.
+          On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
+
+  [options] esbuild options, see https://esbuild.github.io/
+
 `)
       return NEVER
     })

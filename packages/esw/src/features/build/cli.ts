@@ -31,14 +31,16 @@ function createPrintUsage$(exitCode = ExitCode.OK) {
     stdout.raw(
       `
 Description
-  Compiles the codebase for publishing npm package.
+  Compiles the codebase with options inference.
 
 Usage
-  $ esw build [entry files]
+  esw build [entry] [options]
 
-  [entry file] represents the library entry point.
-  If no entry is provided, the basename from main and module field in package.json will be used.
-  User should always specific a entry point explicitly when the main and module have a different basename.
+  [entry] represents the library entry point.
+          esw would run options inference when an entry files isn't explicity specified.
+          On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
+
+  [options] esbuild options, see https://esbuild.github.io/
 
 `,
       exitCode,
