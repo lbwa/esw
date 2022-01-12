@@ -4,22 +4,28 @@
 
 `esw` is a JavaScript/TypeScript library build tool. It offers blazing fast performance utilizing [esbuild](https://esbuild.github.io), and requires zero configuration.
 
-- Support automatic inference based on `package.json`
-- Support amounts of source file types, including, but not limited to TypeScript/JavaScript/JSX/CSS([experimental](https://esbuild.github.io/content-types/#css))
-- Mark all `dependencies/peerDependencies` as external codes by default. This behavior is used to reducing bundle size as much as possible.
+- No more build script or config. esw has supported **automatic option inference** based on `package.json`.
+- Less bundle size. It wouldn't bundle any `dependencies` or `peerDependencies` by default.
+- The most of web project source file type has been supported by default, eg. TypeScript/JavaScript/JSX/CSS([experimental](https://esbuild.github.io/content-types/#css))
 
 ## Installation
 
 - using npm
 
   ```bash
-  npm i esw --dev
+  npm i esw --save-dev
   ```
 
 - using yarn
 
   ```bash
-  yarn add esw --dev
+  yarn add esw -D
+  ```
+
+- using pnpm
+
+  ```console
+  pnpm i esw -D
   ```
 
 ## Getting Started
