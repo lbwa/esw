@@ -14,6 +14,7 @@ import {
   EMPTY
 } from 'rxjs'
 import isNil from 'lodash/isNil'
+import isEmpty from 'lodash/isEmpty'
 import { isDef, stdout } from '@eswjs/common'
 import externalEsBuildPlugin from '../../plugins/external'
 import { isProduction } from '../../utils/env'
@@ -44,10 +45,10 @@ function serializeEntryPoints<Meta extends { outPath: string }>(
       .replace(/\..+$/, '')
     if (!isNil(entries[serializedOutPath])) {
       stdout.warn(
-        `Duplicated outPath detected. : ${path.relative(
+        `Duplicated outPath detected: ${path.relative(
           options.absWorkingDir ?? process.cwd(),
           outPath
-        )}`
+        )}.`
       )
     }
     entries[serializedOutPath] = entry
@@ -145,11 +146,14 @@ export function inferBuildOption(
 
       const matchedEntry = candidates.filter(file => fs.existsSync(file))
 
-      if (!matchedEntry) {
+      if (isEmpty(matchedEntry)) {
         throw new Error(
-          `Couldn't infer the entry point of library (supported ${candidates
-            .map(p => path.basename(p))
-            .join(', ')}) in ${fs.realpathSync(cwd)}`
+          `esw couldn't infer the start point in the current scenario.
+    1) Make sure entry file exists (support ${candidates
+      .map(p => path.basename(p))
+      .join(', ')}) in ${fs.realpathSync(cwd)}
+    2) Or specify start point cli argument, eg. esw build src/index.ts
+`
         )
       }
 

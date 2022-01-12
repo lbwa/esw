@@ -240,4 +240,13 @@ describe('build api', () => {
       })
     ).resolves.toMatchSnapshot('works')
   })
+
+  it('should emit e error when entryPoints.lenth === 0', async () => {
+    await expect(
+      build({
+        absWorkingDir: resolveFixture('empty-entry'),
+        logLevel: 'debug'
+      })
+    ).rejects.toThrowError("couldn't infer the start point")
+  })
 })
