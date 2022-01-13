@@ -1,3 +1,4 @@
 module.exports = {
-  extends: '@lbwa'
+  plugins: ['@lbwa'],
+  extends: ['plugin:@lbwa/recommended']
 }
