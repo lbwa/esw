@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import type { SpawnSyncOptions } from 'child_process'
-import spawn from 'cross-spawn'
+import { sync as spawnSync } from 'cross-spawn'
 import { ExitCode } from '@eswjs/common'
 import { resolveFixture } from './shared'
 
@@ -27,7 +27,7 @@ async function createBuildScript(
   function resolveFixture(p: string) {
     return path.resolve(fixturePath, p)
   }
-  const result = spawn.sync('node', [eswBinary, ...commandArgs], {
+  const result = spawnSync('node', [eswBinary, ...commandArgs], {
     encoding: 'utf-8',
     ...spawnOptions,
     cwd: fixturePath
@@ -64,7 +64,7 @@ async function createBuildScript(
 
 describe('esw cli', () => {
   it('should print root help message', () => {
-    const shouldPrintHelp = spawn.sync('node', [eswBinary, '--help'], {
+    const shouldPrintHelp = spawnSync('node', [eswBinary, '--help'], {
       cwd: process.cwd(),
       encoding: 'utf8'
     })
@@ -72,7 +72,7 @@ describe('esw cli', () => {
       '--help should print help message'
     )
 
-    const shouldPrintHelpWithAlias = spawn.sync('node', [eswBinary, '-h'], {
+    const shouldPrintHelpWithAlias = spawnSync('node', [eswBinary, '-h'], {
       cwd: process.cwd(),
       encoding: 'utf8'
     })
@@ -81,7 +81,7 @@ describe('esw cli', () => {
     )
     expect(shouldPrintHelpWithAlias.output).toEqual(shouldPrintHelp.output)
 
-    const shouldPrintHelpWithWrongCommand = spawn.sync(
+    const shouldPrintHelpWithWrongCommand = spawnSync(
       'node',
       [eswBinary, 'wrongCommand'],
       {
@@ -106,7 +106,7 @@ describe('esw cli', () => {
       [eswBinary, '-v'],
       [eswBinary, 'build', '--version']
     ].forEach(args => {
-      const shouldPrintVersionMsg = spawn.sync('node', args, {
+      const shouldPrintVersionMsg = spawnSync('node', args, {
         encoding: 'utf-8'
       })
       expect(shouldPrintVersionMsg.stdout).toMatch(versionReg)
@@ -155,7 +155,7 @@ describe('esw cli - build', () => {
   })
 
   it('should print the help message of build command', () => {
-    const shouldPrintHelpMsg = spawn.sync(
+    const shouldPrintHelpMsg = spawnSync(
       'node',
       [eswBinary, 'build', '--help'],
       {
@@ -167,7 +167,7 @@ describe('esw cli - build', () => {
       'build --help should print help message'
     )
 
-    const shouldPrintHelpWithWrongCommand = spawn.sync(
+    const shouldPrintHelpWithWrongCommand = spawnSync(
       'node',
       [eswBinary, 'build', '--mini'],
       {
@@ -183,7 +183,7 @@ describe('esw cli - build', () => {
       shouldPrintHelpWithWrongCommand.stdout
     )
 
-    const shouldPrintHelpWithAlias = spawn.sync(
+    const shouldPrintHelpWithAlias = spawnSync(
       'node',
       [eswBinary, 'build', '-h'],
       {
@@ -223,7 +223,7 @@ describe('esw cli - build', () => {
   })
 
   it('should throw a error message when building failed', async () => {
-    const result = spawn.sync('node', [eswBinary, 'build'], {
+    const result = spawnSync('node', [eswBinary, 'build'], {
       cwd: resolveFixture('build-error'),
       encoding: 'utf8'
     })

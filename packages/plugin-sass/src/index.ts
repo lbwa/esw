@@ -20,13 +20,13 @@ const createSassImporter: (baseDir: string) => sass.Importer =
   }
 
 function loader(
-  sass: typeof import('sass'),
+  { renderSync }: typeof import('sass'),
   baseDir: string
 ): (args: esbuild.OnLoadArgs) => Promise<esbuild.OnLoadResult> {
   const sassImporter = createSassImporter(baseDir)
 
   return async ({ path }) => {
-    const { css } = sass.renderSync({ file: path, importer: [sassImporter] })
+    const { css } = renderSync({ file: path, importer: [sassImporter] })
     return {
       contents: css.toString(),
       loader: 'css'
