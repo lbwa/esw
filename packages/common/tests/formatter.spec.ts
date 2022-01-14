@@ -1,6 +1,6 @@
 import { serializeSize } from '../src'
 
-describe('serialize', () => {
+describe('formatter', () => {
   it('serializeSize', () => {
     expect(serializeSize(12)).toContain('12 B')
     expect(serializeSize(1200)).toContain('1.2 kB')
