@@ -104,7 +104,7 @@ export function inferBuildOption(
 
       // the following options couldn't be override
       logLevel: 'silent', // disable esbuild internal stdout by default
-      incremental: true,
+      incremental: false, // should work with file watcher
       write: true,
       metafile: true // for printing build result to the terminal
     }))
