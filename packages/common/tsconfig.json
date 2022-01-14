@@ -2,7 +2,6 @@
   "extends": "@lbwa/tsconfig",
   "compilerOptions": {
     "outDir": "dist",
-    "esModuleInterop": true,
     "emitDeclarationOnly": true
   },
   "exclude": ["./dist/**/*"]

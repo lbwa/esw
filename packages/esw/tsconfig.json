@@ -4,7 +4,6 @@
     "outDir": "dist",
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
-    "esModuleInterop": true,
     "lib": ["esnext"]
   },
   "exclude": ["**/node_modules", "**/.*/", "./bin/*.js"]

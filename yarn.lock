@@ -549,10 +549,10 @@
   resolved "https://registry.yarnpkg.com/@lbwa/prettier-config/-/prettier-config-0.1.0.tgz#17444abdd6b00465d231c00264e4b0009227b413"
   integrity sha512-MSe8tAlE0iP0FoDN+siTfjJOa+NbynEs5gUx6Ecti9wlNTY7JH0366QXjxlQclnYPLRsD2VlWstruZiMpPGQnw==
 
-"@lbwa/tsconfig@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.nlark.com/@lbwa/tsconfig/download/@lbwa/tsconfig-1.0.0.tgz#91e2555f87c73e524035a8830eb62b56777be991"
-  integrity sha1-keJVX4fHPlJANaiDDrYrVnd76ZE=
+"@lbwa/tsconfig@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmmirror.com/@lbwa/tsconfig/download/@lbwa/tsconfig-1.1.0.tgz#94907df31c16ce63782a9996fb633c99b6ec8c11"
+  integrity sha512-1kptKVyL09EXo4b+9mxTwN48AV0WLeNoY0i9IX3DKhNoE+UFtZihMNBWiE1qEpwTFmhqnc5R6VByQlzF5u5y8A==
 
 "@lerna/add@4.0.0":
   version "4.0.0"

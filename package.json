@@ -35,7 +35,7 @@
   "devDependencies": {
     "@lbwa/eslint-plugin": "^0.1.0",
     "@lbwa/prettier-config": "^0.1.0",
-    "@lbwa/tsconfig": "^1.0.0",
+    "@lbwa/tsconfig": "^1.1.0",
     "@types/jest": "^26.0.22",
     "eslint": "^8.6.0",
     "husky": "^6.0.0",
