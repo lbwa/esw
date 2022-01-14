@@ -16,6 +16,7 @@ import { isDef, printBuildError, stdout, ExitCode } from '@eswjs/common'
 import { CommandRunner } from '../../cli/dispatch'
 import { resolveArgv } from '../../cli/argv'
 import { isFulfillResult } from '../../utils/data-structure'
+import { AvailableCommands } from '../../cli/constants'
 import { Builder } from './node'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
 
@@ -81,6 +82,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
       builder = Builder.new(
+        AvailableCommands.Build,
         options?.absWorkingDir ?? process.cwd()
       ).inferOptions(options)
       return builder.build(true)

@@ -18,6 +18,7 @@ import isEmpty from 'lodash/isEmpty'
 import { isDef, stdout } from '@eswjs/common'
 import externalEsBuildPlugin from '../../plugins/external'
 import { resolvePackageJson } from '../../cli/package.json'
+import { AvailableCommands } from '../../cli/constants'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
@@ -58,8 +59,27 @@ function inferEntryPoints<Meta extends { outPath: string }>(
 
 export function inferBuildOption(
   options: BuildOptions = {},
+  command: AvailableCommands,
   cwd: string = options.absWorkingDir || process.cwd()
 ): Observable<BuildOptions> {
+  function checkForbiddenOptions(options: BuildOptions): void {
+    const { splitting, format, incremental } = options
+    /** It only works with the file watcher */
+    const isForBiddenIncremental =
+      incremental && command !== AvailableCommands.Watch
+    const isForbiddenSplitting = splitting && format !== 'esm'
+
+    if (isForBiddenIncremental) {
+      throw new Error('`incremental` option only works with `watch` command.')
+    }
+
+    if (isForbiddenSplitting) {
+      throw new Error(
+        `'splitting' currently only works with 'esm' format, instead of '${format}'`
+      )
+    }
+  }
+
   const pkgJson$ = resolvePackageJson(cwd)
 
   const inferenceMeta$ = combineLatest([
@@ -100,11 +120,11 @@ export function inferBuildOption(
   const mergeOptions$ = of(options).pipe(
     map<BuildOptions, BuildOptions>(options => ({
       bundle: true,
+      incremental: false,
       ...options,
 
       // the following options couldn't be override
       logLevel: 'silent', // disable esbuild internal stdout by default
-      incremental: false, // should work with file watcher
       write: true,
       metafile: true // for printing build result to the terminal
     }))
@@ -163,7 +183,8 @@ export function inferBuildOption(
       if (isNil(splitting) && format === 'esm') {
         options.splitting = true
       }
-    })
+    }),
+    tap(checkForbiddenOptions) // ensure the last order
   )
 
   const markDepsAsExternals$ = combineLatest([pkgJson$, inferredOptions$]).pipe(

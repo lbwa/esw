@@ -19,6 +19,7 @@ import {
 } from 'rxjs'
 import { isFulfillResult } from '../../utils/data-structure'
 import { Builder } from '../build/node'
+import { AvailableCommands } from '../../cli/constants'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
 /**
@@ -67,6 +68,26 @@ function createIgnoredFromOptions(group: BuildOptions[]) {
   }, [] as string[])
 }
 
+function handleBuildResults(buildResults: PromiseSettledResult<BuildResult>[]) {
+  return buildResults.forEach(buildResult => {
+    if (!isDef(buildResult)) return
+
+    if (isFulfillResult(buildResult)) {
+      return
+    }
+
+    const buildFailure = buildResult?.reason as BuildFailure
+    if (isDef(buildFailure)) {
+      printBuildError(buildFailure)
+      return
+    }
+    stdout.error(
+      `Expect a successful or failed buildResult, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
+    )
+    return
+  })
+}
+
 export default function runWatch(
   options: BuildOptions = {},
   cwd: string = options.absWorkingDir || process.cwd()
@@ -82,7 +103,7 @@ export default function runWatch(
     })
   )
 
-  const builder = Builder.new(cwd).inferOptions(
+  const builder = Builder.new(AvailableCommands.Watch, cwd).inferOptions(
     isDef(options.incremental)
       ? options
       : Object.assign({ incremental: true }, options)
@@ -119,30 +140,14 @@ export default function runWatch(
             )}`
           )
         }),
-        exhaustMap(() => builder.build(false))
+        exhaustMap(() => builder.incrementalBuild(false))
       )
     }),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.
-    reduce(
-      (result, buildResults) =>
-        buildResults.reduce((result, buildResult) => {
-          if (!isDef(buildResult)) return result
-
-          if (isFulfillResult(buildResult)) {
-            return result
-          }
-
-          const buildFailure = buildResult?.reason as BuildFailure
-          if (isDef(buildFailure)) {
-            printBuildError(buildFailure)
-            return result
-          }
-          stdout.error(
-            `Expect a successful or failed buildResult, but we go ${typeof buildResult}. This error is likely caused by a bug in esw. Please file a issue.`
-          )
-          return result
-        }, result),
-      [] as PromiseSettledResult<BuildResult>[]
-    )
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    reduce((_, buildResults) => {
+      handleBuildResults(buildResults)
+      return _
+    }, [] as PromiseSettledResult<BuildResult>[])
   )
 }
