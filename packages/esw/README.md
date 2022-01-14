@@ -4,21 +4,21 @@
 
 `esw` is a JavaScript/TypeScript library build tool. It offers blazing fast performance utilizing [esbuild](https://esbuild.github.io), and requires zero configuration.
 
-- No more build script or config. esw has supported **automatic option inference** based on `package.json`.
-- Less bundle size. It wouldn't bundle any `dependencies` or `peerDependencies` by default.
+- No more build scripts or configs. esw has supported **automatic build option inference**.
+- Smaller bundle size. It wouldn't bundle any `dependencies` or `peerDependencies` by default.
 - The most of web project source file type has been supported by default, eg. TypeScript/JavaScript/JSX/CSS([experimental](https://esbuild.github.io/content-types/#css))
 
 ## Installation
 
 - using npm
 
-  ```bash
+  ```console
   npm i esw --save-dev
   ```
 
 - using yarn
 
-  ```bash
+  ```console
   yarn add esw -D
   ```
 
@@ -32,7 +32,7 @@
 
 3 steps to get started:
 
-1. ⚒️ Define project's `main` or `module` or both in `package.json`.
+1. 🖊 declare [main](https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#main) or [module](https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages) or both them in the `package.json`.
 
    ```json
    {
@@ -42,22 +42,21 @@
    }
    ```
 
-   > ⚠️ NOTICE: `module` field always be treated as `ES module` format<sup>[why](https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages)</sup>.
+   > ⚠️ The output format what `module` field refers to always be treated as `esm`<sup>[why](https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages)</sup>.
 
-2. 👨‍💻 Run `esw build` from project root.
+2. 🏃‍ Run `esw build` from the working directory.
 
    ```bash
-   yarn esw build
-   # npx esw build
+   esw build
    ```
 
-3. ✔ All transpiled products would be placed in the target output path which were inferred by esw.
+3. 🏆 All transpiled products would be placed in the target output path which were inferred by esw.
 
    ```
    project
-      └─dist
-          ├─index.cjs.js
-          └─index.esm.js
+    └─dist
+       ├─index.cjs.js
+       └─index.esm.js
    ```
 
 ## Advanced Usage
