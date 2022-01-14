@@ -17,7 +17,6 @@ import isNil from 'lodash/isNil'
 import isEmpty from 'lodash/isEmpty'
 import { isDef, stdout } from '@eswjs/common'
 import externalEsBuildPlugin from '../../plugins/external'
-import { isProduction } from '../../utils/env'
 import { resolvePackageJson } from '../../cli/package.json'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
@@ -31,7 +30,7 @@ const PKG_FIELD_TO_FORMAT = new Map<'main' | 'module', Format>([
   ['module', 'esm']
 ] as const)
 
-function serializeEntryPoints<Meta extends { outPath: string }>(
+function inferEntryPoints<Meta extends { outPath: string }>(
   options: BuildOptions,
   { outPath }: Meta
 ): BuildOptions {
@@ -98,19 +97,20 @@ export function inferBuildOption(
     )
   )
 
-  const optionsWithDefault$ = of(options).pipe(
+  const mergeOptions$ = of(options).pipe(
     map<BuildOptions, BuildOptions>(options => ({
+      ...options,
+
+      // the following options couldn't be override
       bundle: true,
       logLevel: 'silent', // disable esbuild internal stdout by default
-      incremental: isProduction(process),
-      ...options
+      incremental: true,
+      write: true,
+      metafile: true // for printing build result to the terminal
     }))
   )
 
-  const inferredOptions$ = combineLatest([
-    optionsWithDefault$,
-    inferenceMeta$
-  ]).pipe(
+  const inferredOptions$ = combineLatest([mergeOptions$, inferenceMeta$]).pipe(
     map(([options, meta]) => {
       const { field, outPath, alternativeFmt } = meta
       const fmt =
@@ -125,16 +125,14 @@ export function inferBuildOption(
         '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
       }
 
-      const clonedOptions = {
+      const inferredOptions = {
         ...options,
         absWorkingDir: cwd,
         outdir: options.outdir ?? path.dirname(outPath),
         format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
-        write: true,
-        metafile: options.metafile ?? true,
         outExtension: outExt
       } as BuildOptions
-      return [clonedOptions, meta] as const
+      return [inferredOptions, meta] as const
     }),
     tap(([options, { outPath }]) => {
       if (isDef(options.entryPoints)) return
@@ -159,7 +157,7 @@ export function inferBuildOption(
 
       options.entryPoints ??= matchedEntry
     }),
-    map(([options, meta]) => serializeEntryPoints(options, meta)),
+    map(([options, meta]) => inferEntryPoints(options, meta)),
     tap(options => {
       const { splitting, format } = options
       if (isNil(splitting) && format === 'esm') {

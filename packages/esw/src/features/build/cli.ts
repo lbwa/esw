@@ -11,15 +11,8 @@ import {
   toArray
 } from 'rxjs'
 import omit from 'lodash/omit'
-import { BuildFailure, BuildOptions, Metafile } from 'esbuild'
-import {
-  isDef,
-  serializeSize,
-  printTable,
-  printBuildError,
-  stdout,
-  ExitCode
-} from '@eswjs/common'
+import { BuildFailure, BuildOptions, Metafile, analyzeMetafile } from 'esbuild'
+import { isDef, printBuildError, stdout, ExitCode } from '@eswjs/common'
 import { CommandRunner } from '../../cli/dispatch'
 import { resolveArgv } from '../../cli/argv'
 import { isFulfillResult } from '../../utils/data-structure'
@@ -48,6 +41,13 @@ Usage
     )
     return NEVER
   })
+}
+
+async function printBuildResultStats(metafiles: Metafile[]) {
+  const stringifiedData = await Promise.all(
+    metafiles.map(result => analyzeMetafile(result))
+  )
+  stdout.raw(stringifiedData.join('') + `\n`)
 }
 
 const build: CommandRunner<ExitCode> = function (argv = []) {
@@ -104,32 +104,17 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
 
   const handleWriteOutFiles$ = handleBuildResult$.pipe(
     toArray(),
-    map(buildResult => {
+    mergeMap(async buildResult => {
       const metaFiles = buildResult
         .map(({ value }) => value.metafile)
         .filter(Boolean) as Metafile[]
       if (metaFiles.length < 1) {
-        stdout.warn('no-op creation')
+        stdout.warn('Empty running')
         return ExitCode.ERROR
       }
 
-      const outputs = metaFiles.reduce(
-        (group, { outputs }) => Object.assign(group, outputs),
-        {} as Metafile['outputs']
-      )
+      await printBuildResultStats(metaFiles)
 
-      const message = [
-        ['Files', 'Size'],
-        ...Object.keys(outputs).map(filename => [
-          filename,
-          isDef(outputs[filename]?.bytes)
-            ? serializeSize(outputs[filename]?.bytes as number)
-            : 'unknown'
-        ]),
-        ['', '\n']
-      ] as string[][]
-
-      printTable(message)
       return ExitCode.OK
     })
   )
