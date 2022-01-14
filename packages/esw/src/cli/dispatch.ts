@@ -16,10 +16,10 @@ import {
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import { stdout, ExitCode } from '@eswjs/common'
+import { AvailableCommands } from './constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
-type Commands = typeof AVAILABLE_COMMANDS
-type CommandNames = keyof Commands
+type Commands = typeof AVAILABLE_COMMANDS_GROUP
 
 function interopDefault<Mod extends { default: CommandRunner<ExitCode> }>() {
   return pipe(map((mod: Mod) => mod.default ?? mod))
@@ -31,9 +31,11 @@ const pkgJson = require(path.resolve(
   '../..',
   'package.json'
 )) as PackageJson
-const AVAILABLE_COMMANDS = {
-  build: () => from(import('../features/build/cli')).pipe(interopDefault()),
-  watch: () => from(import('../features/watch/cli')).pipe(interopDefault())
+const AVAILABLE_COMMANDS_GROUP = {
+  [AvailableCommands.Build]: () =>
+    from(import('../features/build/cli')).pipe(interopDefault()),
+  [AvailableCommands.Watch]: () =>
+    from(import('../features/watch/cli')).pipe(interopDefault())
 }
 const AVAILABLE_ARGS = {
   '--version': Boolean,
@@ -81,7 +83,7 @@ export default function parse(argv: string[]) {
     ),
     catchError((err: Error & { code: string }) => {
       if (err.code === 'ARG_UNKNOWN_OPTION') {
-        printUsageIntoTerminal(AVAILABLE_COMMANDS)
+        printUsageIntoTerminal(AVAILABLE_COMMANDS_GROUP)
         return EMPTY
       }
       return throwError(() => err)
@@ -101,7 +103,8 @@ export default function parse(argv: string[]) {
   const handlePrintUsage$ = handlePrintVersion$.pipe(
     concatMap(args => {
       const { _: [commandStdin] = [] } = args
-      const isValidStdin = !!AVAILABLE_COMMANDS[commandStdin as CommandNames]
+      const isValidStdin =
+        !!AVAILABLE_COMMANDS_GROUP[commandStdin as AvailableCommands]
       if (isValidStdin) {
         return of({ isValidStdin, args })
       }
@@ -110,7 +113,7 @@ export default function parse(argv: string[]) {
        * 1. not a valid stdin,
        * 2. with a global help flag
        */
-      printUsageIntoTerminal(AVAILABLE_COMMANDS)
+      printUsageIntoTerminal(AVAILABLE_COMMANDS_GROUP)
       return EMPTY
     })
   )
@@ -144,7 +147,7 @@ export default function parse(argv: string[]) {
   const handleCommandStdin$ = setEnvVariables$.pipe(
     concatMap(({ commandName, forwardArgs }) =>
       zip(
-        from(AVAILABLE_COMMANDS[commandName as CommandNames]()),
+        from(AVAILABLE_COMMANDS_GROUP[commandName as AvailableCommands]()),
         of(forwardArgs)
       )
     ),

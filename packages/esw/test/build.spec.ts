@@ -241,6 +241,16 @@ describe('build api', () => {
     ).resolves.toMatchSnapshot('works')
   })
 
+  it("shouldn't emit rebuild when incremental is true", async () => {
+    await expect(
+      build({
+        absWorkingDir: resolveFixture('no-options'),
+        logLevel: 'debug',
+        incremental: true
+      })
+    ).rejects.toThrowError('only works with `watch` command')
+  })
+
   it('should emit e error when entryPoints.lenth === 0', async () => {
     await expect(
       build({
