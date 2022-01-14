@@ -1,4 +1,4 @@
-import chalk from './chalk'
+import { colors } from '../stdout'
 
 const UNITS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
@@ -19,7 +19,7 @@ function serializeBytes(number: number): string {
 
 export function serializeSize(bytes: number) {
   const serialized = serializeBytes(bytes)
-  if (bytes < 130 * 1e3) return chalk.green(serialized)
-  if (bytes < 170 * 1e3) return chalk.yellow(serialized)
-  return chalk.red.bold(serialized)
+  if (bytes < 130 * 1e3) return colors.green(serialized)
+  if (bytes < 170 * 1e3) return colors.yellow(serialized)
+  return colors.red.bold(serialized)
 }

@@ -1,7 +1,7 @@
 import isNil from 'lodash/isNil'
 import { BuildFailure, Message, Note } from 'esbuild'
-import chalk from './chalk'
-import { isDef } from '.'
+import { colors } from '../stdout'
+import { isDef } from '..'
 
 const enum MsgKind {
   ERROR = 1,
@@ -9,8 +9,8 @@ const enum MsgKind {
 }
 
 const KIND_COLORS = new Map([
-  [MsgKind.ERROR, chalk.bgRed.black],
-  [MsgKind.NOTE, chalk.bgYellow.black]
+  [MsgKind.ERROR, colors.bgRed.black],
+  [MsgKind.NOTE, colors.bgYellow.black]
 ])
 
 const KIND_LABELS = new Map([
@@ -164,11 +164,11 @@ function prettyMessage<Data extends Note>(
   maxMargin: number,
   pluginName: string
 ) {
-  const pluginText = pluginName ? chalk.yellow(`[plugin: ${pluginName}] `) : ''
-  const kindColor = KIND_COLORS.get(kind) ?? chalk.bgWhite.black
+  const pluginText = pluginName ? colors.yellow(`[plugin: ${pluginName}] `) : ''
+  const kindColor = KIND_COLORS.get(kind) ?? colors.bgWhite.black
   const kindLabel = KIND_LABELS.get(kind) ?? ''
   const kindString = kindColor(` ${kindLabel.toUpperCase()} `)
-  const msgColor = chalk.bold
+  const msgColor = colors.bold
 
   if (isNil(message.location)) {
     process.stderr.write(`\n${pluginText} ${msgColor(message.text)}\n\n`)
@@ -185,7 +185,7 @@ function prettyMessage<Data extends Note>(
   const hasSuggestion = !!details.suggestion
   const callout = hasSuggestion ? details.suggestion : details.marker
   const calloutPrefix = hasSuggestion
-    ? `${emptyMarginText(maxMargin, false)}${details.indent}${chalk.green(
+    ? `${emptyMarginText(maxMargin, false)}${details.indent}${colors.green(
         details.marker
       )}\n`
     : ``
@@ -194,12 +194,12 @@ function prettyMessage<Data extends Note>(
     `${kindString} ${details.path}:${details.line}:${
       details.column
     } ${pluginText}${msgColor(details.message)}`,
-    `${details.sourceBefore}${chalk.green(details.sourceMarked)}${chalk.dim(
+    `${details.sourceBefore}${colors.green(details.sourceMarked)}${colors.dim(
       details.sourceAfter
     )}`,
     `${calloutPrefix}${emptyMarginText(maxMargin, true)}${
       details.indent
-    }${chalk.green(callout)}${chalk.dim(details.contentAfter)}`,
+    }${colors.green(callout)}${colors.dim(details.contentAfter)}`,
     `\n`
   ].join('\n')
 }

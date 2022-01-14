@@ -1,4 +1,4 @@
-import chalk from './chalk'
+import { colors } from './stdout'
 
 const COL_SEPARATOR = '  '
 const ANSI_REG_PATTERN = [
@@ -67,7 +67,7 @@ export function printTable<Data extends string | number>(
 ) {
   if (matrix.length > 1) {
     const [heads = []] = matrix
-    matrix[0] = heads.map(head => chalk.underline(head)) as Data[]
+    matrix[0] = heads.map(head => colors.underline(head)) as Data[]
   }
   process.stdout.write(['\n', createTable(matrix, align), '\n'].join(''))
 }

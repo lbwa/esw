@@ -1,29 +1,30 @@
 /* eslint-disable no-console */
-import chalk from './chalk'
-import { ExitCode } from './const'
-import { isWindows } from '.'
+import chalk from 'chalk'
+import { ExitCode, IS_PLATFORM_WINDOWS, IS_ENV_TEST } from '.'
+
+export const colors = new chalk.Instance({ level: IS_ENV_TEST ? 0 : 1 })
 
 /**
  * @see https://github.com/facebook/create-react-app/blob/v4.0.3/packages/react-dev-utils/clearConsole.js
  */
-const CLEAR_SCREEN = isWindows ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H'
-
-export const colors = chalk
+const CLEAR_SCREEN = IS_PLATFORM_WINDOWS
+  ? '\x1B[2J\x1B[0f'
+  : '\x1B[2J\x1B[3J\x1B[H'
 
 export function wait(...message: string[]): void {
-  console.log(chalk.bgCyan.black(' WAIT '), ...message)
+  console.log(colors.bgCyan.black(' WAIT '), ...message)
 }
 
 export function error(...message: string[]) {
-  console.error(chalk.bgRed.black(' ERROR '), ...message)
+  console.error(colors.bgRed.black(' ERROR '), ...message)
 }
 
 export function warn(...message: string[]) {
-  console.warn(chalk.bgYellow.black(' WARN '), ...message)
+  console.warn(colors.bgYellow.black(' WARN '), ...message)
 }
 
 export function info(...message: string[]) {
-  console.info(chalk.bgBlue.black(' INFO '), ...message)
+  console.info(colors.bgBlue.black(' INFO '), ...message)
 }
 
 export function clear() {
