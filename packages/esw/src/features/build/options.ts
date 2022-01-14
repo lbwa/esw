@@ -99,10 +99,10 @@ export function inferBuildOption(
 
   const mergeOptions$ = of(options).pipe(
     map<BuildOptions, BuildOptions>(options => ({
+      bundle: true,
       ...options,
 
       // the following options couldn't be override
-      bundle: true,
       logLevel: 'silent', // disable esbuild internal stdout by default
       incremental: true,
       write: true,
