@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.12.0](https://github.com/lbwa/esw/compare/esw@0.11.2...esw@0.12.0) (2022-01-14)
+
+### Features
+
+- **esw:** ensure incremental: false in `build` ([d4c2752](https://github.com/lbwa/esw/commit/d4c2752d36b6872b0c0bab3348af3da7ac6b312c))
+- **esw:** make bundle editable ([d75e0f1](https://github.com/lbwa/esw/commit/d75e0f1083334fa601bf61a71491931aad1a91fa))
+- **esw:** print metadata details ([a976963](https://github.com/lbwa/esw/commit/a9769639fa4a9e4925327443022354d5fc92b859)), closes [#34](https://github.com/lbwa/esw/issues/34)
+- **esw:** watch mode support incremental option ([#35](https://github.com/lbwa/esw/issues/35)) ([ab21995](https://github.com/lbwa/esw/commit/ab219950faf4e764ccad4fb1ce21a1a432e27385))
+
 ## [0.11.2](https://github.com/lbwa/esw/compare/esw@0.11.1...esw@0.11.2) (2022-01-12)
 
 ### Bug Fixes
