@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`assertion assert: falsy assertion 1`] = `"error message if condition is falsy"`;
+
+exports[`assertion invariant: invariant with falsy  1`] = `"error message if condition is falsy"`;
