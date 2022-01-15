@@ -17,7 +17,7 @@ import { CommandRunner } from '../../cli/dispatch'
 import { resolveArgv } from '../../cli/argv'
 import { isFulfillResult } from '../../utils/data-structure'
 import { AvailableCommands } from '../../cli/constants'
-import { Builder } from './node'
+import { BundleService, inferBuildOptions } from '../../bundle'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
@@ -78,14 +78,17 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
   )
 
-  let builder: Builder
+  let bundleService: BundleService
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
-      builder = Builder.new(
-        AvailableCommands.Build,
-        options?.absWorkingDir ?? process.cwd()
-      ).inferOptions(options)
-      return builder.build(true)
+      bundleService = BundleService.new(
+        inferBuildOptions(
+          options,
+          AvailableCommands.Build,
+          options?.absWorkingDir ?? process.cwd()
+        )
+      )
+      return bundleService.build(true)
     }),
     mergeMap(allResults => from(allResults)),
     share()

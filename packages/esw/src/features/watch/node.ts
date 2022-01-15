@@ -18,7 +18,7 @@ import {
   toArray
 } from 'rxjs'
 import { isFulfillResult } from '../../utils/data-structure'
-import { Builder } from '../build/node'
+import { BundleService, inferBuildOptions } from '../../bundle'
 import { AvailableCommands } from '../../cli/constants'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
@@ -103,13 +103,15 @@ export default function runWatch(
     })
   )
 
-  const builder = Builder.new(AvailableCommands.Watch, cwd).inferOptions(
+  const options$ = inferBuildOptions(
     isDef(options.incremental)
       ? options
-      : Object.assign({ incremental: true }, options)
+      : Object.assign({ incremental: true }, options),
+    AvailableCommands.Watch,
+    cwd
   )
-
-  return combineLatest([builder.options$.pipe(toArray()), watch$]).pipe(
+  const bundleService = BundleService.new(options$)
+  return combineLatest([options$.pipe(toArray()), watch$]).pipe(
     tap(() => {
       stdout.clear()
       stdout.wait(
@@ -140,7 +142,7 @@ export default function runWatch(
             )}`
           )
         }),
-        exhaustMap(() => builder.incrementalBuild(false))
+        exhaustMap(() => bundleService.incrementalBuild(false))
       )
     }),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.

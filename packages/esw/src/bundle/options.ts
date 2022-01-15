@@ -14,11 +14,10 @@ import {
   EMPTY
 } from 'rxjs'
 import isNil from 'lodash/isNil'
-import isEmpty from 'lodash/isEmpty'
-import { isDef, stdout } from '@eswjs/common'
-import externalEsBuildPlugin from '../../plugins/external'
-import { resolvePackageJson } from '../../cli/package.json'
-import { AvailableCommands } from '../../cli/constants'
+import { assert, isDef, stdout } from '@eswjs/common'
+import externalEsBuildPlugin from '../plugins/external'
+import { resolvePackageJson } from '../cli/package.json'
+import { AvailableCommands } from '../cli/constants'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
@@ -57,27 +56,26 @@ function inferEntryPoints<Meta extends { outPath: string }>(
   return options
 }
 
-export function inferBuildOption(
+export function inferBuildOptions(
   options: BuildOptions = {},
   command: AvailableCommands,
   cwd: string = options.absWorkingDir || process.cwd()
 ): Observable<BuildOptions> {
   function checkForbiddenOptions(options: BuildOptions): void {
     const { splitting, format, incremental } = options
-    /** It only works with the file watcher */
-    const isForBiddenIncremental =
-      incremental && command !== AvailableCommands.Watch
-    const isForbiddenSplitting = splitting && format !== 'esm'
+    /** `incremental` only works with the file watcher */
+    const isAllowIncremental =
+      !incremental || command === AvailableCommands.Watch
+    const isAllowSplitting = !splitting || format === 'esm'
 
-    if (isForBiddenIncremental) {
-      throw new Error('`incremental` option only works with `watch` command.')
-    }
-
-    if (isForbiddenSplitting) {
-      throw new Error(
-        `'splitting' currently only works with 'esm' format, instead of '${format}'`
-      )
-    }
+    assert(
+      isAllowIncremental,
+      '`incremental` option only works with `watch` command.'
+    )
+    assert(
+      isAllowSplitting,
+      `'splitting' currently only works with 'esm' format, instead of '${format}'`
+    )
   }
 
   const pkgJson$ = resolvePackageJson(cwd)
@@ -104,11 +102,13 @@ export function inferBuildOption(
         })
       }
 
-      if (isModuleFieldMatched && !isValidModuleFieldMatched) {
-        throw new Error("'module' field should alway point to esm format")
-      }
+      assert(
+        isModuleFieldMatched,
+        "'module' field should always be treated as ES module syntax, see https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#dual-commonjses-module-packages"
+      )
+
       throw new Error(
-        "Couldn't find valid 'main' and 'module' field in package.json"
+        "Couldn't find valid 'main' or 'module' field in package.json"
       )
     }),
     distinctUntilChanged(
@@ -164,16 +164,15 @@ export function inferBuildOption(
 
       const matchedEntry = candidates.filter(file => fs.existsSync(file))
 
-      if (isEmpty(matchedEntry)) {
-        throw new Error(
-          `esw couldn't infer the start point in the current scenario.
-    1) Make sure entry file exists (support ${candidates
-      .map(p => path.basename(p))
-      .join(', ')}) in ${fs.realpathSync(cwd)}
-    2) Or specify start point cli argument, eg. esw build src/index.ts
-`
-        )
-      }
+      assert(
+        matchedEntry.length > 0,
+        `esw couldn't infer the start point in the current scenario.
+      1) Make sure entry file exists (support ${candidates
+        .map(p => path.basename(p))
+        .join(', ')}) in ${fs.realpathSync(cwd)}
+      2) Or specify start point cli argument, eg. esw build src/index.ts
+  `
+      )
 
       options.entryPoints ??= matchedEntry
     }),
