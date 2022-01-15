@@ -46,7 +46,9 @@ Usage
 
 async function printBuildResultStats(metafiles: Metafile[]) {
   const stringifiedData = await Promise.all(
-    metafiles.map(result => analyzeMetafile(result))
+    metafiles.map(result =>
+      analyzeMetafile(result, { color: true, verbose: true })
+    )
   )
   stdout.raw(stringifiedData.join('') + `\n`)
 }
