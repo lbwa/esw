@@ -55,7 +55,7 @@
     "chokidar": "^3.5.2",
     "esbuild": "~0.14.10",
     "lodash": "^4.17.21",
-    "rxjs": "~7.4.0",
+    "rxjs": "~7.5.2",
     "type-fest": "^1.2.2"
   },
   "engines": {
