@@ -10,6 +10,7 @@
   "homepage": "https://github.com/lbwa/esw/tree/main/packages/plugin-sass#readme",
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "directories": {
     "lib": "dist"
   },
@@ -29,7 +30,9 @@
     "clean": "rm -rf dist/",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "prebuild": "yarn clean",
-    "build": "esw build src/index.ts --bundle --platform=node --tsconfig=tsconfig.json"
+    "build": "yarn build:lib && yarn build:types",
+    "build:lib": "esw build src/index.ts --bundle --platform=node --tsconfig=tsconfig.build.json",
+    "build:types": "tsc -p tsconfig.build.json"
   },
   "bugs": {
     "url": "https://github.com/lbwa/esw/issues"
