@@ -13,12 +13,12 @@ import {
 import omit from 'lodash/omit'
 import { BuildFailure, BuildOptions, Metafile, analyzeMetafile } from 'esbuild'
 import { isDef, printBuildError, stdout, ExitCode } from '@eswjs/common'
-import { CommandRunner } from '../../cli/dispatch'
-import { resolveArgv } from '../../cli/argv'
-import { isFulfillResult } from '../../utils/data-structure'
-import { AvailableCommands } from '../../cli/constants'
-import { BundleService, inferBuildOptions } from '../../bundle'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
+import { BundleService, inferBuildOptions } from '@bundle/index'
+import { CommandRunner } from '@cli/dispatch'
+import { resolveArgv } from '@cli/argv'
+import { isFulfillResult } from '@utils/data-structure'
+import { AvailableCommands } from '@cli/constants'
 
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {

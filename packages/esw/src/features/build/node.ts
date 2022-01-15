@@ -1,7 +1,7 @@
 import { BuildOptions } from 'esbuild'
 import { firstValueFrom } from 'rxjs'
-import { AvailableCommands } from '../../cli/constants'
-import { BundleService, inferBuildOptions } from '../../bundle'
+import { AvailableCommands } from '@cli/constants'
+import { BundleService, inferBuildOptions } from '@bundle/index'
 
 export default function runBuild(
   options: BuildOptions = {},

@@ -3,10 +3,10 @@ import { defer, NEVER, map, switchMap } from 'rxjs'
 import arg from 'arg'
 import omit from 'lodash/omit'
 import { BuildOptions } from 'esbuild'
-import { CommandRunner } from '../../cli/dispatch'
-import { resolveArgv } from '../../cli/argv'
 import { WatchArgsSpec, WATCH_ARGS_SPEC } from './cli-spec'
 import runWatch from './node'
+import { CommandRunner } from '@cli/dispatch'
+import { resolveArgv } from '@cli/argv'
 
 const watch: CommandRunner<ExitCode> = function (argv = []) {
   const handlePrintUsage$ = resolveArgv(

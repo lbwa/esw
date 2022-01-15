@@ -2,9 +2,14 @@
   "extends": "@lbwa/tsconfig",
   "compilerOptions": {
     "outDir": "dist",
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
-    "lib": ["esnext"]
+    "lib": ["esnext"],
+    "baseUrl": ".",
+    "paths": {
+      "@root/*": ["./src/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@bundle/*": ["./src/bundle/*"],
+      "@cli/*": ["./src/cli/*"]
+    }
   },
   "exclude": ["**/node_modules", "**/.*/", "./bin/*.js"]
 }

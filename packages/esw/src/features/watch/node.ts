@@ -17,9 +17,10 @@ import {
   tap,
   toArray
 } from 'rxjs'
-import { isFulfillResult } from '../../utils/data-structure'
-import { BundleService, inferBuildOptions } from '../../bundle'
-import { AvailableCommands } from '../../cli/constants'
+import { BundleService } from '@bundle/service'
+import { inferBuildOptions } from '@bundle/options'
+import { isFulfillResult } from '@utils/data-structure'
+import { AvailableCommands } from '@cli/constants'
 
 type WatchEvent = 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir'
 /**
