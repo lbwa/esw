@@ -1,8 +1,8 @@
 import { Plugin } from 'esbuild'
 
-export default function externalDepsPlugin(deps: string[] = []): Plugin {
+export function esbuildPluginExternalMark(deps: string[] = []): Plugin {
   return {
-    name: 'external-deps',
+    name: 'esbuild-plugin-external-mark',
     setup(build) {
       if (deps.length < 1) return
 

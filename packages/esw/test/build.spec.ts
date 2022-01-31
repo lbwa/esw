@@ -135,7 +135,7 @@ describe('build api', () => {
     })
     expect(err).not.toBeNull()
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(err!.message).toContain(`package.json is required in`)
+    expect(err!.message).toContain(`"package.json" is required`)
   })
 
   it('should work with no options', async () => {
@@ -248,7 +248,7 @@ describe('build api', () => {
         logLevel: 'debug',
         incremental: true
       })
-    ).rejects.toThrowError('only works with `watch` command')
+    ).rejects.toThrowError('only works with "watch" command')
   })
 
   it('should emit e error when entryPoints.lenth === 0', async () => {

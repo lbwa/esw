@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`build api should emit a error when splitting: true and format !== esm: splitting: true and format !== esm 1`] = `"'splitting' currently only works with 'esm' format, instead of 'cjs'"`;
+exports[`build api should emit a error when splitting: true and format !== esm: splitting: true and format !== esm 1`] = `"\\"splitting\\" currently only works with \\"esm\\" format, instead of 'cjs'"`;
 
 exports[`build api should mark all peerDependencies and dependencies as external: build-api-should-mark-all-peerDependencies-and-dependencies-as-external 1`] = `
 Array [

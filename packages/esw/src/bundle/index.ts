@@ -1,2 +1,2 @@
 export * from './service'
-export { inferBuildOptions } from './options'
+export { createInference } from './options'

@@ -1,22 +1,13 @@
 import path from 'path'
 import fs from 'fs'
+import { format } from 'util'
 import { BuildOptions, Format } from 'esbuild'
-import {
-  map,
-  of,
-  tap,
-  combineLatest,
-  asapScheduler,
-  scheduled,
-  distinctUntilChanged,
-  Observable,
-  mergeMap,
-  EMPTY
-} from 'rxjs'
+import { map, tap, mergeMap, from, distinctUntilChanged } from 'rxjs'
 import isNil from 'lodash/isNil'
+import flow from 'lodash/flow'
 import { assert, isDef, stdout } from '@eswjs/common'
-import externalEsBuildPlugin from '../plugins/external'
-import { resolvePackageJson } from '../cli/package.json'
+import { PackageJson } from 'type-fest'
+import { esbuildPluginExternalMark } from '../plugins/external-mark'
 import { AvailableCommands } from '../cli/constants'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
@@ -30,37 +21,181 @@ const PKG_FIELD_TO_FORMAT = new Map<'main' | 'module', Format>([
   ['module', 'esm']
 ] as const)
 
-function inferEntryPoints<Meta extends { outPath: string }>(
-  options: BuildOptions,
-  { outPath }: Meta
-): BuildOptions {
-  const { entryPoints } = options
-
-  if (!Array.isArray(entryPoints)) return options
-
-  options.entryPoints = entryPoints.reduce((entries, entry) => {
-    const serializedOutPath = path
-      .relative(options.outdir as string, outPath)
-      .replace(/\..+$/, '')
-    if (!isNil(entries[serializedOutPath])) {
-      stdout.warn(
-        `Duplicated outPath detected: ${path.relative(
-          options.absWorkingDir ?? process.cwd(),
-          outPath
-        )}.`
-      )
-    }
-    entries[serializedOutPath] = entry
-    return entries
-  }, {} as Record<string, string>)
-  return options
+interface InferenceMeta {
+  outputPath: string
+  entryPointField: 'main' | 'module'
+  format: Format
+  packageJson: PackageJson
 }
 
-export function inferBuildOptions(
-  options: BuildOptions = {},
+async function parsePackageJson(cwd: string): Promise<PackageJson> {
+  const filepath = path.resolve(cwd, 'package.json')
+  const message = format('ENOENT: "package.json" is required, %s', filepath)
+  try {
+    const stat = await fs.promises.stat(filepath)
+    assert(stat.isFile(), message)
+  } catch (error) {
+    throw new Error(message)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return require(filepath) as PackageJson
+}
+
+function getInferenceMeta<Formats extends readonly Format[]>(
+  packageJson: PackageJson,
+  formats: Formats
+) {
+  return formats.reduce((metaGroup, format) => {
+    const outFieldKeyInPkgJson = FORMAT_TO_PKG_FIELD.get(format)
+    if (isNil(outFieldKeyInPkgJson)) return metaGroup
+    const outFieldValueInPkgJson = packageJson[outFieldKeyInPkgJson]
+    if (isNil(outFieldValueInPkgJson)) return metaGroup
+
+    const isMainFieldMatched = outFieldKeyInPkgJson === 'main'
+    const isModuleFieldMatched = outFieldKeyInPkgJson == 'module'
+    const isValidModuleFieldMatched = isModuleFieldMatched && format === 'esm'
+
+    if (isMainFieldMatched || isValidModuleFieldMatched) {
+      metaGroup.push({
+        outputPath: outFieldValueInPkgJson,
+        entryPointField: outFieldKeyInPkgJson,
+        format,
+        packageJson
+      })
+      return metaGroup
+    }
+
+    assert(
+      isModuleFieldMatched,
+      "'module' field should always be treated as ES module syntax, see https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#dual-commonjses-module-packages"
+    )
+
+    throw new Error(
+      "Couldn't find valid 'main' or 'module' field in package.json"
+    )
+  }, [] as InferenceMeta[])
+}
+
+function ensureEntryPoints(cwd: string, meta: InferenceMeta) {
+  return function ensureEntryPointsImpl(
+    existsOptions: BuildOptions
+  ): BuildOptions {
+    if (isDef(existsOptions.entryPoints)) return existsOptions
+
+    const entry = path.basename(meta.outputPath).replace(/\..+/, '')
+    const candidates = ENTRY_POINTS_EXTS.map(ext =>
+      path.resolve(cwd, entry + ext)
+    )
+
+    const matchedEntry = candidates.filter(file => fs.existsSync(file))
+
+    assert(
+      matchedEntry.length > 0,
+      `esw couldn't infer the start point in the current scenario.
+      1) Make sure entry file exists (support ${candidates
+        .map(p => path.basename(p))
+        .join(', ')}) in ${fs.realpathSync(cwd)}
+      2) Or specify start point cli argument, eg. esw build src/index.ts
+  `
+    )
+    return {
+      ...existsOptions,
+      entryPoints: matchedEntry
+    }
+  }
+}
+
+function inferEntryPoints({ outputPath }: InferenceMeta) {
+  return function inferEntryPointsImpl(
+    existsOptions: BuildOptions
+  ): BuildOptions {
+    const { entryPoints, outdir, absWorkingDir } = existsOptions
+
+    if (!Array.isArray(entryPoints)) return existsOptions
+    return {
+      ...existsOptions,
+      entryPoints: entryPoints.reduce((entries, entry) => {
+        const serializedOutPath = path
+          .relative(outdir as string, outputPath)
+          .replace(/\..+$/, '')
+        if (!isNil(entries[serializedOutPath])) {
+          stdout.warn(
+            `Duplicated outPath detected: ${path.relative(
+              absWorkingDir ?? process.cwd(),
+              outputPath
+            )}.`
+          )
+        }
+        entries[serializedOutPath] = entry
+        return entries
+      }, {} as Record<string, string>)
+    }
+  }
+}
+
+function createBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
+  const { outputPath, entryPointField, format } = inferredMeta
+
+  return function createBuildOptionsImpl(
+    existsOptions: BuildOptions
+  ): BuildOptions {
+    const options: BuildOptions = {
+      bundle: true,
+      incremental: false,
+      ...existsOptions,
+      logLevel: 'silent',
+      write: true,
+      metafile: true
+    }
+    /**
+     * @description `module` field always specify the **ES module** entry point.
+     * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
+     */
+    const fmt = entryPointField === 'module' ? format : options.format ?? format
+    const outExt = options.outExtension ?? {
+      '.js': path.basename(outputPath).replace(/[^.]+\.(.+)/i, '.$1')
+    }
+
+    const splitting = options.splitting ?? format === 'esm'
+    return {
+      ...options,
+      absWorkingDir: cwd,
+      outdir: options.outdir ?? path.dirname(outputPath),
+      format: fmt ?? PKG_FIELD_TO_FORMAT.get(entryPointField),
+      outExtension: outExt,
+      splitting
+    }
+  }
+}
+
+function markDepsAsExternalParts({ packageJson }: InferenceMeta) {
+  const dependencies = packageJson.dependencies ?? {}
+  const peerDependencies = packageJson.peerDependencies ?? {}
+  const dependencyGroups = [peerDependencies, dependencies].reduce(
+    (names, deps) => names.concat(Object.keys(deps)),
+    [] as string[]
+  )
+
+  return function markDepsAsExternalPartsImpl(
+    options: BuildOptions
+  ): BuildOptions {
+    return {
+      ...options,
+      /**
+       * make external plugin be the first one, so that we can mark deps as external codes as soon as possible
+       */
+      plugins: [esbuildPluginExternalMark(dependencyGroups)].concat(
+        options.plugins ?? []
+      )
+    }
+  }
+}
+
+export function createInference(
+  options: BuildOptions,
   command: AvailableCommands,
   cwd: string = options.absWorkingDir || process.cwd()
-): Observable<BuildOptions> {
+) {
   function checkForbiddenOptions(options: BuildOptions): void {
     const { splitting, format, incremental } = options
     /** `incremental` only works with the file watcher */
@@ -70,140 +205,29 @@ export function inferBuildOptions(
 
     assert(
       isAllowIncremental,
-      '`incremental` option only works with `watch` command.'
+      '"incremental" option only works with "watch" command.'
     )
     assert(
       isAllowSplitting,
-      `'splitting' currently only works with 'esm' format, instead of '${format}'`
+      `"splitting" currently only works with "esm" format, instead of '${format}'`
     )
   }
 
-  const pkgJson$ = resolvePackageJson(cwd)
-
-  const inferenceMeta$ = combineLatest([
-    pkgJson$,
-    scheduled(PRESET_JS_FORMAT, asapScheduler)
-  ]).pipe(
-    mergeMap(([pkgJson, format]) => {
-      const outFieldKeyInPkgJson = FORMAT_TO_PKG_FIELD.get(format)
-      if (isNil(outFieldKeyInPkgJson)) return EMPTY
-      const outFieldValueInPkgJson = pkgJson[outFieldKeyInPkgJson]
-      if (isNil(outFieldValueInPkgJson)) return EMPTY
-
-      const isMainFieldMatched = outFieldKeyInPkgJson === 'main'
-      const isModuleFieldMatched = outFieldKeyInPkgJson == 'module'
-      const isValidModuleFieldMatched = isModuleFieldMatched && format === 'esm'
-
-      if (isMainFieldMatched || isValidModuleFieldMatched) {
-        return of({
-          outPath: outFieldValueInPkgJson,
-          field: outFieldKeyInPkgJson,
-          alternativeFmt: format
-        })
-      }
-
-      assert(
-        isModuleFieldMatched,
-        "'module' field should always be treated as ES module syntax, see https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#dual-commonjses-module-packages"
-      )
-
-      throw new Error(
-        "Couldn't find valid 'main' or 'module' field in package.json"
-      )
-    }),
+  return from(parsePackageJson(cwd)).pipe(
+    mergeMap((packageJson: PackageJson) =>
+      getInferenceMeta(packageJson, PRESET_JS_FORMAT)
+    ),
     distinctUntilChanged(
-      ({ outPath: prevOutPath }, { outPath: currentOutPath }) =>
-        prevOutPath === currentOutPath
-    )
+      ({ outputPath: prev }, { outputPath: now }) => prev === now
+    ),
+    map(meta =>
+      flow(
+        createBuildOptions(cwd, meta),
+        ensureEntryPoints(cwd, meta),
+        inferEntryPoints(meta),
+        markDepsAsExternalParts(meta)
+      )(options)
+    ),
+    tap(checkForbiddenOptions)
   )
-
-  const mergeOptions$ = of(options).pipe(
-    map<BuildOptions, BuildOptions>(options => ({
-      bundle: true,
-      incremental: false,
-      ...options,
-
-      // the following options couldn't be override
-      logLevel: 'silent', // disable esbuild internal stdout by default
-      write: true,
-      metafile: true // for printing build result to the terminal
-    }))
-  )
-
-  const inferredOptions$ = combineLatest([mergeOptions$, inferenceMeta$]).pipe(
-    map(([options, meta]) => {
-      const { field, outPath, alternativeFmt } = meta
-      const fmt =
-        field === 'module'
-          ? /**
-             * @description `module` field always specify the **ES module** entry point.
-             * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
-             */
-            alternativeFmt
-          : options.format ?? alternativeFmt
-      const outExt = options.outExtension ?? {
-        '.js': path.basename(outPath).replace(/[^.]+\.(.+)/i, '.$1')
-      }
-
-      const inferredOptions = {
-        ...options,
-        absWorkingDir: cwd,
-        outdir: options.outdir ?? path.dirname(outPath),
-        format: fmt ?? PKG_FIELD_TO_FORMAT.get(field),
-        outExtension: outExt
-      } as BuildOptions
-      return [inferredOptions, meta] as const
-    }),
-    tap(([options, { outPath }]) => {
-      if (isDef(options.entryPoints)) return
-
-      const entry = path.basename(outPath).replace(/\..+/, '')
-      const candidates = ENTRY_POINTS_EXTS.map(ext =>
-        path.resolve(cwd, entry + ext)
-      )
-
-      const matchedEntry = candidates.filter(file => fs.existsSync(file))
-
-      assert(
-        matchedEntry.length > 0,
-        `esw couldn't infer the start point in the current scenario.
-      1) Make sure entry file exists (support ${candidates
-        .map(p => path.basename(p))
-        .join(', ')}) in ${fs.realpathSync(cwd)}
-      2) Or specify start point cli argument, eg. esw build src/index.ts
-  `
-      )
-
-      options.entryPoints ??= matchedEntry
-    }),
-    map(([options, meta]) => inferEntryPoints(options, meta)),
-    tap(options => {
-      const { splitting, format } = options
-      if (isNil(splitting) && format === 'esm') {
-        options.splitting = true
-      }
-    }),
-    tap(checkForbiddenOptions) // ensure the last order
-  )
-
-  const markDepsAsExternals$ = combineLatest([pkgJson$, inferredOptions$]).pipe(
-    map(([pkgJson, options]) => {
-      const deps = pkgJson.dependencies ?? {}
-      const peerDeps = pkgJson.peerDependencies ?? {}
-      const depGroups = [peerDeps, deps].reduce(
-        (names, deps) => names.concat(Object.keys(deps)),
-        [] as string[]
-      )
-
-      /**
-       * make external plugin be the first one, so that we can mark deps as external codes as soon as possible
-       */
-      options.plugins = [externalEsBuildPlugin(depGroups)].concat(
-        options.plugins ?? []
-      )
-      return options
-    })
-  )
-
-  return markDepsAsExternals$
 }

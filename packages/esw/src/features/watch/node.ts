@@ -18,7 +18,7 @@ import {
   toArray
 } from 'rxjs'
 import { BundleService } from '@bundle/service'
-import { inferBuildOptions } from '@bundle/options'
+import { createInference } from '@bundle/options'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
 
@@ -104,7 +104,7 @@ export default function runWatch(
     })
   )
 
-  const options$ = inferBuildOptions(
+  const options$ = createInference(
     isDef(options.incremental)
       ? options
       : Object.assign({ incremental: true }, options),
