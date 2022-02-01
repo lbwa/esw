@@ -5,6 +5,7 @@ import { BuildOptions, Format } from 'esbuild'
 import { map, tap, mergeMap, from, distinctUntilChanged } from 'rxjs'
 import isNil from 'lodash/isNil'
 import flow from 'lodash/flow'
+import pick from 'lodash/pick'
 import { assert, isDef, stdout } from '@eswjs/common'
 import { PackageJson } from 'type-fest'
 import { esbuildPluginExternalMark } from '@plugins/external-mark'
@@ -26,7 +27,9 @@ interface InferenceMeta {
   outputPath: string
   entryPointField: 'main' | 'module'
   format: Format
-  packageJson: PackageJson
+  type?: PackageJson['type']
+  dependencies?: PackageJson['dependencies']
+  peerDependencies?: PackageJson['peerDependencies']
 }
 
 async function parsePackageJson(cwd: string): Promise<PackageJson> {
@@ -53,10 +56,10 @@ function getInferenceMeta<Formats extends readonly Format[]>(
 
     if (isMainFieldMatched || isValidModuleFieldMatched) {
       metaGroup.push({
+        ...pick(packageJson, ['type', 'dependencies', 'peerDependencies']),
         outputPath: outFieldValueInPkgJson,
         entryPointField: outFieldKeyInPkgJson,
-        format,
-        packageJson
+        format
       })
       return metaGroup
     }
@@ -129,8 +132,50 @@ function inferEntryPoints({ outputPath }: InferenceMeta) {
   }
 }
 
-function createBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
-  const { outputPath, entryPointField, format } = inferredMeta
+function inferBuildFormat(inferredMeta: InferenceMeta) {
+  const { entryPointField, format } = inferredMeta
+
+  return function inferBuildFormatImpl(
+    existsOptions: BuildOptions
+  ): BuildOptions {
+    /**
+     * @description `module` field always specify the **ES module** entry point.
+     * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
+     */
+    if (entryPointField === 'module') {
+      return {
+        ...existsOptions,
+        format // use recommended format
+      }
+    }
+
+    assert(
+      entryPointField === 'main',
+      'It seems that we encounter a internal error, please file a issue.'
+    )
+
+    if (existsOptions.format === 'cjs') {
+      assert(
+        isNil(inferredMeta.type) || inferredMeta.type === 'commonjs',
+        '"type": "commonjs" is required in the package.json.'
+      )
+    }
+
+    if (existsOptions.format === 'esm') {
+      assert(
+        inferredMeta.type === 'module',
+        '"type": "module" is required in the package.json.'
+      )
+    }
+    return {
+      ...existsOptions,
+      format: existsOptions.format ?? PKG_FIELD_TO_FORMAT.get(entryPointField)
+    }
+  }
+}
+
+function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
+  const { outputPath, format } = inferredMeta
 
   return function createBuildOptionsImpl(
     existsOptions: BuildOptions
@@ -147,7 +192,6 @@ function createBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
      * @description `module` field always specify the **ES module** entry point.
      * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
      */
-    const fmt = entryPointField === 'module' ? format : options.format ?? format
     const outExt = options.outExtension ?? {
       '.js': path.basename(outputPath).replace(/[^.]+\.(.+)/i, '.$1')
     }
@@ -157,16 +201,16 @@ function createBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
       ...options,
       absWorkingDir: cwd,
       outdir: options.outdir ?? path.dirname(outputPath),
-      format: fmt ?? PKG_FIELD_TO_FORMAT.get(entryPointField),
       outExtension: outExt,
       splitting
     }
   }
 }
 
-function markDepsAsExternalParts({ packageJson }: InferenceMeta) {
-  const dependencies = packageJson.dependencies ?? {}
-  const peerDependencies = packageJson.peerDependencies ?? {}
+function markDepsAsExternalParts({
+  dependencies = {},
+  peerDependencies = {}
+}: InferenceMeta) {
   const dependencyGroups = [peerDependencies, dependencies].reduce(
     (names, deps) => names.concat(Object.keys(deps)),
     [] as string[]
@@ -218,7 +262,8 @@ export function createInference(
     ),
     map(meta =>
       flow(
-        createBuildOptions(cwd, meta),
+        mergeDefaultBuildOptions(cwd, meta),
+        inferBuildFormat(meta),
         ensureEntryPoints(cwd, meta),
         inferEntryPoints(meta),
         markDepsAsExternalParts(meta)

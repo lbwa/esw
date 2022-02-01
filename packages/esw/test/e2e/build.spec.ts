@@ -91,11 +91,27 @@ describe('build api', () => {
   })
 
   it('should work with main field and esm syntax', async () => {
-    const [output] = await runFixtureCase('only-main-field', {
+    const [output] = await runFixtureCase('only-main-field-esm', {
       // should respect option.format
       format: 'esm'
     })
     expect(output).toContain(`from "./src/fib"`)
+  })
+
+  it("shouldn't work with main field and cjs syntax without type: commonjs", async () => {
+    await expect(
+      runFixtureCase('only-main-field-esm', {
+        format: 'cjs'
+      })
+    ).rejects.toThrowErrorMatchingSnapshot(getTestName())
+  })
+
+  it("shouldn't work with main field and esm syntax without type: module", async () => {
+    await expect(
+      runFixtureCase('only-main-field', {
+        format: 'esm'
+      })
+    ).rejects.toThrowErrorMatchingSnapshot(getTestName())
   })
 
   it('should work with module field and esm syntax', async () => {

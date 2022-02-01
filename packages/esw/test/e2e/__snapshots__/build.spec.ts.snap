@@ -178,6 +178,8 @@ Array [
 ]
 `;
 
+exports[`build api shouldn't work with main field and cjs syntax without type: commonjs: build-api-shouldn't-work-with-main-field-and-cjs-syntax-without-type:-commonjs 1`] = `"\\"type\\": \\"commonjs\\" is required in the package.json."`;
+
+exports[`build api shouldn't work with main field and esm syntax without type: module: build-api-shouldn't-work-with-main-field-and-esm-syntax-without-type:-module 1`] = `"\\"type\\": \\"module\\" is required in the package.json."`;
+
 exports[`build api shouldn't work with no valid entry field: build-api-shouldn't-work-with-no-valid-entry-field 1`] = `"Invalid operation. Maybe you forgot to define the main or module field in the package.json file."`;
-
-
