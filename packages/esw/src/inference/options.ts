@@ -183,7 +183,7 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
 }
 
 function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
-  const { outputPath, format } = inferredMeta
+  const { outputPath } = inferredMeta
 
   return function mergeDefaultBuildOptionsImpl(
     existsOptions: BuildOptions
@@ -201,7 +201,7 @@ function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
       ...options,
       absWorkingDir: cwd,
       outdir: options.outdir ?? path.dirname(outputPath),
-      splitting: options.splitting ?? format === 'esm'
+      splitting: options.splitting ?? options.format === 'esm'
     }
   }
 }
@@ -260,9 +260,10 @@ export function createInference(
       ({ outputPath: prev }, { outputPath: now }) => prev === now
     ),
     map(meta =>
+      // use builders to infer options
       flow(
-        mergeDefaultBuildOptions(cwd, meta),
         inferBuildFormat(meta),
+        mergeDefaultBuildOptions(cwd, meta),
         ensureEntryPoints(cwd, meta),
         inferEntryPoints(meta),
         markDepsAsExternalParts(meta)
