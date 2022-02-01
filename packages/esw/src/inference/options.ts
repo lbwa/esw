@@ -114,10 +114,11 @@ function inferEntryPoints({ outputPath }: InferenceMeta) {
     return {
       ...existsOptions,
       entryPoints: entryPoints.reduce((entries, entry) => {
-        const serializedOutPath = path
-          .relative(outdir as string, outputPath)
-          .replace(/\..+$/, '')
-        if (!isNil(entries[serializedOutPath])) {
+        const outputFilename = path.basename(
+          path.relative(outdir as string, outputPath),
+          path.extname(outputPath)
+        )
+        if (!isNil(entries[outputFilename])) {
           stdout.warn(
             `Duplicated outPath detected: ${path.relative(
               absWorkingDir ?? process.cwd(),
@@ -125,7 +126,9 @@ function inferEntryPoints({ outputPath }: InferenceMeta) {
             )}.`
           )
         }
-        entries[serializedOutPath] = entry
+
+        // https://esbuild.github.io/api/#entry-points
+        entries[outputFilename] = entry
         return entries
       }, {} as Record<string, string>)
     }
@@ -182,7 +185,7 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
 function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
   const { outputPath, format } = inferredMeta
 
-  return function createBuildOptionsImpl(
+  return function mergeDefaultBuildOptionsImpl(
     existsOptions: BuildOptions
   ): BuildOptions {
     const options: BuildOptions = {
@@ -193,21 +196,12 @@ function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
       write: true,
       metafile: true
     }
-    /**
-     * @description `module` field always specify the **ES module** entry point.
-     * @see https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages
-     */
-    const outExt = options.outExtension ?? {
-      '.js': path.basename(outputPath).replace(/[^.]+\.(.+)/i, '.$1')
-    }
 
-    const splitting = options.splitting ?? format === 'esm'
     return {
       ...options,
       absWorkingDir: cwd,
       outdir: options.outdir ?? path.dirname(outputPath),
-      outExtension: outExt,
-      splitting
+      splitting: options.splitting ?? format === 'esm'
     }
   }
 }
