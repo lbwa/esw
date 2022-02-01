@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/lbwa/esw/compare/esw@0.12.0...esw@0.13.0) (2022-02-01)
+
+### Bug Fixes
+
+- **esw:** splitting inference should be based on options.format ([fc0185c](https://github.com/lbwa/esw/commit/fc0185cdd57baf79ecc2bbfa06705afda6ad1719))
+- format fallback logic should be covered by assertion ([67c7787](https://github.com/lbwa/esw/commit/67c778738dfecfcfd4a30afa49624f41e0ff1f78))
+
+### Features
+
+- **esw:** format should also cooperate with "type" field in package.json ([e44ca6c](https://github.com/lbwa/esw/commit/e44ca6c252a421676b8eee2f80e9760c3fa6102a)), closes [#36](https://github.com/lbwa/esw/issues/36)
+- **esw:** use colorful and verbose build results ([3ee6bcb](https://github.com/lbwa/esw/commit/3ee6bcb5b9337ab23ba0817b69510fb77a5d7a38))
+
 # [0.12.0](https://github.com/lbwa/esw/compare/esw@0.11.2...esw@0.12.0) (2022-01-14)
 
 ### Features

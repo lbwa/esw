@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.6.0...@eswjs/common@0.7.0) (2022-02-01)
+
+### Features
+
+- **common:** add assert/invariant ([3e7c288](https://github.com/lbwa/esw/commit/3e7c288d4e1c8f681919827f27fffe931f83c253))
+
 # [0.6.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.5.1...@eswjs/common@0.6.0) (2022-01-14)
 
 **Note:** Version bump only for package @eswjs/common

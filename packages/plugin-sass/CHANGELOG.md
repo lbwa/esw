@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/lbwa/esw/compare/sass-esbuild-plugin@0.5.0...sass-esbuild-plugin@0.6.0) (2022-02-01)
+
+### Features
+
+- **sass:** generate \*.d.ts files ([da4fbf6](https://github.com/lbwa/esw/commit/da4fbf61f0f9a6c7614aa0a8d91d53c548d045b0))
+
 # [0.5.0](https://github.com/lbwa/esw/compare/sass-esbuild-plugin@0.4.2...sass-esbuild-plugin@0.5.0) (2022-01-14)
 
 **Note:** Version bump only for package sass-esbuild-plugin
