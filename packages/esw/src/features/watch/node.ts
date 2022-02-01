@@ -18,7 +18,7 @@ import {
   toArray
 } from 'rxjs'
 import { BundleService } from '@bundle/service'
-import { createInference } from '@bundle/options'
+import { createInference } from '@inference/options'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
 

@@ -7,8 +7,9 @@ import isNil from 'lodash/isNil'
 import flow from 'lodash/flow'
 import { assert, isDef, stdout } from '@eswjs/common'
 import { PackageJson } from 'type-fest'
-import { esbuildPluginExternalMark } from '../plugins/external-mark'
-import { AvailableCommands } from '../cli/constants'
+import { esbuildPluginExternalMark } from '@plugins/external-mark'
+import { AvailableCommands } from '@cli/constants'
+import { isFileExists } from '@root/io'
 
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
@@ -31,12 +32,7 @@ interface InferenceMeta {
 async function parsePackageJson(cwd: string): Promise<PackageJson> {
   const filepath = path.resolve(cwd, 'package.json')
   const message = format('ENOENT: "package.json" is required, %s', filepath)
-  try {
-    const stat = await fs.promises.stat(filepath)
-    assert(stat.isFile(), message)
-  } catch (error) {
-    throw new Error(message)
-  }
+  assert(await isFileExists(filepath), message)
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require(filepath) as PackageJson
 }

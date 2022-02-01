@@ -3,9 +3,8 @@ import { map, tap, mergeMap, toArray, from, Observable } from 'rxjs'
 import { assert } from '@eswjs/common'
 import isFunction from 'lodash/isFunction'
 import isEmpty from 'lodash/isEmpty'
-import { rmDirs } from '../utils/io'
 import { isFulfillResult } from '../utils/data-structure'
-import { findAllStaleDir } from './io'
+import { rmDirs, findAllStaleDir } from '@root/io'
 
 type RebuildHandle = NonNullable<BuildResult['rebuild']>
 

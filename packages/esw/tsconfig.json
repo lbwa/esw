@@ -8,7 +8,9 @@
       "@root/*": ["./src/*"],
       "@utils/*": ["./src/utils/*"],
       "@bundle/*": ["./src/bundle/*"],
-      "@cli/*": ["./src/cli/*"]
+      "@cli/*": ["./src/cli/*"],
+      "@plugins/*": ["./src/plugins/*"],
+      "@inference/*": ["./src/inference/*"]
     }
   },
   "exclude": ["**/node_modules", "**/.*/", "./bin/*.js"]

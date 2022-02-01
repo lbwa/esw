@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { promises as fs } from 'fs'
 import path from 'path'
 import { BuildOptions } from 'esbuild'
 import { isDef } from '@eswjs/common'
@@ -14,11 +14,26 @@ export async function findAllStaleDir(options: BuildOptions[]) {
       )
         return
 
-      const stat = await fs.promises.lstat(outdir).catch(() => null)
+      const stat = await fs.lstat(outdir).catch(() => null)
       if (isDef(stat) && stat.isDirectory() && !dirs.includes(outdir)) {
         dirs.push(outdir)
       }
     })
   )
   return dirs
+}
+
+export function rmDirs(dirs: string[]) {
+  return Promise.all(
+    dirs.map(dir => fs.rm(dir, { recursive: true, force: true }))
+  )
+}
+
+export async function isFileExists(filepath: string) {
+  try {
+    const stat = await fs.stat(filepath)
+    return stat.isFile()
+  } catch (error) {
+    return false
+  }
 }
