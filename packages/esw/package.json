@@ -56,7 +56,7 @@
     "esbuild": "~0.14.10",
     "lodash": "^4.17.21",
     "rxjs": "~7.5.2",
-    "type-fest": "^1.2.2"
+    "type-fest": "^2.11.1"
   },
   "engines": {
     "node": ">=14.14.0"
