@@ -154,22 +154,27 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
       'It seems that we encounter a internal error, please file a issue.'
     )
 
-    if (existsOptions.format === 'cjs') {
+    const fmt =
+      existsOptions.format ??
+      PKG_FIELD_TO_FORMAT.get(entryPointField /* main */)
+
+    if (fmt === 'cjs') {
       assert(
         isNil(inferredMeta.type) || inferredMeta.type === 'commonjs',
         '"type": "commonjs" is required in the package.json.'
       )
     }
 
-    if (existsOptions.format === 'esm') {
+    if (fmt === 'esm') {
       assert(
         inferredMeta.type === 'module',
         '"type": "module" is required in the package.json.'
       )
     }
+
     return {
       ...existsOptions,
-      format: existsOptions.format ?? PKG_FIELD_TO_FORMAT.get(entryPointField)
+      format: fmt
     }
   }
 }
