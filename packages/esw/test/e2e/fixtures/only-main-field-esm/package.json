@@ -1,0 +1,6 @@
+{
+  "name": "only-main-field-esm",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "type": "module"
+}
