@@ -5,7 +5,6 @@ import * as esbuild from 'esbuild'
 import identity from 'lodash/identity'
 import pick from 'lodash/pick'
 import { PackageJson } from 'type-fest'
-import { build } from '../src'
 import {
   resolveFixture,
   getTestName,
@@ -13,6 +12,7 @@ import {
   hasErrors,
   hasWarnings
 } from './shared'
+import { build } from '@root/index'
 
 async function readOutputs(cwd: string) {
   const { main: cjsPath, module: esmPath } = require(path.resolve(
@@ -141,7 +141,7 @@ describe('build api', () => {
   it('should work with no options', async () => {
     await Promise.all(
       ['index.esm.js', 'index.js'].map(file =>
-        fs.rm(path.resolve(__dirname, 'fixture/no-options', file), {
+        fs.rm(path.resolve(__dirname, 'fixtures/no-options', file), {
           force: true,
           recursive: true
         })

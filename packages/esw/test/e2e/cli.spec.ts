@@ -5,7 +5,7 @@ import { sync as spawnSync } from 'cross-spawn'
 import { ExitCode } from '@eswjs/common'
 import { resolveFixture } from './shared'
 
-const libDist = path.resolve(__dirname, '..', 'dist')
+const libDist = path.resolve(__dirname, '../..', 'dist')
 const binDist = path.resolve(libDist, 'bin')
 const testRoot = path.resolve(__dirname, '.')
 const eswBinary = path.resolve(binDist, 'esw.js')
@@ -118,7 +118,7 @@ describe('esw cli - build', () => {
   it('should work with no-options', async () => {
     await Promise.all(
       ['index.esm.js', 'index.js'].map(file =>
-        fs.promises.rm(path.resolve(testRoot, 'fixture/no-options', file), {
+        fs.promises.rm(path.resolve(testRoot, 'fixtures/no-options', file), {
           force: true,
           recursive: true
         })
@@ -201,7 +201,7 @@ describe('esw cli - build', () => {
     await Promise.all(
       ['lib.js', 'index.js'].map(file =>
         fs.promises.rm(
-          path.resolve(testRoot, 'fixture/uniq-main-module', file),
+          path.resolve(testRoot, 'fixtures/uniq-main-module', file),
           {
             force: true,
             recursive: true
@@ -210,7 +210,7 @@ describe('esw cli - build', () => {
       )
     )
     const [esm, cjs] = await createBuildScript(
-      path.resolve(testRoot, 'fixture/uniq-main-module'),
+      path.resolve(testRoot, 'fixtures/uniq-main-module'),
       ['build', 'index.ts'],
       {
         esm: `dist/lib.js`,
@@ -233,21 +233,21 @@ describe('esw cli - build', () => {
   })
 
   it('should clean dist before build start', async () => {
-    const fixture = 'fixture/clean-dist'
-    const cacheFile = path.resolve(testRoot, fixture, 'dist/cache.ts')
+    const fixtures = 'fixtures/clean-dist'
+    const cacheFile = path.resolve(testRoot, fixtures, 'dist/cache.ts')
     fs.mkdirSync(path.dirname(cacheFile), { recursive: true })
     fs.writeFileSync(cacheFile, 'export const msg = "should be deleted."')
     expect(fs.existsSync(cacheFile)).toBeTruthy()
     await Promise.all(
       ['index.esm.js', 'index.js'].map(file =>
-        fs.promises.rm(path.resolve(testRoot, fixture, file), {
+        fs.promises.rm(path.resolve(testRoot, fixtures, file), {
           force: true,
           recursive: true
         })
       )
     )
     const [esm, cjs] = await createBuildScript(
-      path.resolve(testRoot, fixture),
+      path.resolve(testRoot, fixtures),
       ['build'],
       {
         esm: `dist/index.esm.js`,

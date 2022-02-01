@@ -8,7 +8,7 @@ export function getTestName() {
 }
 
 export function resolveFixture(name: string) {
-  return path.resolve(__dirname, `./fixture/${name}`)
+  return path.resolve(__dirname, `./fixtures/${name}`)
 }
 
 export function clearCacheDir(dir: string) {
