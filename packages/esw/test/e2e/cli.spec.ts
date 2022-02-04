@@ -1,262 +1,143 @@
-import fs from 'fs'
 import path from 'path'
-import type { SpawnSyncOptions } from 'child_process'
-import { sync as spawnSync } from 'cross-spawn'
-import { ExitCode } from '@eswjs/common'
-import { resolveFixture } from './shared'
+import { format } from 'util'
+import fs from 'fs'
+import { createCliDriver } from './driver/cli'
+import { createSandbox, Sandbox } from './sandbox/sandbox'
 
-const libDist = path.resolve(__dirname, '../..', 'dist')
-const binDist = path.resolve(libDist, 'bin')
-const testRoot = path.resolve(__dirname, '.')
-const eswBinary = path.resolve(binDist, 'esw.js')
+describe('cli stdout', () => {
+  let sandbox: Sandbox
+  beforeAll(async () => {
+    sandbox = await createSandbox()
+    await sandbox.load(path.resolve(__dirname, 'fixtures/no-options'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
+    })
+  })
 
-beforeAll(async () => {
-  const withDeps = path.resolve(testRoot, 'with-deps')
-  await fs.promises.rm(path.resolve(withDeps, 'dist'), {
-    force: true,
-    recursive: true
+  beforeEach(async () => {
+    return sandbox.reset()
+  })
+
+  afterAll(async () => {
+    return sandbox.terminate()
+  })
+
+  it.each([
+    ['print global message', ['--help']],
+    ['print global message by alias', ['-h']],
+    ['print global message with unknown command', ['unknownCommand']],
+    ['print version', ['--version']],
+    ['print version by alias', ['-v']],
+    ['print build usage', ['build', '--help']],
+    ['print build usage by alias', ['build', '-h']]
+  ])('should %s', async (name, args) => {
+    const driver = createCliDriver(sandbox.spawn('esw', args))
+    const stdout = await driver.waitForStdout()
+    expect(stdout).toMatchSnapshot(name)
   })
 })
 
-async function createBuildScript(
-  fixturePath: string,
-  commandArgs: string[] = ['build'],
-  outFiles: Partial<Record<'esm' | 'cjs', string>> = {},
-  spawnOptions = {} as SpawnSyncOptions
-) {
-  function resolveFixture(p: string) {
-    return path.resolve(fixturePath, p)
-  }
-  const result = spawnSync('node', [eswBinary, ...commandArgs], {
-    encoding: 'utf-8',
-    ...spawnOptions,
-    cwd: fixturePath
+describe('esw build', () => {
+  let sandbox: Sandbox
+  beforeAll(async () => {
+    sandbox = await createSandbox()
   })
 
-  process.stdout.write(result.output.filter(Boolean).join('\n'))
-
-  // Process exited too early. The system ran out of memory or someone
-  // called `kill -9` on the process
-  expect(result.signal).not.toEqual('SIGKILL')
-  // Process exited too early. The system could be shutting down or someone
-  // might have called `kill` or `killall`
-  expect(result.signal).not.toEqual('SIGTERM')
-  expect(result.error).toBeNull()
-  expect(result.stderr).toBeFalsy()
-  expect(result.status).toEqual(ExitCode.OK)
-
-  Object.values(outFiles).forEach(p => {
-    expect(fs.existsSync(resolveFixture(p))).toBeTruthy()
-    expect(result.stdout).toContain(p)
+  beforeEach(async () => {
+    return sandbox.reset()
   })
-  const { esm, cjs } = outFiles
-  return Promise.all(
-    [esm, cjs].filter(Boolean).map(p =>
-      fs.promises.readFile(
-        path.resolve(resolveFixture(fixturePath), p as string),
-        {
-          encoding: 'utf8'
-        }
-      )
-    )
-  )
-}
 
-describe('esw cli', () => {
-  it('should print root help message', () => {
-    const shouldPrintHelp = spawnSync('node', [eswBinary, '--help'], {
-      cwd: process.cwd(),
-      encoding: 'utf8'
+  afterAll(async () => {
+    return sandbox.terminate()
+  })
+
+  it('should work with no options', async () => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/no-options'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
     })
-    expect(shouldPrintHelp.output).toMatchSnapshot(
-      '--help should print help message'
-    )
+    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+    const result = await driver.waitForStdout()
+    expect(result).toMatchSnapshot()
 
-    const shouldPrintHelpWithAlias = spawnSync('node', [eswBinary, '-h'], {
-      cwd: process.cwd(),
-      encoding: 'utf8'
+    const esmOutPath = path.resolve(sandbox.cwd, 'index.esm.js'),
+      cjsOutPath = path.resolve(sandbox.cwd, 'dist/cjs/index.js')
+    const esmContent = await fs.promises.readFile(esmOutPath, 'utf8')
+    expect(esmContent).not.toContain('__esModule')
+    expect(esmContent).not.toContain('module.exports')
+    expect(esmContent).toMatch(/^export\s/m)
+    const cjsContent = await fs.promises.readFile(cjsOutPath, 'utf8')
+    expect(cjsContent).toContain('__esModule')
+    expect(cjsContent).toContain('module.exports')
+    expect(cjsContent).not.toMatch(/^export\s/)
+  })
+
+  it('should mark all dependencies/peerDependencies as external', async () => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/with-deps'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
     })
-    expect(shouldPrintHelpWithAlias.output).toMatchSnapshot(
-      '-h should print help message'
-    )
-    expect(shouldPrintHelpWithAlias.output).toEqual(shouldPrintHelp.output)
+    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+    const result = await driver.waitForStdout()
+    expect(result).toMatchSnapshot()
 
-    const shouldPrintHelpWithWrongCommand = spawnSync(
-      'node',
-      [eswBinary, 'wrongCommand'],
-      {
-        cwd: process.cwd(),
-        encoding: 'utf8'
-      }
+    const esmOutPath = path.resolve(sandbox.cwd, 'dist/index.esm.js'),
+      cjsOutPath = path.resolve(sandbox.cwd, 'dist/index.js')
+    const [esmContent, cjsContent] = await Promise.all(
+      [esmOutPath, cjsOutPath].map(p => fs.promises.readFile(p, 'utf8'))
     )
 
-    expect(shouldPrintHelpWithWrongCommand.output).toMatchSnapshot(
-      'wrong command should print help message'
-    )
-    expect(shouldPrintHelp.output).toEqual(
-      shouldPrintHelpWithWrongCommand.output
-    )
+    expect(esmContent).toContain(`from "react"`)
+    expect(esmContent).toContain(`from "rxjs"`)
+    expect(esmContent).toContain(`from "rxjs/operators"`)
+
+    expect(cjsContent).toContain(`require("react")`)
+    expect(cjsContent).toContain(`require("rxjs")`)
+    expect(cjsContent).toContain(`require("rxjs/operators")`)
   })
 
-  it('should print the esw version message', () => {
-    const versionReg = /v\d+\.\d+\.\d+/
-
-    ;[
-      [eswBinary, '--version'],
-      [eswBinary, '-v'],
-      [eswBinary, 'build', '--version']
-    ].forEach(args => {
-      const shouldPrintVersionMsg = spawnSync('node', args, {
-        encoding: 'utf-8'
-      })
-      expect(shouldPrintVersionMsg.stdout).toMatch(versionReg)
+  it('should throw a error when esbuild bundling failed', async () => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/build-error'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
     })
-  })
-})
 
-describe('esw cli - build', () => {
-  it('should work with no-options', async () => {
-    await Promise.all(
-      ['index.esm.js', 'index.js'].map(file =>
-        fs.promises.rm(path.resolve(testRoot, 'fixtures/no-options', file), {
-          force: true,
-          recursive: true
-        })
-      )
-    )
-    const fixturePath = resolveFixture('no-options')
-    const [esmOutput, cjsOutput] = await createBuildScript(
-      fixturePath,
-      ['build'],
-      { esm: 'index.esm.js', cjs: 'dist/cjs/index.js' }
-    )
+    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+    const error = await driver.waitForStderr()
 
-    expect(esmOutput).not.toContain('__esModule')
-    expect(cjsOutput).toContain('__esModule')
+    expect(error).toMatch(/could not resolve/i)
   })
 
-  it('should mark all peerDependencies and dependencies as external', async () => {
-    const [esmOutput, cjsOutput] = await createBuildScript(
-      resolveFixture('with-deps'),
-      ['build'],
-      {
-        esm: 'dist/index.esm.js',
-        cjs: 'dist/index.js'
-      }
-    )
-
-    expect(esmOutput).toContain(`from "react"`)
-    expect(esmOutput).toContain(`from "rxjs"`)
-    expect(esmOutput).toContain(`from "rxjs/operators"`)
-
-    expect(cjsOutput).toContain(`require("react")`)
-    expect(cjsOutput).toContain(`require("rxjs")`)
-    expect(cjsOutput).toContain(`require("rxjs/operators")`)
-  })
-
-  it('should print the help message of build command', () => {
-    const shouldPrintHelpMsg = spawnSync(
-      'node',
-      [eswBinary, 'build', '--help'],
-      {
-        cwd: process.cwd(),
-        encoding: 'utf8'
-      }
-    )
-    expect(shouldPrintHelpMsg.output).toMatchSnapshot(
-      'build --help should print help message'
-    )
-
-    const shouldPrintHelpWithWrongCommand = spawnSync(
-      'node',
-      [eswBinary, 'build', '--mini'],
-      {
-        cwd: process.cwd(),
-        encoding: 'utf8'
-      }
-    )
-    expect(shouldPrintHelpWithWrongCommand.stderr).toMatch(/error/i)
-    expect(shouldPrintHelpWithWrongCommand.stderr).toContain(
-      'Unknown arguments: --mini'
-    )
-    expect(shouldPrintHelpMsg.stderr).toEqual(
-      shouldPrintHelpWithWrongCommand.stdout
-    )
-
-    const shouldPrintHelpWithAlias = spawnSync(
-      'node',
-      [eswBinary, 'build', '-h'],
-      {
-        cwd: process.cwd(),
-        encoding: 'utf8'
-      }
-    )
-    expect(shouldPrintHelpWithAlias.output).toMatchSnapshot(
-      'build -h should print help message'
-    )
-    expect(shouldPrintHelpWithAlias.stdout).toEqual(shouldPrintHelpMsg.stdout)
-  })
-
-  it('should work with uniq main and module field', async () => {
-    await Promise.all(
-      ['lib.js', 'index.js'].map(file =>
-        fs.promises.rm(
-          path.resolve(testRoot, 'fixtures/uniq-main-module', file),
-          {
-            force: true,
-            recursive: true
-          }
-        )
-      )
-    )
-    const [esm, cjs] = await createBuildScript(
-      path.resolve(testRoot, 'fixtures/uniq-main-module'),
-      ['build', 'index.ts'],
-      {
-        esm: `dist/lib.js`,
-        cjs: `dist/index.js`
-      }
-    )
-
-    expect(esm).not.toContain(`__esModule`)
-    expect(cjs).toContain(`__esModule"`)
-  })
-
-  it('should throw a error message when building failed', async () => {
-    const result = spawnSync('node', [eswBinary, 'build'], {
-      cwd: resolveFixture('build-error'),
-      encoding: 'utf8'
+  it('should clean dist first before next bundling start.', async () => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/clean-dist'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
     })
-    expect(result.status).toEqual(ExitCode.ERROR)
-    expect(result.stderr).toMatch(/could not resolve/i)
-    expect(result.stdout).toEqual('')
-  })
 
-  it('should clean dist before build start', async () => {
-    const fixtures = 'fixtures/clean-dist'
-    const cacheFile = path.resolve(testRoot, fixtures, 'dist/cache.ts')
-    fs.mkdirSync(path.dirname(cacheFile), { recursive: true })
-    fs.writeFileSync(cacheFile, 'export const msg = "should be deleted."')
+    const cacheFile = path.resolve(sandbox.cwd, 'dist/cache.ts')
+    await fs.promises.mkdir(path.dirname(cacheFile), { recursive: true })
+    await fs.promises.writeFile(
+      cacheFile,
+      'export const message = "should be deleted."'
+    )
     expect(fs.existsSync(cacheFile)).toBeTruthy()
-    await Promise.all(
-      ['index.esm.js', 'index.js'].map(file =>
-        fs.promises.rm(path.resolve(testRoot, fixtures, file), {
-          force: true,
-          recursive: true
-        })
-      )
-    )
-    const [esm, cjs] = await createBuildScript(
-      path.resolve(testRoot, fixtures),
-      ['build'],
-      {
-        esm: `dist/index.esm.js`,
-        cjs: `dist/index.js`
-      }
-    )
+
+    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+
+    await driver.waitForStdout()
 
     expect(fs.existsSync(cacheFile)).toBeFalsy()
-    expect(esm).not.toContain(`__esModule`)
-    expect(cjs).toContain(`__esModule"`)
+    const esmOutPath = path.resolve(sandbox.cwd, 'dist/index.esm.js'),
+      cjsOutPath = path.resolve(sandbox.cwd, 'dist/index.js')
+    const [esmContent, cjsContent] = await Promise.all(
+      [esmOutPath, cjsOutPath].map(p => fs.promises.readFile(p, 'utf8'))
+    )
+
+    expect(esmContent).not.toContain('__esModule')
+    expect(esmContent).not.toContain('module.exports')
+    expect(esmContent).not.toContain('exports')
+    expect(esmContent).toMatch(/^export\s/m)
+    expect(cjsContent).toContain('__esModule')
+    expect(cjsContent).toContain('module.exports')
   })
 })

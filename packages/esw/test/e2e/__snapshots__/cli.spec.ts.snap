@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`esw cli - build should print the help message of build command: build --help should print help message 1`] = `
-Array [
-  null,
-  "
+exports[`cli stdout should print build usage by alias: print build usage by alias 1`] = `
+"
 Description
   Compiles the codebase with options inference.
 
@@ -16,15 +14,11 @@ Usage
 
   [options] esbuild options, see https://esbuild.github.io/
 
-",
-  "",
-]
+"
 `;
 
-exports[`esw cli - build should print the help message of build command: build -h should print help message 1`] = `
-Array [
-  null,
-  "
+exports[`cli stdout should print build usage: print build usage 1`] = `
+"
 Description
   Compiles the codebase with options inference.
 
@@ -37,15 +31,11 @@ Usage
 
   [options] esbuild options, see https://esbuild.github.io/
 
-",
-  "",
-]
+"
 `;
 
-exports[`esw cli should print root help message: --help should print help message 1`] = `
-Array [
-  null,
-  "
+exports[`cli stdout should print global message by alias: print global message by alias 1`] = `
+"
 Usage
   $ esw <command>
 
@@ -59,15 +49,11 @@ Options
 For more information run a command with the --help flag
   esw <available command> --help
 
-",
-  "",
-]
+"
 `;
 
-exports[`esw cli should print root help message: -h should print help message 1`] = `
-Array [
-  null,
-  "
+exports[`cli stdout should print global message with unknown command: print global message with unknown command 1`] = `
+"
 Usage
   $ esw <command>
 
@@ -81,15 +67,11 @@ Options
 For more information run a command with the --help flag
   esw <available command> --help
 
-",
-  "",
-]
+"
 `;
 
-exports[`esw cli should print root help message: wrong command should print help message 1`] = `
-Array [
-  null,
-  "
+exports[`cli stdout should print global message: print global message 1`] = `
+"
 Usage
   $ esw <command>
 
@@ -103,7 +85,45 @@ Options
 For more information run a command with the --help flag
   esw <available command> --help
 
-",
-  "",
-]
+"
+`;
+
+exports[`cli stdout should print version by alias: print version by alias 1`] = `
+"v0.13.0
+"
+`;
+
+exports[`cli stdout should print version: print version 1`] = `
+"v0.13.0
+"
+`;
+
+exports[`esw build should mark all dependencies/peerDependencies as external 1`] = `
+"
+  dist/index.js ─ 1.8kb ─ 100.0%
+   ├ index.ts ─── 452b ─── 25.1%
+   └ src/dep.ts ─ 121b ──── 6.7%
+      └ index.ts
+
+  dist/index.esm.js ─ 459b  ─ 100.0%
+   ├ index.ts ─────── 239b ─── 52.1%
+   └ src/dep.ts ───── 121b ─── 26.4%
+      └ index.ts
+
+"
+`;
+
+exports[`esw build should work with no options 1`] = `
+"
+  dist/cjs/index.js ─ 1.5kb ─ 100.0%
+   ├ index.ts ─────── 195b ─── 12.7%
+   └ src/fib.ts ───── 121b ──── 7.9%
+      └ index.ts
+
+  index.esm.js ── 279b  ─ 100.0%
+   ├ src/fib.ts ─ 121b ─── 43.4%
+   │  └ index.ts
+   └ index.ts ──── 83b ─── 29.7%
+
+"
 `;
