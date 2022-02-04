@@ -31,7 +31,7 @@ Usage
   esw build [entry] [options]
 
   [entry] represents the library entry point.
-          esw would run options inference when an entry files isn't explicity specified.
+          esw would run options inference when an entry files isn't explicitly specified.
           On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
 
   [options] esbuild options, see https://esbuild.github.io/

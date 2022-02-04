@@ -1,185 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`build api should emit a error when splitting: true and format !== esm: splitting: true and format !== esm 1`] = `"\\"splitting\\" currently only works with \\"esm\\" format, instead of 'cjs'"`;
-
-exports[`build api should mark all peerDependencies and dependencies as external: build-api-should-mark-all-peerDependencies-and-dependencies-as-external 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should throw a error if entryPoints.length is less than 1 1`] = `
+" ERROR  esw couldn't infer the start point in the current scenario.
+      1) Make sure entry file exists (support index.js, index.jsx, index.ts, index.tsx) in <PRIVATE_PATH>
+      2) Or specify start point cli argument, eg. esw build src/index.ts
+  
+"
 `;
 
-exports[`build api should override the cjs inference from main field: build-api-should-override-the-cjs-inference-from-main-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should throw a error if main and module field are unavailable 1`] = `
+" ERROR  Invalid operation. Maybe you forgot to define the main or module field in the package.json file.
+"
 `;
 
-exports[`build api should work with main field and cjs syntax: build-api-should-work-with-main-field-and-cjs-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should throw a error if splitting = true, but format != esm 1`] = `
+" ERROR  \\"splitting\\" currently only works with \\"esm\\" format, instead of 'cjs'
+"
 `;
 
-exports[`build api should work with main field and esm syntax: build-api-should-work-with-main-field-and-esm-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should throw a error if we aren't in watch mode but incremental = true 1`] = `
+" ERROR  \\"incremental\\" option only works with \\"watch\\" command.
+"
 `;
 
-exports[`build api should work with module field and esm syntax: build-api-should-work-with-module-field-and-esm-syntax 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should validate type field in package.json, current format cjs, fixture: only-main-field-esm 1`] = `
+" ERROR  \\"type\\": \\"commonjs\\" is required in the package.json.
+"
 `;
 
-exports[`build api should work with no options and main field: build-api-should-work-with-no-options-and-main-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
+exports[`esw build should validate type field in package.json, current format esm, fixture: only-main-field 1`] = `
+" ERROR  \\"type\\": \\"module\\" is required in the package.json.
+"
 `;
-
-exports[`build api should work with no options and module field: build-api-should-work-with-no-options-and-module-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`build api should work with no options: build-api-should-work-with-no-options 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`build api shouldn't emit a error when write is true: works 1`] = `
-Array [
-  Object {
-    "status": "fulfilled",
-    "value": Object {
-      "errors": Array [],
-      "metafile": Object {
-        "inputs": Object {
-          "index.ts": Object {
-            "bytes": 111,
-            "imports": Array [
-              Object {
-                "kind": "import-statement",
-                "path": "src/fib.ts",
-              },
-            ],
-          },
-          "src/fib.ts": Object {
-            "bytes": 135,
-            "imports": Array [],
-          },
-        },
-        "outputs": Object {
-          "dist/cjs/index.js": Object {
-            "bytes": 1521,
-            "entryPoint": "index.ts",
-            "exports": Array [],
-            "imports": Array [],
-            "inputs": Object {
-              "index.ts": Object {
-                "bytesInOutput": 179,
-              },
-              "src/fib.ts": Object {
-                "bytesInOutput": 121,
-              },
-            },
-          },
-        },
-      },
-      "warnings": Array [],
-    },
-  },
-  Object {
-    "status": "fulfilled",
-    "value": Object {
-      "errors": Array [],
-      "metafile": Object {
-        "inputs": Object {
-          "index.ts": Object {
-            "bytes": 111,
-            "imports": Array [
-              Object {
-                "kind": "import-statement",
-                "path": "src/fib.ts",
-              },
-            ],
-          },
-          "src/fib.ts": Object {
-            "bytes": 135,
-            "imports": Array [],
-          },
-        },
-        "outputs": Object {
-          "index.esm.js": Object {
-            "bytes": 271,
-            "entryPoint": "index.ts",
-            "exports": Array [
-              "default",
-            ],
-            "imports": Array [],
-            "inputs": Object {
-              "index.ts": Object {
-                "bytesInOutput": 79,
-              },
-              "src/fib.ts": Object {
-                "bytesInOutput": 121,
-              },
-            },
-          },
-        },
-      },
-      "warnings": Array [],
-    },
-  },
-]
-`;
-
-exports[`build api shouldn't override the esm inference from module field: build-api-shouldn't-override-the-esm-inference-from-module-field 1`] = `
-Array [
-  Object {
-    "errors": Array [],
-    "warnings": Array [],
-  },
-]
-`;
-
-exports[`build api shouldn't work with main field and cjs syntax without type: commonjs: build-api-shouldn't-work-with-main-field-and-cjs-syntax-without-type:-commonjs 1`] = `"\\"type\\": \\"commonjs\\" is required in the package.json."`;
-
-exports[`build api shouldn't work with main field and esm syntax without type: module: build-api-shouldn't-work-with-main-field-and-esm-syntax-without-type:-module 1`] = `"\\"type\\": \\"module\\" is required in the package.json."`;
-
-exports[`build api shouldn't work with no valid entry field: build-api-shouldn't-work-with-no-valid-entry-field 1`] = `"Invalid operation. Maybe you forgot to define the main or module field in the package.json file."`;
