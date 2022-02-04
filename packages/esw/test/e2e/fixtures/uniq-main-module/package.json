@@ -1,6 +1,0 @@
-{
-  "name": "uniq-main-module",
-  "version": "0.0.0",
-  "main": "dist/index.js",
-  "module": "dist/lib.js"
-}
