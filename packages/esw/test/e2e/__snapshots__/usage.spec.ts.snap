@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`cli stdout should print build usage by alias: print build usage by alias 1`] = `
+"
+Description
+  Compiles the codebase with options inference.
+
+Usage
+  esw build [entry] [options]
+
+  [entry] represents the library entry point.
+          esw would run options inference when an entry files isn't explicitly specified.
+          On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
+
+  [options] esbuild options, see https://esbuild.github.io/
+
+"
+`;
+
+exports[`cli stdout should print build usage: print build usage 1`] = `
+"
+Description
+  Compiles the codebase with options inference.
+
+Usage
+  esw build [entry] [options]
+
+  [entry] represents the library entry point.
+          esw would run options inference when an entry files isn't explicitly specified.
+          On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
+
+  [options] esbuild options, see https://esbuild.github.io/
+
+"
+`;
+
+exports[`cli stdout should print global message by alias: print global message by alias 1`] = `
+"
+Usage
+  $ esw <command>
+
+Available commands
+  build, watch
+
+Options
+  --version, -v      Show version number
+  --help, -h         Display help messages
+
+For more information run a command with the --help flag
+  esw <available command> --help
+
+"
+`;
+
+exports[`cli stdout should print global message with unknown command: print global message with unknown command 1`] = `
+"
+Usage
+  $ esw <command>
+
+Available commands
+  build, watch
+
+Options
+  --version, -v      Show version number
+  --help, -h         Display help messages
+
+For more information run a command with the --help flag
+  esw <available command> --help
+
+"
+`;
+
+exports[`cli stdout should print global message: print global message 1`] = `
+"
+Usage
+  $ esw <command>
+
+Available commands
+  build, watch
+
+Options
+  --version, -v      Show version number
+  --help, -h         Display help messages
+
+For more information run a command with the --help flag
+  esw <available command> --help
+
+"
+`;
+
+exports[`cli stdout should print version by alias: print version by alias 1`] = `
+"v0.13.0
+"
+`;
+
+exports[`cli stdout should print version: print version 1`] = `
+"v0.13.0
+"
+`;

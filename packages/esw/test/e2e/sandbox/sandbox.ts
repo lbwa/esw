@@ -17,6 +17,7 @@ export interface Sandbox {
   reset(): Promise<void>
   terminate(): Promise<void>
   spawn(command: string, args?: string[], options?: SpawnOptions): ChildProcess
+  loadBuildResult(paths: string[]): Promise<string[]>
 }
 
 export async function createSandbox() {
@@ -163,6 +164,15 @@ export async function createSandbox() {
       childProcess.on('exit', () => childProcesses.delete(childProcess))
       childProcesses.add(childProcess)
       return childProcess
+    },
+
+    loadBuildResult(paths) {
+      return Promise.all(
+        paths.filter(Boolean).map(p => {
+          const absPath = path.resolve(sandbox.cwd, p)
+          return fs.promises.readFile(absPath, 'utf8')
+        })
+      )
     }
   }
 
