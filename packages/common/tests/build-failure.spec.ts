@@ -1,3 +1,4 @@
+import stripAnsi from 'strip-ansi'
 import { printBuildError } from '../src'
 
 describe('serialize build error', () => {
@@ -30,7 +31,9 @@ describe('serialize build error', () => {
     })
     expect(wrongSpy).not.toHaveBeenCalled()
     expect(spy).toBeCalledTimes(1)
-    expect(spy.mock.calls[0]?.join('\n')).toMatchSnapshot(`stderr`)
+    expect(stripAnsi(spy.mock.calls[0]?.join('\n') as string)).toMatchSnapshot(
+      `stderr`
+    )
 
     spy.mockRestore()
     wrongSpy.mockRestore()
@@ -65,7 +68,9 @@ describe('serialize build error', () => {
     })
     expect(wrongSpy).not.toHaveBeenCalled()
     expect(spy).toBeCalledTimes(1)
-    expect(spy.mock.calls[0]?.join('\n')).toMatchSnapshot(`stderr`)
+    expect(stripAnsi(spy.mock.calls[0]?.join('\n') as string)).toMatchSnapshot(
+      `stderr`
+    )
 
     spy.mockRestore()
     wrongSpy.mockRestore()
@@ -130,7 +135,9 @@ describe('serialize build error', () => {
 
     expect(wrongSpy).not.toHaveBeenCalled()
     expect(spy).toBeCalledTimes(1)
-    expect(spy.mock.calls[0]?.join('\n')).toMatchSnapshot(`stderr`)
+    expect(stripAnsi(spy.mock.calls[0]?.join('\n') as string)).toMatchSnapshot(
+      `stderr`
+    )
     spy.mockRestore()
   })
 })

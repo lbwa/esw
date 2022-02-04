@@ -2,9 +2,7 @@
 import chalk from 'chalk'
 import { ExitCode } from '.'
 
-export const colors = new chalk.Instance(
-  process.env.NODE_ENV === 'test' ? { level: 0 } : undefined
-)
+export const colors = new chalk.Instance()
 
 /**
  * @see https://github.com/facebook/create-react-app/blob/v4.0.3/packages/react-dev-utils/clearConsole.js
