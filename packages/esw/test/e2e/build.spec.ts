@@ -41,6 +41,12 @@ describe('esw build', () => {
   let sandbox: Sandbox
   beforeAll(async () => {
     sandbox = await createSandbox()
+
+    // use arbitrary project to avoid to install local package multiple times.
+    await sandbox.load(path.resolve(__dirname, 'fixtures/no-options'))
+    await sandbox.install({
+      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
+    })
   })
 
   beforeEach(async () => {
@@ -53,9 +59,7 @@ describe('esw build', () => {
 
   it('should work with no options', async () => {
     await sandbox.load(path.resolve(__dirname, 'fixtures/no-options'))
-    await sandbox.install({
-      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
-    })
+
     const driver = createCliDriver(sandbox.spawn('esw', ['build']))
     const result = await driver.waitForStdout()
     expect(result).toMatchSnapshot()
@@ -74,9 +78,7 @@ describe('esw build', () => {
 
   it('should mark all dependencies/peerDependencies as external', async () => {
     await sandbox.load(path.resolve(__dirname, 'fixtures/with-deps'))
-    await sandbox.install({
-      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
-    })
+
     const driver = createCliDriver(sandbox.spawn('esw', ['build']))
     const result = await driver.waitForStdout()
     expect(result).toMatchSnapshot()
@@ -98,9 +100,6 @@ describe('esw build', () => {
 
   it('should throw a error when esbuild bundling failed', async () => {
     await sandbox.load(path.resolve(__dirname, 'fixtures/build-error'))
-    await sandbox.install({
-      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
-    })
 
     const driver = createCliDriver(sandbox.spawn('esw', ['build']))
     const error = await driver.waitForStderr()
@@ -110,9 +109,6 @@ describe('esw build', () => {
 
   it('should clean dist first before next bundling start.', async () => {
     await sandbox.load(path.resolve(__dirname, 'fixtures/clean-dist'))
-    await sandbox.install({
-      esw: format('file:%s', process.env.E2E_LIB_PACK_PATH)
-    })
 
     const cacheFile = path.resolve(sandbox.cwd, 'dist/cache.ts')
     await fs.promises.mkdir(path.dirname(cacheFile), { recursive: true })
