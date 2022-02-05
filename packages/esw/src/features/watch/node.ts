@@ -17,7 +17,7 @@ import {
   tap,
   toArray
 } from 'rxjs'
-import { BundleService } from '@bundle/service'
+import { createBundleService } from '@bundle/service'
 import { createInference } from '@inference/options'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
@@ -111,7 +111,7 @@ export default function runWatch(
     AvailableCommands.Watch,
     cwd
   )
-  const bundleService = BundleService.new(options$)
+  const bundleService = createBundleService(options$)
   return combineLatest([options$.pipe(toArray()), watch$]).pipe(
     tap(() => {
       stdout.clear()
@@ -143,7 +143,7 @@ export default function runWatch(
             )}`
           )
         }),
-        exhaustMap(() => bundleService.incrementalBuild(false))
+        exhaustMap(() => bundleService.build(false, true))
       )
     }),
     // reduce operator only emit values when source completed. We use it to handle all emit, but shouldn't completed during the file watching.

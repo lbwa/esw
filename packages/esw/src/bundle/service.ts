@@ -7,37 +7,18 @@ import { isFulfillResult } from '../utils/data-structure'
 import { rmDirs, findAllStaleDir } from '@root/io'
 
 type RebuildHandle = NonNullable<BuildResult['rebuild']>
+export interface BuildService {
+  build(
+    cleanBeforeBuild: boolean,
+    incremental?: boolean
+  ): Observable<PromiseSettledResult<BuildResult>[]>
+}
 
-export class BundleService {
-  private rebuilds: RebuildHandle[] = []
+export function createBundleService(options$: Observable<BuildOptions>) {
+  const rebuilds: RebuildHandle[] = []
 
-  static new(...payload: ConstructorParameters<typeof BundleService>) {
-    return new BundleService(...payload)
-  }
-
-  constructor(private readonly options$: Observable<BuildOptions>) {}
-
-  incrementalBuild(
-    ...payload: Parameters<BundleService['build']>
-  ): ReturnType<BundleService['build']> {
-    if (!isEmpty(this.rebuilds)) {
-      return from(Promise.allSettled(this.rebuilds.map(rebuild => rebuild())))
-    }
-
-    return this.build(...payload).pipe(
-      tap(results => {
-        results.forEach(result => {
-          // only works with option.incremental: true
-          if (isFulfillResult(result) && isFunction(result.value?.rebuild)) {
-            this.rebuilds.push(result.value.rebuild)
-          }
-        })
-      })
-    )
-  }
-
-  build(cleanBeforeBuild = true) {
-    const run$ = this.options$.pipe(
+  function internalBuild(cleanBeforeBuild = true) {
+    return options$.pipe(
       toArray(),
       mergeMap(async options => {
         assert(
@@ -54,6 +35,28 @@ export class BundleService {
       map(options => options.map(options => build(options))),
       mergeMap(handles => Promise.allSettled(handles))
     )
-    return run$
+  }
+
+  return {
+    build(cleanBeforeBuild = true, incremental = false) {
+      if (!incremental) {
+        return internalBuild(cleanBeforeBuild)
+      }
+
+      if (!isEmpty(rebuilds)) {
+        return from(Promise.allSettled(rebuilds.map(rebuild => rebuild())))
+      }
+
+      return internalBuild(cleanBeforeBuild).pipe(
+        tap(results => {
+          results.forEach(result => {
+            // only works with option.incremental: true
+            if (isFulfillResult(result) && isFunction(result.value?.rebuild)) {
+              rebuilds.push(result.value.rebuild)
+            }
+          })
+        })
+      )
+    }
   }
 }

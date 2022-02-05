@@ -14,12 +14,12 @@ import omit from 'lodash/omit'
 import { BuildFailure, BuildOptions, Metafile, analyzeMetafile } from 'esbuild'
 import { isDef, printBuildError, stdout, ExitCode } from '@eswjs/common'
 import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
-import { BundleService, createInference } from '@bundle/index'
+import { BuildService, createBundleService } from '@bundle/index'
 import { CommandRunner } from '@cli/dispatch'
 import { resolveArgv } from '@cli/argv'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
-
+import { createInference } from '@inference/options'
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
     stdout.raw(
@@ -80,10 +80,10 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
     )
   )
 
-  let bundleService: BundleService
+  let bundleService: BuildService
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
-      bundleService = BundleService.new(
+      bundleService = createBundleService(
         createInference(
           options,
           AvailableCommands.Build,
