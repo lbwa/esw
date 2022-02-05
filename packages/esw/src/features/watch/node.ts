@@ -40,26 +40,20 @@ function createIgnoredFromOptions(group: BuildOptions[]) {
     const {
       entryPoints = {},
       absWorkingDir = process.cwd(),
-      outdir = absWorkingDir,
-      outExtension
+      outdir = absWorkingDir
     } = options
     return paths.concat(
       Object.keys(entryPoints as Record<string, string>).reduce(
         (paths, filename) => {
           const absOutDir = path.resolve(absWorkingDir, outdir)
-          const serializedPath = path.resolve(
-            absOutDir,
-            `${filename}${
-              (outExtension as NonNullable<BuildOptions['outExtension']>)['.js']
-            }`
-          )
 
           if (absOutDir !== absWorkingDir) {
             // ignore outPath dir
             paths.push(`${absOutDir.replace(/\/$/, '')}/**`)
           } else {
+            const serializedPath = path.resolve(absOutDir, filename) // without file ext
             // ignore output file
-            paths.push(serializedPath)
+            paths.push(serializedPath + '*')
           }
           return paths
         },
