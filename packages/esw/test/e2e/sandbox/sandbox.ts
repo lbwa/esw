@@ -161,7 +161,10 @@ export async function createSandbox() {
       childProcess.stderr?.on('data', (data: Buffer) => {
         process.stderr.write(stripAnsi(data.toString()))
       })
-      childProcess.on('exit', () => childProcesses.delete(childProcess))
+      childProcess.on('exit', (code, signal) => {
+        childProcesses.delete(childProcess)
+        process.stdout.write(`exit with code ${code} and signal ${signal}\n`)
+      })
       childProcesses.add(childProcess)
       return childProcess
     },
