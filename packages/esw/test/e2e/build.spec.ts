@@ -257,4 +257,43 @@ describe('esw build', () => {
       (await driver.waitForStderr()).replace(sandbox.cwd, '<PRIVATE_PATH>')
     ).toMatchSnapshot()
   })
+
+  it.each([
+    [
+      'if entry points are glob patterns',
+      ['build', 'src/**/*.ts', '--outdir=dist'],
+      ['dist/common/fib.js', 'dist/a.js', 'dist/b.js'],
+      []
+    ],
+    [
+      'if entry points are paths',
+      ['build', 'src/a.ts', 'src/b.ts', '--outdir=dist'],
+      ['dist/a.js', 'dist/b.js'],
+      ['dist/common/fib.js']
+    ],
+    [
+      'if entry points are glob patterns and paths',
+      ['build', 'src/**/fib.ts', 'src/a.ts', '--outdir=dist'],
+      ['dist/common/fib.js', 'dist/a.js'],
+      ['dist/b.js']
+    ]
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+  ])('should work %s', async (_, args, outputPaths, disallowPaths) => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/multi-entries'))
+
+    const driver = createCliDriver(sandbox.spawn('esw', args))
+
+    expect(await driver.waitForStdout()).toContain('%')
+
+    const contents = await sandbox.loadBuildResult(outputPaths)
+
+    contents.forEach(content => {
+      expect(content).toContain('function fib')
+      expect(content).toContain('module.exports = ')
+    })
+
+    disallowPaths.forEach(p => {
+      expect(fs.existsSync(p)).toBeFalsy()
+    })
+  })
 })

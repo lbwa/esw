@@ -12,10 +12,14 @@ import {
   Observable,
   concatMap,
   switchMap,
-  pipe
+  pipe,
+  mergeMap
 } from 'rxjs'
 import { PackageJson } from 'type-fest'
 import { stdout, ExitCode } from '@eswjs/common'
+import partition from 'lodash/partition'
+import isGlob from 'is-glob'
+import globby from 'globby'
 import { AvailableCommands } from './constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
@@ -119,11 +123,23 @@ export default function parse(argv: string[]) {
   )
 
   const handleForwardArgs$ = handlePrintUsage$.pipe(
-    map(({ isValidStdin, args }) => {
+    mergeMap(async ({ isValidStdin, args }) => {
       const [commandName] = args._
-      const forwardArgs = isValidStdin ? args._.slice(1) : args._
+      const [patterns, forwardArgs] = partition(
+        isValidStdin ? args._.slice(1) : args._,
+        isGlob
+      )
+
       if (args['--help']) {
         forwardArgs.push('--help')
+      }
+
+      if (patterns.length > 0) {
+        forwardArgs.push(
+          ...(await globby(patterns, {
+            gitignore: true
+          }))
+        )
       }
       return {
         forwardArgs,
