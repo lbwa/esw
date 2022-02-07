@@ -1,0 +1,6 @@
+{
+  "name": "multi-entries",
+  "version": "0.0.0",
+  "main": "dist/cjs/index.js",
+  "module": "index.esm.js"
+}

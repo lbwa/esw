@@ -24,11 +24,11 @@ exports[`esw build should throw a error if we aren't in watch mode but increment
 `;
 
 exports[`esw build should validate type field in package.json, current format cjs, fixture: only-main-field-esm 1`] = `
-" ERROR  \\"type\\": \\"commonjs\\" is required in the package.json.
+" ERROR  \\"type\\": \\"commonjs\\" is required in the package.json, not \\"module\\"
 "
 `;
 
 exports[`esw build should validate type field in package.json, current format esm, fixture: only-main-field 1`] = `
-" ERROR  \\"type\\": \\"module\\" is required in the package.json.
+" ERROR  \\"type\\": \\"module\\" is required in the package.json, not \\"undefined\\"
 "
 `;
