@@ -33,7 +33,7 @@
     "directory": "packages/esw"
   },
   "scripts": {
-    "build": "esbuild src/bin/*.ts src/index.ts --bundle --analyze --platform=node --outdir=dist --outbase=src --tsconfig=tsconfig.json --target=node14 --external:rxjs --external:esbuild --external:arg --external:type-fest --external:lodash --external:@eswjs/common --external:chokidar",
+    "build": "esbuild scripts/build-lib.ts --format=cjs --platform=node --outdir=scripts --bundle --external:esbuild --external:lodash --log-level=silent && node scripts/build-lib.js",
     "watch": "yarn build --watch",
     "prepublishOnly": "yarn build",
     "test": "echo \"Error: run tests from root\" && exit 1"

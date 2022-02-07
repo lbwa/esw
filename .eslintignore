@@ -6,3 +6,4 @@ lib
 # don't lint nyc coverage output
 coverage
 packages/esw/test/e2e/fixtures/**
+packages/esw/scripts/*.js
