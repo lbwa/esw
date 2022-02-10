@@ -2,37 +2,27 @@
 
 [![github action](https://github.com/lbwa/esw/actions/workflows/test.yml/badge.svg)](https://github.com/lbwa/esw/actions) [![npm (tag)](https://img.shields.io/npm/v/esw/latest?style=flat-square)](https://www.npmjs.com/package/esw) [![node-current](https://img.shields.io/node/v/esw?style=flat-square)](https://nodejs.org/en/download/)
 
-`esw` is a JavaScript/TypeScript library build tool. It offers blazing fast performance utilizing [esbuild](https://esbuild.github.io), and requires zero configuration.
+`esw` is a JavaScript/TypeScript library build tool. It offers blazing fast performance utilizing [esbuild](https://esbuild.github.io), and **requires zero configuration**.
 
-- No more build scripts or configs. esw has supported **automatic build option inference**.
-- Smaller bundle size. It wouldn't bundle any `dependencies` or `peerDependencies` by default.
-- The most of web project source file type has been supported by default, eg. TypeScript/JavaScript/JSX/CSS([experimental](https://esbuild.github.io/content-types/#css))
+**✨Passive usage**
+
+Infer build options from `package.json` by default. Ideally you don't need to write any configurations. Also support multiple entry points via glob syntax if necessary.
+
+**📦Optimized bundling**
+
+Driven by esbuild and only bundle codebase without any [dependencies](https://docs.npmjs.com/cli/v8/configuring-npm/package-json/#dependencies) and [peerDependencies](https://docs.npmjs.com/cli/v8/configuring-npm/package-json/#peerdependencies) by default.
 
 ## Installation
 
-- using npm
-
-  ```console
-  npm i esw --save-dev
-  ```
-
-- using yarn
-
-  ```console
-  yarn add esw -D
-  ```
-
-- using pnpm
-
-  ```console
-  pnpm i esw -D
-  ```
+```console
+npm i esw -D
+```
 
 ## Getting Started
 
 3 steps to get started:
 
-1. 🖊 declare [main](https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#main) or [module](https://nodejs.org/api/packages.html#packages_dual_commonjs_es_module_packages) or both them in the `package.json`.
+1. 🖊 declare [main][pkg-main] or [module][pkg-module] or both them in the [package.json](https://docs.npmjs.com/cli/v8/configuring-npm/package-json/).
 
    ```json
    {
@@ -53,7 +43,7 @@
 3. 🏆 All transpiled products would be placed in the target output path which were inferred by esw.
 
    ```
-   project
+   codebase root
     └─dist
        ├─index.cjs.js
        └─index.esm.js
@@ -61,27 +51,39 @@
 
 ## Advanced Usage
 
-esw has supported the most of [esbuild](https://github.com/evanw/esbuild) cli options. e.g:
+esw has supported the most of [esbuild](https://github.com/evanw/esbuild) cli options:
 
 ```bash
-esw build --minify --sourcemap --target=es2019 --format=esm
+esw build --minify --sourcemap --platform=node --format=esm
 ```
 
 ### Build codebase
 
 ```bash
-esw build
+esw build src/*.ts
 ```
 
 ### Watch codebase
 
 ```bash
-esw watch
+esw watch src/index.ts
 ```
 
 ### Supported source file types
 
 Please refer to [esbuild documentation](https://esbuild.github.io/content-types/).
+
+## Supported package.json fields
+
+|      Field name      | Status |
+| :------------------: | :----: |
+|   [main][pkg-main]   |   ✔    |
+| [module][pkg-module] |   ✔    |
+|   [type][pkg-type]   |   ✔    |
+
+[pkg-main]: https://docs.npmjs.com/cli/v8/configuring-npm/package-json#main
+[pkg-module]: https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#packages_dual_commonjs_es_module_packages
+[pkg-type]: https://nodejs.org/dist/latest-v16.x/docs/api/packages.html#type
 
 ## License
 
