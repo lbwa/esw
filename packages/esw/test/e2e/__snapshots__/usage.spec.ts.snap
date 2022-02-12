@@ -87,13 +87,3 @@ For more information run a command with the --help flag
 
 "
 `;
-
-exports[`cli stdout should print version by alias: print version by alias 1`] = `
-"v0.13.0
-"
-`;
-
-exports[`cli stdout should print version: print version 1`] = `
-"v0.13.0
-"
-`;

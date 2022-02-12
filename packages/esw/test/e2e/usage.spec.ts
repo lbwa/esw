@@ -25,13 +25,21 @@ describe('cli stdout', () => {
     ['print global message', ['--help']],
     ['print global message by alias', ['-h']],
     ['print global message with unknown command', ['unknownCommand']],
-    ['print version', ['--version']],
-    ['print version by alias', ['-v']],
     ['print build usage', ['build', '--help']],
     ['print build usage by alias', ['build', '-h']]
   ])('should %s', async (name, args) => {
     const driver = createCliDriver(sandbox.spawn('esw', args))
     const stdout = await driver.waitForStdout()
     expect(stdout).toMatchSnapshot(name)
+  })
+
+  it.each([
+    ['print version', ['--version']],
+    ['print version by alias', ['-v']]
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+  ])('should %s', async (_, args) => {
+    const driver = createCliDriver(sandbox.spawn('esw', args))
+    const stdout = await driver.waitForStdout()
+    expect(stdout).toMatch(/^v\d+\.\d+\.\d+/i)
   })
 })
