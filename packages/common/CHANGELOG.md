@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.7.0...@eswjs/common@0.8.0) (2022-02-12)
+
+### Features
+
+- **chalk:** ensure chalk instance colorable ([67b2296](https://github.com/lbwa/esw/commit/67b2296ab78ddfecffac365bec4920449d7a577e))
+
 # [0.7.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.6.0...@eswjs/common@0.7.0) (2022-02-01)
 
 ### Features

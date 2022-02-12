@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/lbwa/esw/compare/esw@0.13.0...esw@0.14.0) (2022-02-12)
+
+### Bug Fixes
+
+- resume broken watching ([018becd](https://github.com/lbwa/esw/commit/018becd9212b90fabb56080d1bacf40bf25eab9b))
+
+### Features
+
+- **esw:** support multiple entry points(paths or glob pattern) ([#41](https://github.com/lbwa/esw/issues/41)) ([c243c67](https://github.com/lbwa/esw/commit/c243c67dfe8deef445885bac5d1371603e2dd23a)), closes [#37](https://github.com/lbwa/esw/issues/37)
+
 # [0.13.0](https://github.com/lbwa/esw/compare/esw@0.12.0...esw@0.13.0) (2022-02-01)
 
 ### Bug Fixes
