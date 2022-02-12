@@ -2,7 +2,16 @@ import path from 'path'
 import fs from 'fs'
 import { format } from 'util'
 import { BuildOptions, Format } from 'esbuild'
-import { map, tap, mergeMap, from, distinctUntilChanged } from 'rxjs'
+import {
+  map,
+  tap,
+  mergeMap,
+  from,
+  distinctUntilChanged,
+  iif,
+  defer,
+  Observable
+} from 'rxjs'
 import isNil from 'lodash/isNil'
 import flow from 'lodash/flow'
 import pick from 'lodash/pick'
@@ -135,8 +144,30 @@ function inferEntryPoints({ outputPath }: InferenceMeta) {
   }
 }
 
+function validateFormatIsMatchType(
+  fmt: string,
+  type: PackageJson['type']
+): asserts type {
+  if (fmt === 'cjs') {
+    assert(
+      isNil(type) || type === 'commonjs',
+      format(
+        '"type": "commonjs" is required in the package.json, not "%s"',
+        type
+      )
+    )
+  }
+
+  if (fmt === 'esm') {
+    assert(
+      type === 'module',
+      format('"type": "module" is required in the package.json, not "%s"', type)
+    )
+  }
+}
+
 function inferBuildFormat(inferredMeta: InferenceMeta) {
-  const { entryPointField, format } = inferredMeta
+  const { entryPointField } = inferredMeta
 
   return function inferBuildFormatImpl(
     existsOptions: BuildOptions
@@ -148,7 +179,7 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
     if (entryPointField === 'module') {
       return {
         ...existsOptions,
-        format // use recommended format
+        format: inferredMeta.format // use recommended format 'esm'
       }
     }
 
@@ -159,21 +190,9 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
 
     const fmt =
       existsOptions.format ??
-      PKG_FIELD_TO_FORMAT.get(entryPointField /* main */)
+      (PKG_FIELD_TO_FORMAT.get(entryPointField /* main */) as Format)
 
-    if (fmt === 'cjs') {
-      assert(
-        isNil(inferredMeta.type) || inferredMeta.type === 'commonjs',
-        '"type": "commonjs" is required in the package.json.'
-      )
-    }
-
-    if (fmt === 'esm') {
-      assert(
-        inferredMeta.type === 'module',
-        '"type": "module" is required in the package.json.'
-      )
-    }
+    validateFormatIsMatchType(fmt, inferredMeta.type)
 
     return {
       ...existsOptions,
@@ -182,10 +201,8 @@ function inferBuildFormat(inferredMeta: InferenceMeta) {
   }
 }
 
-function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
-  const { outputPath } = inferredMeta
-
-  return function mergeDefaultBuildOptionsImpl(
+function mergeStaticBuildOptions(cwd: string) {
+  return function mergeBuildOptionsImpl(
     existsOptions: BuildOptions
   ): BuildOptions {
     const options: BuildOptions = {
@@ -200,16 +217,24 @@ function mergeDefaultBuildOptions(cwd: string, inferredMeta: InferenceMeta) {
     return {
       ...options,
       absWorkingDir: cwd,
-      outdir: options.outdir ?? path.dirname(outputPath),
       splitting: options.splitting ?? options.format === 'esm'
     }
   }
 }
 
-function markDepsAsExternalParts({
-  dependencies = {},
-  peerDependencies = {}
-}: InferenceMeta) {
+function inferOutDir(meta: InferenceMeta) {
+  const { outputPath } = meta
+  return function inferOutDirImpl(existsOptions: BuildOptions) {
+    return {
+      ...existsOptions,
+      outdir: existsOptions.outdir ?? path.dirname(outputPath)
+    }
+  }
+}
+
+function markDepsAsExternalParts<
+  Meta extends Pick<InferenceMeta, 'dependencies' | 'peerDependencies'>
+>({ dependencies = {}, peerDependencies = {} }: Meta) {
   const dependencyGroups = [peerDependencies, dependencies].reduce(
     (names, deps) => names.concat(Object.keys(deps)),
     [] as string[]
@@ -230,12 +255,8 @@ function markDepsAsExternalParts({
   }
 }
 
-export function createInference(
-  options: BuildOptions,
-  command: AvailableCommands,
-  cwd: string = options.absWorkingDir || process.cwd()
-) {
-  function checkForbiddenOptions(options: BuildOptions): void {
+function checkForbiddenOptions(command: AvailableCommands) {
+  return function checkForbiddenOptions(options: BuildOptions): void {
     const { splitting, format, incremental } = options
     /** `incremental` only works with the file watcher */
     const isAllowIncremental =
@@ -251,7 +272,13 @@ export function createInference(
       `"splitting" currently only works with "esm" format, instead of '${format}'`
     )
   }
+}
 
+function createMonoEntryInference(
+  options: BuildOptions,
+  command: AvailableCommands,
+  cwd: string = options.absWorkingDir ?? process.cwd()
+) {
   return from(parsePackageJson(cwd)).pipe(
     mergeMap((packageJson: PackageJson) =>
       getInferenceMeta(packageJson, PRESET_JS_FORMAT)
@@ -263,12 +290,61 @@ export function createInference(
       // use builders to infer options
       flow(
         inferBuildFormat(meta),
-        mergeDefaultBuildOptions(cwd, meta),
+        mergeStaticBuildOptions(cwd),
+        inferOutDir(meta),
         ensureEntryPoints(cwd, meta),
         inferEntryPoints(meta),
         markDepsAsExternalParts(meta)
       )(options)
     ),
-    tap(checkForbiddenOptions)
+    tap(checkForbiddenOptions(command))
+  )
+}
+
+function createMultiEntriesInference(
+  options: BuildOptions,
+  command: AvailableCommands,
+  cwd: string = options.absWorkingDir ?? process.cwd()
+): Observable<BuildOptions> {
+  function inferBuildFormat<Meta extends Pick<InferenceMeta, 'type'>>(
+    meta: Meta
+  ) {
+    return function inferBuildFormatImpl(
+      existsOptions: BuildOptions
+    ): BuildOptions {
+      const fmt: Format =
+        existsOptions.format ?? (meta.type === 'module' ? 'esm' : 'cjs')
+      validateFormatIsMatchType(fmt, meta.type)
+      return {
+        ...existsOptions,
+        format: fmt
+      }
+    }
+  }
+
+  return from(parsePackageJson(cwd)).pipe(
+    map(packageJson =>
+      pick(packageJson, ['type', 'dependencies', 'peerDependencies'])
+    ),
+    map(meta =>
+      flow(
+        inferBuildFormat(meta),
+        mergeStaticBuildOptions(cwd),
+        markDepsAsExternalParts(meta)
+      )(options)
+    ),
+    tap(checkForbiddenOptions(command))
+  )
+}
+
+export function dispatchInference(
+  options: BuildOptions,
+  command: AvailableCommands,
+  cwd = options.absWorkingDir ?? process.cwd()
+): Observable<BuildOptions> {
+  return iif(
+    () => Array.isArray(options.entryPoints) && options.entryPoints.length > 1,
+    defer(() => createMultiEntriesInference(options, command, cwd)),
+    defer(() => createMonoEntryInference(options, command, cwd))
   )
 }

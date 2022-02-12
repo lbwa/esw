@@ -19,7 +19,7 @@ import { CommandRunner } from '@cli/dispatch'
 import { resolveArgv } from '@cli/argv'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
-import { createInference } from '@inference/options'
+import { dispatchInference } from '@inference/options'
 function createPrintUsage$(exitCode = ExitCode.OK) {
   return defer(() => {
     stdout.raw(
@@ -84,7 +84,7 @@ const build: CommandRunner<ExitCode> = function (argv = []) {
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
       bundleService = createBundleService(
-        createInference(
+        dispatchInference(
           options,
           AvailableCommands.Build,
           options?.absWorkingDir ?? process.cwd()

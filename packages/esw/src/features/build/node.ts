@@ -2,7 +2,7 @@ import { BuildOptions } from 'esbuild'
 import { firstValueFrom } from 'rxjs'
 import { AvailableCommands } from '@cli/constants'
 import { createBundleService } from '@bundle/index'
-import { createInference } from '@inference/options'
+import { dispatchInference } from '@inference/options'
 
 export default function runBuild(
   options: BuildOptions = {},
@@ -10,7 +10,7 @@ export default function runBuild(
 ) {
   return firstValueFrom(
     createBundleService(
-      createInference(options, AvailableCommands.Build, cwd)
+      dispatchInference(options, AvailableCommands.Build, cwd)
     ).build(true)
   )
 }

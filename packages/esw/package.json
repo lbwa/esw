@@ -44,6 +44,7 @@
   "devDependencies": {
     "@lbwa/tsconfig": "^1.1.0",
     "@types/cross-spawn": "^6.0.2",
+    "@types/is-glob": "^4.0.2",
     "@types/lodash": "^4.14.171",
     "cross-spawn": "^7.0.3",
     "typescript": "^4.5.4"
@@ -54,6 +55,8 @@
     "arg": "^5.0.0",
     "chokidar": "^3.5.2",
     "esbuild": "~0.14.10",
+    "globby": "^11.1.0",
+    "is-glob": "^4.0.3",
     "lodash": "^4.17.21",
     "rxjs": "~7.5.2",
     "type-fest": "^2.11.1"
