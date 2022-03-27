@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.1](https://github.com/lbwa/esw/compare/@eswjs/common@0.8.0...@eswjs/common@0.8.1) (2022-03-27)
+
+**Note:** Version bump only for package @eswjs/common
+
 # [0.8.0](https://github.com/lbwa/esw/compare/@eswjs/common@0.7.0...@eswjs/common@0.8.0) (2022-02-12)
 
 ### Features

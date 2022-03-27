@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.1](https://github.com/lbwa/esw/compare/esw@0.14.0...esw@0.14.1) (2022-03-27)
+
+### Bug Fixes
+
+- **esw:** should respect main/module file extension ([bdf04bb](https://github.com/lbwa/esw/commit/bdf04bb11f631f761f5e91cbf07c7e31a9f2c523)), closes [#46](https://github.com/lbwa/esw/issues/46)
+
 # [0.14.0](https://github.com/lbwa/esw/compare/esw@0.13.0...esw@0.14.0) (2022-02-12)
 
 ### Bug Fixes
