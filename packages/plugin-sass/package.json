@@ -38,7 +38,7 @@
     "url": "https://github.com/lbwa/esw/issues"
   },
   "peerDependencies": {
-    "esbuild": "^0.14.10",
+    "esbuild": "~0.14.28",
     "sass": "^1.35.1"
   },
   "devDependencies": {
