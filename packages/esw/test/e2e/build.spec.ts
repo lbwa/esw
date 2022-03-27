@@ -248,7 +248,6 @@ describe('esw build', () => {
       ['build', '--incremental']
     ],
     ['if entryPoints.length is less than 1', 'empty-entry', ['build']]
-    // eslint-disable-next-line @typescript-eslint/naming-convention
   ])('should throw a error %s', async (_, name, args) => {
     await sandbox.load(path.resolve(__dirname, `fixtures/${name}`))
     const driver = createCliDriver(sandbox.spawn('esw', args))
@@ -277,7 +276,6 @@ describe('esw build', () => {
       ['dist/common/fib.js', 'dist/a.js'],
       ['dist/b.js']
     ]
-    // eslint-disable-next-line @typescript-eslint/naming-convention
   ])('should work %s', async (_, args, outputPaths, disallowPaths) => {
     await sandbox.load(path.resolve(__dirname, 'fixtures/multi-entries'))
 
@@ -295,5 +293,21 @@ describe('esw build', () => {
     disallowPaths.forEach(p => {
       expect(fs.existsSync(p)).toBeFalsy()
     })
+  })
+
+  it('should work if extension is .cjs or .mjs', async () => {
+    await sandbox.load(path.resolve(__dirname, 'fixtures/file-ext'))
+
+    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+
+    expect(await driver.waitForStdout()).toContain('%')
+
+    const [cjs, esm] = await sandbox.loadBuildResult([
+      'dist/index.cjs',
+      'dist/index.mjs'
+    ])
+
+    expect(cjs).toContain('module.exports =')
+    expect(esm).toMatch(/^export\s/m)
   })
 })

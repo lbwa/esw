@@ -33,7 +33,7 @@
     "build": "lerna run build --stream"
   },
   "devDependencies": {
-    "@lbwa/eslint-plugin": "^0.1.0",
+    "@lbwa/eslint-plugin": "^0.3.1",
     "@lbwa/prettier-config": "^0.1.0",
     "@lbwa/tsconfig": "^1.1.0",
     "@types/jest": "^27.4.0",

@@ -17,12 +17,16 @@ import flow from 'lodash/flow'
 import pick from 'lodash/pick'
 import { assert, isDef, stdout } from '@eswjs/common'
 import { PackageJson } from 'type-fest'
+import { debug as createDebug } from 'debug'
 import { esbuildPluginExternalMark } from '@plugins/external-mark'
 import { AvailableCommands } from '@cli/constants'
 import { isFileExists } from '@root/io'
 
+const debug = createDebug('infer_opts')
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
+const AVAILABLE_JS_EXTS = ['.js', '.cjs', '.mjs'] as const
+const DEFAULT_JS_EXTS = AVAILABLE_JS_EXTS[0]
 const FORMAT_TO_PKG_FIELD = new Map<Format, 'main' | 'module'>([
   ['cjs', 'main'],
   ['esm', 'module']
@@ -222,11 +226,15 @@ function mergeStaticBuildOptions(cwd: string) {
   }
 }
 
-function inferOutDir(meta: InferenceMeta) {
+function inferOut(meta: InferenceMeta) {
   const { outputPath } = meta
+  const ext = path.extname(outputPath) as typeof AVAILABLE_JS_EXTS[number]
   return function inferOutDirImpl(existsOptions: BuildOptions) {
     return {
       ...existsOptions,
+      outExtension: {
+        '.js': AVAILABLE_JS_EXTS.includes(ext) ? ext : DEFAULT_JS_EXTS
+      },
       outdir: existsOptions.outdir ?? path.dirname(outputPath)
     }
   }
@@ -291,7 +299,7 @@ function createMonoEntryInference(
       flow(
         inferBuildFormat(meta),
         mergeStaticBuildOptions(cwd),
-        inferOutDir(meta),
+        inferOut(meta),
         ensureEntryPoints(cwd, meta),
         inferEntryPoints(meta),
         markDepsAsExternalParts(meta)
@@ -346,5 +354,5 @@ export function dispatchInference(
     () => Array.isArray(options.entryPoints) && options.entryPoints.length > 1,
     defer(() => createMultiEntriesInference(options, command, cwd)),
     defer(() => createMonoEntryInference(options, command, cwd))
-  )
+  ).pipe(tap(op => debug(op)))
 }

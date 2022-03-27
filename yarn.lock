@@ -715,10 +715,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@lbwa/eslint-plugin@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.npmmirror.com/@lbwa/eslint-plugin/download/@lbwa/eslint-plugin-0.1.0.tgz#0ae4bc2e63f68ea9204105eaa5fdda7dbdcd3c79"
-  integrity sha512-KvFKEu8DnuLLvdfpACVlhzBFiXfnO5Vm99POPe2OEOe5Mf0gHuQE9gUrDSv6o+ZZ+WZjVuqe/MNo+NJ0YGdbAw==
+"@lbwa/eslint-plugin@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.npmmirror.com/@lbwa/eslint-plugin/-/eslint-plugin-0.3.1.tgz#92c0be8bdf43c041515fac95db39fcf81656fa68"
+  integrity sha512-ebp1x5cWI92ZKKKGOA322CNRv9ovo5GfGuY0txyrQhVX/1qpsPxlarGkuA4MO9tiqhBDtSzNdiOH4CbWnQ0hMw==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.9.1"
     "@typescript-eslint/parser" "^5.9.1"
@@ -1651,6 +1651,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/debug@^4.1.7":
+  version "4.1.7"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
+  integrity sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==
+  dependencies:
+    "@types/ms" "*"
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.5.tgz#21ffba0d98da4350db64891f92a9e5db3cdb4e15"
@@ -1714,6 +1721,11 @@
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
+
+"@types/ms@*":
+  version "0.7.31"
+  resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
+  integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
 "@types/node@*":
   version "16.6.1"
@@ -2749,6 +2761,13 @@ debug@^4.3.2:
   version "4.3.3"
   resolved "https://registry.npmmirror.com/debug/download/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
   integrity sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
+  dependencies:
+    ms "2.1.2"
+
+debug@^4.3.4:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
+  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
   dependencies:
     ms "2.1.2"
 
