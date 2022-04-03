@@ -20,10 +20,8 @@ import { resolveArgv } from '@cli/argv'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
 import { dispatchInference } from '@inference/options'
-function createPrintUsage$(exitCode = ExitCode.OK) {
-  return defer(() => {
-    stdout.raw(
-      `
+
+const MSG_BUILD_USAGE = `
 Description
   Compiles the codebase with options inference.
 
@@ -31,23 +29,26 @@ Usage
   esw build [entry] [options]
 
   [entry] represents the library entry point.
-          esw would run options inference when an entry files isn't explicitly specified.
-          On the other hand, you should always specify a entry point explicitly when the main and module have a different basename.
+          esw would run options inference when an entry point isn't explicitly specified.
+          On the other hand, you should always specify an entry point explicitly when the main and module have a different basename.
+
+          Note that a part of inferred options didn't work once we found multiple entry points.
 
   [options] esbuild options, see https://esbuild.github.io/
 
-`,
-      exitCode,
-      false
-    )
+`
+
+function createPrintUsage$(exitCode = ExitCode.OK) {
+  return defer(() => {
+    stdout.raw(MSG_BUILD_USAGE, exitCode, false)
     return NEVER
   })
 }
 
 async function printBuildResultStats(metafiles: Metafile[]) {
   const stringifiedData = await Promise.all(
-    metafiles.map(result =>
-      analyzeMetafile(result, { color: true, verbose: true })
+    metafiles.map(metafile =>
+      analyzeMetafile(metafile, { color: true, verbose: true })
     )
   )
   stdout.raw(stringifiedData.join('') + `\n`)
