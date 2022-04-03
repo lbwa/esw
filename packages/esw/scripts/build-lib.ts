@@ -1,7 +1,10 @@
-import { analyzeMetafile, build, Metafile } from 'esbuild'
+import { analyzeMetafile, build } from 'esbuild'
 import pick from 'lodash/pick'
 import packageJson from '../package.json'
-;(async () => {
+
+const isWatchMode = process.argv.includes('--watch')
+
+async function main() {
   const result = await build({
     entryPoints: ['src/bin/esw.js', 'src/index.ts'],
     bundle: true,
@@ -16,14 +19,20 @@ import packageJson from '../package.json'
       (externals, deps) => (externals as string[]).concat(Object.keys(deps)),
       [] as string[]
     ) as string[],
-    metafile: true
+    metafile: true,
+    logLevel: 'info',
+    watch: isWatchMode
   })
 
-  process.stdout.write(
-    await analyzeMetafile(result.metafile as Metafile, {
-      color: true,
-      verbose: false
-    })
-  )
-  process.stdout.write('\n')
-})()
+  if (!isWatchMode) {
+    process.stdout.write(
+      await analyzeMetafile(result.metafile, {
+        color: true,
+        verbose: true
+      })
+    )
+    process.stdout.write('\n')
+  }
+}
+
+void main()

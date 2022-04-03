@@ -33,7 +33,7 @@
     "directory": "packages/esw"
   },
   "scripts": {
-    "build": "esbuild scripts/build-lib.ts --format=cjs --platform=node --outdir=scripts --bundle --external:esbuild --external:lodash --log-level=silent && node scripts/build-lib.js",
+    "build": "esbuild scripts/build-lib.ts --platform=node --outdir=scripts --bundle --external:esbuild --external:lodash --log-level=error && node scripts/build-lib.js",
     "watch": "yarn build --watch",
     "prepublishOnly": "yarn build",
     "test": "echo \"Error: run tests from root\" && exit 1"
