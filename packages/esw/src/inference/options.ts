@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { format } from 'util'
+import { format, debuglog } from 'util'
 import { BuildOptions, Format } from 'esbuild'
 import {
   map,
@@ -17,12 +17,11 @@ import flow from 'lodash/flow'
 import pick from 'lodash/pick'
 import { assert, isDef, stdout } from '@eswjs/common'
 import { PackageJson } from 'type-fest'
-import { debug as createDebug } from 'debug'
 import { esbuildPluginExternalMark } from '@plugins/external-mark'
 import { AvailableCommands } from '@cli/constants'
 import { isFileExists } from '@root/io'
 
-const debug = createDebug('infer_opts')
+const debug = debuglog('esw:inference')
 const PRESET_JS_FORMAT = ['cjs', 'esm'] as const
 const ENTRY_POINTS_EXTS = ['.js', '.jsx', '.ts', '.tsx'] as const
 const AVAILABLE_JS_EXTS = ['.js', '.cjs', '.mjs'] as const
@@ -354,5 +353,5 @@ export function dispatchInference(
     () => Array.isArray(options.entryPoints) && options.entryPoints.length > 1,
     defer(() => createMultiEntriesInference(options, command, cwd)),
     defer(() => createMonoEntryInference(options, command, cwd))
-  ).pipe(tap(op => debug(op)))
+  ).pipe(tap(op => debug('%o', op)))
 }
