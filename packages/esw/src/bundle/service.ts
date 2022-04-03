@@ -14,17 +14,24 @@ export interface BuildService {
   ): Observable<PromiseSettledResult<BuildResult>[]>
 }
 
-export function createBundleService(options$: Observable<BuildOptions>) {
+const MSG_SERVICE_UNAVAILABLE = `
+Couldn't invoke bundle service, because we need more information to do that.
+
+1) Perhaps you forgot to define the "main" and "module" fields in the "package.json" file from codebase root if you want to bundle mono entry library.
+
+2) Perhaps you forgot to specify entry-points if you want to bundle multiple entry-points.
+`
+
+export function createBundleService(
+  options$: Observable<BuildOptions>
+): BuildService {
   const rebuilds: RebuildHandle[] = []
 
   function internalBuild(cleanBeforeBuild = true) {
     return options$.pipe(
       toArray(),
       mergeMap(async options => {
-        assert(
-          options.length > 0,
-          'Invalid operation. Maybe you forgot to define the main or module field in the package.json file.'
-        )
+        assert(options.length > 0, MSG_SERVICE_UNAVAILABLE)
 
         if (cleanBeforeBuild) {
           await rmDirs(await findAllStaleDir(options))
