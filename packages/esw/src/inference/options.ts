@@ -343,7 +343,7 @@ function createMultiEntriesInference(
     tap(checkForbiddenOptions(command)),
     tap(() =>
       stdout.warn(
-        'Detecting multiple entry points, so conflicted inference has been disabled.'
+        'A part of inferred options has been disabled because multiple entry points were found.'
       )
     )
   )
