@@ -6,7 +6,7 @@
 
 **✨Passive usage**
 
-Infer build options from `package.json` by default. Ideally you don't need to write any configurations. Also support multiple entry points via glob syntax if necessary.
+Infer build options from `package.json` by default. Ideally you don't need to write any configurations. Also support multiple entry points via glob syntax(eg. `esw src/**/*.ts --outdir=dist`) if necessary.
 
 **📦Optimized bundling**
 

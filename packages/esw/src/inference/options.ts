@@ -340,7 +340,12 @@ function createMultiEntriesInference(
         markDepsAsExternalParts(meta)
       )(options)
     ),
-    tap(checkForbiddenOptions(command))
+    tap(checkForbiddenOptions(command)),
+    tap(() =>
+      stdout.warn(
+        'Detecting multiple entry points, so conflicted inference has been disabled.'
+      )
+    )
   )
 }
 
