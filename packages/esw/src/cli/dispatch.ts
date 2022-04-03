@@ -19,7 +19,7 @@ import { PackageJson } from 'type-fest'
 import { stdout, ExitCode } from '@eswjs/common'
 import partition from 'lodash/partition'
 import isGlob from 'is-glob'
-import globby from 'globby'
+import glob from 'globby'
 import { AvailableCommands } from './constants'
 
 export type CommandRunner<V = unknown> = (argv?: string[]) => Observable<V>
@@ -136,7 +136,7 @@ export default function parse(argv: string[]) {
 
       if (patterns.length > 0) {
         forwardArgs.push(
-          ...(await globby(patterns, {
+          ...(await glob(patterns, {
             gitignore: true
           }))
         )
