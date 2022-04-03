@@ -1,8 +1,0 @@
-{
-  "extends": "@lbwa/tsconfig",
-  "compilerOptions": {
-    "outDir": "dist",
-    "emitDeclarationOnly": true
-  },
-  "include": ["src/**/*"]
-}
