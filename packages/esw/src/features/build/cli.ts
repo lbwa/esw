@@ -1,4 +1,3 @@
-import arg from 'arg'
 import {
   tap,
   map,
@@ -11,15 +10,23 @@ import {
   toArray
 } from 'rxjs'
 import omit from 'lodash/omit'
-import { BuildFailure, BuildOptions, Metafile, analyzeMetafile } from 'esbuild'
-import { isDef, printBuildError, stdout, ExitCode } from '@eswjs/common'
-import { BuildArgsSpec, BUILD_ARGS_SPEC } from './cli-spec'
+import omitBy from 'lodash/omitBy'
+import isNil from 'lodash/isNil'
+import { BuildFailure, Metafile, analyzeMetafile } from 'esbuild'
+import { printBuildError, stdout, ExitCode } from '@eswjs/common'
+import {
+  EswBuildOptions,
+  EswBuildCommandSpec,
+  ESW_BUILD_OPTIONS_SPEC,
+  isEswBuildOptionKey
+} from './options'
 import { BuildService, createBundleService } from '@bundle/index'
 import { CommandRunner } from '@cli/dispatch'
 import { resolveArgv } from '@cli/argv'
 import { isFulfillResult } from '@utils/data-structure'
 import { AvailableCommands } from '@cli/constants'
 import { dispatchInference } from '@inference/options'
+import { Result } from '@cli/parser'
 
 const MSG_BUILD_USAGE = `
 Description
@@ -57,41 +64,39 @@ async function printBuildResultStats(metafiles: Metafile[]) {
 const build: CommandRunner<ExitCode> = function (argv = []) {
   const handlePrintUsage$ = resolveArgv(
     argv,
-    BUILD_ARGS_SPEC,
+    ESW_BUILD_OPTIONS_SPEC,
     createPrintUsage$()
   )
 
   const normalizedBuildArgs$ = handlePrintUsage$.pipe(
-    map((args: arg.Result<BuildArgsSpec>) => {
-      args['--absWorkingDir'] ??= process.cwd()
+    map((args: Result<EswBuildCommandSpec>) => {
       const entryPoints = args._.filter(pending => !pending.startsWith('-'))
       args['--entryPoints'] ??= entryPoints.length > 0 ? entryPoints : undefined
-      return omit(args, '_')
+      args['--absWorkingDir'] ??= process.cwd()
+      return omit(args, '_') // FIXME: this line omit unknown esbuild options, TODO: implement esbuild cli args parser
     }),
-    map(args =>
-      Object.keys(args).reduce((options, key) => {
-        const value = args[key as keyof BuildArgsSpec]
-        if (isDef(value)) {
-          const name = key.replace(/^-+/, '') as keyof BuildOptions
-          // @ts-expect-error mixed types
-          options[name] = value as BuildOptions[keyof BuildOptions]
-        }
-        return options
-      }, {} as BuildOptions)
+    map(
+      args =>
+        omitBy(
+          Object.entries(args).reduce((serialized, [key, value]) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            serialized[key.replace(/^-+/, '') as keyof EswBuildOptions] = value
+            return serialized
+          }, {} as EswBuildOptions),
+          isNil
+        ) as EswBuildOptions
     )
   )
 
   let bundleService: BuildService
   const handleBuilding$ = normalizedBuildArgs$.pipe(
     mergeMap(options => {
+      const buildOptions = omitBy(options, (_, key) => isEswBuildOptionKey(key))
+      const { absWorkingDir: cwd } = buildOptions
       bundleService = createBundleService(
-        dispatchInference(
-          options,
-          AvailableCommands.Build,
-          options?.absWorkingDir ?? process.cwd()
-        )
+        dispatchInference(buildOptions, AvailableCommands.Build, cwd)
       )
-      return bundleService.build(true)
+      return bundleService.build(options?.clearBeforeBuild)
     }),
     mergeMap(allResults => from(allResults)),
     share()

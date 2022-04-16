@@ -1,17 +1,20 @@
 import { ExitCode, stdout, isDef } from '@eswjs/common'
 import { defer, NEVER, map, switchMap } from 'rxjs'
-import arg from 'arg'
 import omit from 'lodash/omit'
-import { BuildOptions } from 'esbuild'
-import { WatchArgsSpec, WATCH_ARGS_SPEC } from './cli-spec'
 import runWatch from './node'
+import {
+  EswWatchCommandSpec,
+  EswWatchOptions,
+  ESW_WATCH_OPTIONS_SPEC
+} from './options'
 import { CommandRunner } from '@cli/dispatch'
 import { resolveArgv } from '@cli/argv'
+import { Result } from '@root/cli/parser'
 
 const watch: CommandRunner<ExitCode> = function (argv = []) {
   const handlePrintUsage$ = resolveArgv(
     argv,
-    WATCH_ARGS_SPEC,
+    ESW_WATCH_OPTIONS_SPEC,
     defer(() => {
       stdout.raw(`
 Description:
@@ -32,22 +35,22 @@ Usage
   )
 
   const normalizedBuildArgs$ = handlePrintUsage$.pipe(
-    map((args: arg.Result<WatchArgsSpec>) => {
+    map((args: Result<EswWatchCommandSpec>) => {
       args['--absWorkingDir'] ??= process.cwd()
       const entryPoints = args._.filter(pending => !pending.startsWith('-'))
       args['--entryPoints'] ??= entryPoints.length > 0 ? entryPoints : undefined
       return omit(args, '_')
     }),
     map(args =>
-      Object.keys(args).reduce((options, key) => {
-        const value = args[key as keyof WatchArgsSpec]
+      (Object.keys(args) as (keyof typeof args)[]).reduce((options, key) => {
+        const value = args[key]
         if (isDef(value)) {
-          const name = key.replace(/^-+/, '') as keyof BuildOptions
-          // @ts-expect-error mixed types
-          options[name] = value as BuildOptions[keyof BuildOptions]
+          const name = key.replace(/^-+/, '') as keyof EswWatchOptions
+          // @ts-ignore ___
+          options[name] = value
         }
         return options
-      }, {} as BuildOptions)
+      }, {} as EswWatchOptions)
     )
   )
 

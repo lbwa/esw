@@ -81,6 +81,7 @@ export const UNI_ARGS_SPEC = {
 
   // non build args
   '--help': Boolean,
+  '--clearDist': Boolean,
 
   // alias
   '-h': '--help'
