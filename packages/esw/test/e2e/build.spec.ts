@@ -121,7 +121,9 @@ describe('esw build', () => {
     )
     expect(fs.existsSync(cacheFile)).toBeTruthy()
 
-    const driver = createCliDriver(sandbox.spawn('esw', ['build']))
+    const driver = createCliDriver(
+      sandbox.spawn('esw', ['build', '--clearBeforeBuild'])
+    )
 
     await driver.waitForStdout()
 

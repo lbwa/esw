@@ -9,17 +9,16 @@ import { rmDirs, findAllStaleDir } from '@root/io'
 type RebuildHandle = NonNullable<BuildResult['rebuild']>
 export interface BuildService {
   build(
-    cleanBeforeBuild: boolean,
+    cleanBeforeBuild?: boolean,
     incremental?: boolean
   ): Observable<PromiseSettledResult<BuildResult>[]>
 }
 
-const MSG_SERVICE_UNAVAILABLE = `
-Couldn't invoke bundle service, because we need more information to do that.
+const MSG_SERVICE_UNAVAILABLE = `Couldn't invoke bundle service, because we need more information to do that.
 
-1) Perhaps you forgot to define the "main" and "module" fields in the "package.json" file from codebase root if you want to bundle mono entry library.
+  1) Perhaps you forgot to define the "main" and "module" fields in the "package.json" file if you want to bundle codebase with single entry-points.
 
-2) Perhaps you forgot to specify entry-points if you want to bundle multiple entry-points.
+  2) Perhaps you forgot to specify entry-points if you want to bundle codebase with multiple entry-points.
 `
 
 export function createBundleService(
@@ -27,7 +26,7 @@ export function createBundleService(
 ): BuildService {
   const rebuilds: RebuildHandle[] = []
 
-  function internalBuild(cleanBeforeBuild = true) {
+  function internalBuild(cleanBeforeBuild = false) {
     return options$.pipe(
       toArray(),
       mergeMap(async options => {
@@ -45,7 +44,7 @@ export function createBundleService(
   }
 
   return {
-    build(cleanBeforeBuild = true, incremental = false) {
+    build(cleanBeforeBuild = false, incremental = false) {
       if (!incremental) {
         return internalBuild(cleanBeforeBuild)
       }

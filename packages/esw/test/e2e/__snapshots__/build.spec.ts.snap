@@ -9,12 +9,11 @@ exports[`esw build should throw a error if entryPoints.length is less than 1 1`]
 `;
 
 exports[`esw build should throw a error if main and module field are unavailable 1`] = `
-" ERROR  
-Couldn't invoke bundle service, because we need more information to do that.
+" ERROR  Couldn't invoke bundle service, because we need more information to do that.
 
-1) Perhaps you forgot to define the \\"main\\" and \\"module\\" fields in the \\"package.json\\" file from codebase root if you want to bundle mono entry library.
+  1) Perhaps you forgot to define the \\"main\\" and \\"module\\" fields in the \\"package.json\\" file if you want to bundle codebase with single entry-points.
 
-2) Perhaps you forgot to specify entry-points if you want to bundle multiple entry-points.
+  2) Perhaps you forgot to specify entry-points if you want to bundle codebase with multiple entry-points.
 
 "
 `;
