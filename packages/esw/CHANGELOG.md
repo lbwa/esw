@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/lbwa/esw/compare/esw@0.14.1...esw@0.15.0) (2022-04-16)
+
+### Features
+
+- **esw:** add tips when mult-entries enable ([ee764da](https://github.com/lbwa/esw/commit/ee764dad7783660015cb8febf6d2f7c849f987da))
+- **esw:** more nicely advice to explain why esw didn't invoked ([f964131](https://github.com/lbwa/esw/commit/f9641310d37f7da94c242dd75e8c81c905efeb0a))
+- replace `debug` with `util.debuglog` ([b0e0f07](https://github.com/lbwa/esw/commit/b0e0f07c17aa8a5e3704e8e47101698391aceb6c)), closes [#48](https://github.com/lbwa/esw/issues/48)
+- use private cli parser to support esbuild cli syntax ([b6ae906](https://github.com/lbwa/esw/commit/b6ae906132884f570b738858e238964f469df0f5)), closes [#49](https://github.com/lbwa/esw/issues/49)
+
 ## [0.14.1](https://github.com/lbwa/esw/compare/esw@0.14.0...esw@0.14.1) (2022-03-27)
 
 ### Bug Fixes
